@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
+import 'package:jpn_learning_diary/widgets/app_menu.dart';
 import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 
 void main() async {
@@ -98,6 +99,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppNavigationBar(textController: _textController),
+      drawer: const AppMenu(),
       backgroundColor: Theme.of(context).colorScheme.surface.withAlpha(100),
       body: Center(
         child: Column(

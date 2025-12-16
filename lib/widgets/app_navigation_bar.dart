@@ -1,7 +1,6 @@
 import 'dart:io' show exit;
 
 import 'package:flutter/material.dart';
-import 'package:jpn_learning_diary/widgets/app_menu.dart';
 
 class AppNavigationBar extends StatelessWidget implements PreferredSizeWidget {
   final TextEditingController textController;
@@ -15,7 +14,13 @@ class AppNavigationBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      leading:  const AppMenu(),
+      leading: IconButton(
+        icon: const Icon(Icons.menu),
+        onPressed: () {
+          Scaffold.of(context).openDrawer();
+        },
+        tooltip: 'Menu',
+      ),
       title: Row(
         children: [
           const Spacer(),
