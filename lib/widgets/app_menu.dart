@@ -1,5 +1,10 @@
 import 'dart:io' show exit;
 import 'package:flutter/material.dart';
+import 'package:jpn_learning_diary/screens/dashboard_page.dart';
+import 'package:jpn_learning_diary/screens/hiragana_page.dart';
+import 'package:jpn_learning_diary/screens/katakana_page.dart';
+import 'package:jpn_learning_diary/screens/phrases_words_page.dart';
+import 'package:jpn_learning_diary/screens/settings_page.dart';
 
 class AppMenu extends StatelessWidget {
   const AppMenu({super.key});
@@ -35,12 +40,57 @@ class AppMenu extends StatelessWidget {
             ),
           ),
           ListTile(
+            leading: const Icon(Icons.dashboard),
+            title: const Text('Dashboard'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const DashboardPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.text_fields),
+            title: const Text('Hiragana'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HiraganaPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.text_format),
+            title: const Text('Katakana'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const KatakanaPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.translate),
+            title: const Text('Phrases & Words'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PhrasesWordsPage()),
+              );
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('Settings'),
             onTap: () {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Settings clicked')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
               );
             },
           ),

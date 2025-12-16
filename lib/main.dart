@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
-import 'package:jpn_learning_diary/widgets/app_menu.dart';
-import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
+import 'package:jpn_learning_diary/screens/dashboard_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,13 +44,11 @@ class JapaneseLearningDiary extends StatelessWidget {
       title: appTitle,
       theme: ThemeData(
         colorScheme: ColorScheme.light(
-          // background: tokyoDayBackground,
           surface: tokyoDaySurface,
           primary: tokyoDayPrimary,
           secondary: tokyoDaySecondary,
           tertiary: tokyoDayTertiary,
           error: tokyoDayError,
-          // onBackground: tokyoDayOnBackground,
           onSurface: tokyoDayOnSurface,
           onPrimary: tokyoDayBackground,
           onSecondary: tokyoDayBackground,
@@ -60,13 +57,11 @@ class JapaneseLearningDiary extends StatelessWidget {
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.dark(
-          // background: tokyoNightBackground,
           surface: tokyoNightSurface,
           primary: tokyoNightPrimary,
           secondary: tokyoNightSecondary,
           tertiary: tokyoNightTertiary,
           error: tokyoNightError,
-          // onBackground: tokyoNightOnBackground,
           onSurface: tokyoNightOnSurface,
           onPrimary: tokyoNightBackground,
           onSecondary: tokyoNightBackground,
@@ -74,39 +69,7 @@ class JapaneseLearningDiary extends StatelessWidget {
         useMaterial3: true,
       ),
       themeMode: ThemeMode.system,
-      home: const HomePage(),
-    );
-  }
-}
-
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  final TextEditingController _textController = TextEditingController();
-
-  @override
-  void dispose() {
-    _textController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppNavigationBar(textController: _textController),
-      drawer: const AppMenu(),
-      backgroundColor: Theme.of(context).colorScheme.surface.withAlpha(100),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [],
-        ),
-      ),
+      home: const DashboardPage(),
     );
   }
 }
