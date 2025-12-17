@@ -254,6 +254,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
             tooltip: 'Exit',
           ),
         ),
+        const SizedBox(width: 16),
       ],
     );
   }
