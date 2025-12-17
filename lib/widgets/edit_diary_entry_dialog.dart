@@ -168,7 +168,6 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
             ),
             child: const Text('Delete'),
           ),
-        const Spacer(),
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
           child: const Text('Cancel'),
