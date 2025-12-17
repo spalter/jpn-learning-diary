@@ -5,11 +5,13 @@ import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 /// Base layout widget that provides common UI elements for all pages.
 ///
 /// Wraps page content with:
-/// - Navigation bar with search field
-/// - Side menu drawer
-/// - Consistent background styling
+/// - Navigation bar with search field and navigation buttons
+/// - Consistent background styling with theme colors
+/// - Padding for content area
 ///
 /// This eliminates the need to duplicate these elements in every page.
+/// All application screens should be wrapped with this widget to maintain
+/// consistent UI structure and navigation.
 class BaseLayout extends StatefulWidget {
   /// The main content to display in the page body.
   final Widget child;

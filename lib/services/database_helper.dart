@@ -10,10 +10,17 @@ import 'package:jpn_learning_diary/data/kanji_data.dart';
 ///
 /// Provides CRUD operations for diary entries with a singleton pattern.
 /// Designed to be easily replaceable with an API service later.
+/// 
+/// Uses a singleton pattern to ensure only one database connection exists
+/// throughout the application lifecycle.
 class DatabaseHelper {
+  /// Singleton instance of the database helper.
   static final DatabaseHelper instance = DatabaseHelper._init();
+  
+  /// The SQLite database instance.
   static Database? _database;
 
+  /// Private constructor to enforce singleton pattern.
   DatabaseHelper._init();
 
   /// Gets the database instance, initializing it if necessary.
@@ -91,6 +98,11 @@ class DatabaseHelper {
   }
 
   /// Inserts initial dummy data into the database.
+  /// 
+  /// This provides example entries for new users to demonstrate
+  /// the application's features. Includes common Japanese phrases,
+  /// vocabulary, and usage examples with timestamps spread across
+  /// the last week.
   Future<void> _insertDummyData(Database db) async {
     final dummyEntries = [
       {
@@ -165,6 +177,8 @@ class DatabaseHelper {
   }
 
   /// Creates a new diary entry in the database.
+  /// 
+  /// Returns a copy of the entry with the auto-generated ID populated.
   Future<DiaryEntry> createEntry(DiaryEntry entry) async {
     final db = await database;
     final id = await db.insert('diary_entries', {
@@ -179,6 +193,9 @@ class DatabaseHelper {
   }
 
   /// Retrieves all diary entries from the database.
+  /// 
+  /// Returns entries ordered by date added (newest first) to show
+  /// recent learning progress at the top of lists.
   Future<List<DiaryEntry>> getAllEntries() async {
     final db = await database;
     final result = await db.query(

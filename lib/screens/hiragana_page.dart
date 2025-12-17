@@ -71,22 +71,23 @@ class HiraganaPage extends StatelessWidget {
         const SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, constraints) {
-            // Calculate responsive card size
-            // Base size: 70x100, Max size: 84x120 (20% bigger)
+            // Calculate responsive card size that adapts to window width.
+            // Base size: 70x100, Max size: 84x120 (20% bigger).
+            // This ensures characters remain readable at different window sizes.
             final availableWidth = constraints.maxWidth;
             final spacing = 8.0;
             
-            // Try to fit as many cards as possible, then adjust size
+            // Determine how many cards can fit in a row at base size.
             int cardsPerRow = (availableWidth / (70 + spacing)).floor();
             cardsPerRow = cardsPerRow < 1 ? 1 : cardsPerRow;
             
-            // Calculate card width based on available space
+            // Calculate optimal card width to fill available space.
             double cardWidth = (availableWidth - (cardsPerRow - 1) * spacing) / cardsPerRow;
             
-            // Constrain between min (70) and max (84)
+            // Constrain between min (70px) and max (84px) to maintain readability.
             cardWidth = cardWidth.clamp(70.0, 84.0);
             
-            // Maintain aspect ratio (70:100 = 0.7)
+            // Maintain aspect ratio (70:100 = 0.7) for proper card proportions.
             double cardHeight = cardWidth / 0.7;
             
             return Wrap(
@@ -110,6 +111,13 @@ class HiraganaPage extends StatelessWidget {
     );
   }
 
+  /// Copies the hiragana character to the system clipboard.
+  /// 
+  /// When a character card is tapped, this function copies the Japanese character
+  /// to the clipboard and shows a brief snackbar notification confirming the action.
+  /// 
+  /// [context] The build context for showing the snackbar.
+  /// [character] The character data containing the hiragana to copy.
   void _copyToClipboard(BuildContext context, CharacterData character) {
     Clipboard.setData(ClipboardData(text: character.character));
     ScaffoldMessenger.of(context).showSnackBar(

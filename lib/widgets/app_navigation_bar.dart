@@ -13,9 +13,12 @@ import 'edit_diary_entry_dialog.dart';
 /// Custom app bar with integrated search functionality.
 ///
 /// Provides a navigation bar with:
-/// - Menu button to open the navigation drawer
-/// - Search field with auto-complete suggestions
-/// - Window control buttons (minimize, maximize, close)
+/// - Navigation buttons for diary, hiragana (あ), and katakana (ア) pages
+/// - Add entry button for creating new diary entries
+/// - Search field with submit functionality (searches when text present, navigates to diary when empty)
+/// - Clear button (X) that appears when search has text
+/// - Learning dashboard and settings buttons
+/// - Exit button to close the application
 /// - Custom styling matching the app theme
 class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
   /// Controller for the search text field.
@@ -43,9 +46,30 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
   final FocusNode _focusNode = FocusNode();
 
   @override
+  void initState() {
+    super.initState();
+    // Listen to text changes to show/hide clear button dynamically.
+    // setState is called on every text change to rebuild the suffix icon.
+    widget.textController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
   void dispose() {
     _focusNode.dispose();
     super.dispose();
+  }
+
+  /// Clears the search field and navigates to the diary page.
+  /// 
+  /// This is called when the user clicks the X button in the search field.
+  void _clearAndNavigateToDiary() {
+    widget.textController.clear();
+    Navigator.pushReplacement(
+      context,
+      NoAnimationPageRoute(builder: (context) => const PhrasesWordsPage()),
+    );
   }
 
   @override
@@ -134,10 +158,23 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
                         );
                       }
                     });
+                  } else {
+                    // Navigate to diary page when field is empty
+                    Navigator.pushReplacement(
+                      context,
+                      NoAnimationPageRoute(builder: (context) => const PhrasesWordsPage()),
+                    );
                   }
                 },
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.search),
+                  suffixIcon: widget.textController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.close, size: 20),
+                          tooltip: 'Clear and go to diary',
+                          onPressed: _clearAndNavigateToDiary,
+                        )
+                      : null,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),

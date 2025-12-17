@@ -24,6 +24,10 @@ class _DashboardPageState extends State<DashboardPage> {
     _loadData();
   }
 
+  /// Triggers a reload of dashboard data from the database.
+  /// 
+  /// This is called when the page initializes and whenever a new entry is added.
+  /// Uses setState to trigger a rebuild with fresh data.
   void _loadData() {
     setState(() {
       _dataFuture = _fetchDashboardData();
@@ -137,8 +141,15 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
+/// Internal data model for dashboard statistics.
+/// 
+/// Aggregates database query results into a single structure
+/// for display in the dashboard UI.
 class _DashboardData {
+  /// Total count of all diary entries in the database.
   final int totalEntries;
+  
+  /// The 5 most recently added diary entries.
   final List<DiaryEntry> recentEntries;
 
   _DashboardData({

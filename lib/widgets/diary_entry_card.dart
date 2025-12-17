@@ -52,6 +52,7 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
           hoverColor: Colors.transparent,
+          // Single tap: Copy Japanese text to clipboard.
           onTap: () async {
             await Clipboard.setData(ClipboardData(text: widget.entry.japanese));
             if (context.mounted) {
@@ -63,11 +64,13 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
               );
             }
           },
+          // Long press: Open edit dialog to modify or delete the entry.
           onLongPress: () async {
             final updated = await showDialog<bool>(
               context: context,
               builder: (context) => EditDiaryEntryDialog(entry: widget.entry),
             );
+            // Refresh the parent list if entry was modified.
             if (updated == true && widget.onUpdate != null) {
               widget.onUpdate!();
             }

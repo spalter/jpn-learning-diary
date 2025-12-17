@@ -110,6 +110,13 @@ class KatakanaPage extends StatelessWidget {
     );
   }
 
+  /// Copies the katakana character to the system clipboard.
+  /// 
+  /// When a character card is tapped, this function copies the Japanese character
+  /// to the clipboard and shows a brief snackbar notification confirming the action.
+  /// 
+  /// [context] The build context for showing the snackbar.
+  /// [character] The character data containing the katakana to copy.
   void _copyToClipboard(BuildContext context, CharacterData character) {
     Clipboard.setData(ClipboardData(text: character.character));
     ScaffoldMessenger.of(context).showSnackBar(

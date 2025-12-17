@@ -46,6 +46,7 @@ class _KanjiCardState extends State<KanjiCard> {
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
           hoverColor: Colors.transparent,
+          // Tapping the card copies the kanji character to clipboard.
           onTap: () async {
             await Clipboard.setData(ClipboardData(text: widget.kanji.kanji));
             if (context.mounted) {

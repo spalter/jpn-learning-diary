@@ -129,9 +129,11 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
         ),
       ),
       actions: [
+        // Delete button - only shown when editing an existing entry.
         if (isEditing)
           TextButton(
             onPressed: () async {
+              // Show confirmation dialog to prevent accidental deletion.
               final confirmed = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -153,6 +155,7 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
                 ),
               );
               
+              // If confirmed, delete from database and close dialog.
               if (confirmed == true && context.mounted) {
                 await DatabaseHelper.instance.deleteEntry(widget.entry!.id!);
                 if (context.mounted) {
@@ -172,11 +175,13 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
           onPressed: () => Navigator.of(context).pop(false),
           child: const Text('Cancel'),
         ),
+        // Save button - creates new entry or updates existing one.
         FilledButton(
           onPressed: () async {
             final isEditing = widget.entry != null;
             
             if (isEditing) {
+              // Update existing entry in database with new values.
               final updatedEntry = widget.entry!.copyWith(
                 japanese: _japaneseController.text,
                 furigana: _furiganaController.text.isEmpty ? null : _furiganaController.text,
@@ -186,6 +191,7 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
               );
               await DatabaseHelper.instance.updateEntry(updatedEntry);
             } else {
+              // Create new entry with current timestamp.
               final newEntry = DiaryEntry(
                 japanese: _japaneseController.text,
                 furigana: _furiganaController.text.isEmpty ? null : _furiganaController.text,

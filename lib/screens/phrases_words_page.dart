@@ -24,6 +24,10 @@ class _PhrasesWordsPageState extends State<PhrasesWordsPage> {
     _loadEntries();
   }
 
+  /// Fetches all diary entries from the database.
+  /// 
+  /// This is called when the page initializes and after any entry is added,
+  /// updated, or deleted to ensure the list stays synchronized with the database.
   void _loadEntries() {
     setState(() {
       _entriesFuture = DatabaseHelper.instance.getAllEntries();

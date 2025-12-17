@@ -38,10 +38,17 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     });
   }
 
+  /// Performs a comprehensive search across diary entries and kanji.
+  /// 
+  /// Searches through:
+  /// - Diary entries: Japanese text, furigana, romaji, meaning, and notes
+  /// - Kanji database: character, meanings, and readings
+  /// 
+  /// Returns a [_SearchResults] object containing all matching results.
   Future<_SearchResults> _search() async {
     final db = DatabaseHelper.instance;
     
-    // Search diary entries
+    // Search diary entries across all text fields.
     final allEntries = await db.getAllEntries();
     final diaryResults = allEntries.where((entry) {
       final query = widget.searchQuery.toLowerCase();
@@ -52,7 +59,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
           (entry.notes?.toLowerCase().contains(query) ?? false);
     }).toList();
     
-    // Search kanji
+    // Search kanji database using dedicated search method.
     final kanjiResults = await db.searchKanji(widget.searchQuery);
     
     return _SearchResults(
