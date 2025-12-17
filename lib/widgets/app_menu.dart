@@ -6,6 +6,27 @@ import 'package:jpn_learning_diary/screens/katakana_page.dart';
 import 'package:jpn_learning_diary/screens/phrases_words_page.dart';
 import 'package:jpn_learning_diary/screens/settings_page.dart';
 
+/// Custom page route with no transition animation.
+class NoAnimationPageRoute<T> extends MaterialPageRoute<T> {
+  NoAnimationPageRoute({required super.builder});
+
+  @override
+  Duration get transitionDuration => Duration.zero;
+
+  @override
+  Duration get reverseTransitionDuration => Duration.zero;
+}
+
+/// Navigation menu drawer for the application.
+///
+/// Provides navigation links to all major sections:
+/// - Dashboard
+/// - Hiragana
+/// - Katakana
+/// - Phrases & Words
+/// - Settings
+/// - About dialog
+/// - Exit application
 class AppMenu extends StatelessWidget {
   const AppMenu({super.key});
 
@@ -21,18 +42,19 @@ class AppMenu extends StatelessWidget {
             ),
             padding: const EdgeInsets.all(16),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Icon(
                   Icons.book,
                   size: 48,
                   color: Theme.of(context).colorScheme.onPrimary,
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 8),
                 Text(
-                  'Menu',
+                  'JPN Learning Diary',
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onPrimary,
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -46,7 +68,7 @@ class AppMenu extends StatelessWidget {
               Navigator.pop(context);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const DashboardPage()),
+                NoAnimationPageRoute(builder: (context) => const DashboardPage()),
               );
             },
           ),
@@ -57,7 +79,7 @@ class AppMenu extends StatelessWidget {
               Navigator.pop(context);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const HiraganaPage()),
+                NoAnimationPageRoute(builder: (context) => const HiraganaPage()),
               );
             },
           ),
@@ -68,7 +90,7 @@ class AppMenu extends StatelessWidget {
               Navigator.pop(context);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const KatakanaPage()),
+                NoAnimationPageRoute(builder: (context) => const KatakanaPage()),
               );
             },
           ),
@@ -79,7 +101,7 @@ class AppMenu extends StatelessWidget {
               Navigator.pop(context);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const PhrasesWordsPage()),
+                NoAnimationPageRoute(builder: (context) => const PhrasesWordsPage()),
               );
             },
           ),
@@ -90,7 +112,7 @@ class AppMenu extends StatelessWidget {
               Navigator.pop(context);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const SettingsPage()),
+                NoAnimationPageRoute(builder: (context) => const SettingsPage()),
               );
             },
           ),

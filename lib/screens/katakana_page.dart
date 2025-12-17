@@ -1,30 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:jpn_learning_diary/widgets/app_menu.dart';
-import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
+import 'package:jpn_learning_diary/widgets/base_layout.dart';
 
-class KatakanaPage extends StatefulWidget {
+/// Katakana alphabet learning and practice page.
+///
+/// Displays the katakana character set and provides tools for
+/// learning and practicing katakana reading and writing.
+class KatakanaPage extends StatelessWidget {
   const KatakanaPage({super.key});
 
   @override
-  State<KatakanaPage> createState() => _KatakanaPageState();
-}
-
-class _KatakanaPageState extends State<KatakanaPage> {
-  final TextEditingController _textController = TextEditingController();
-
-  @override
-  void dispose() {
-    _textController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppNavigationBar(textController: _textController),
-      drawer: const AppMenu(),
-      backgroundColor: Theme.of(context).colorScheme.surface.withAlpha(100),
-      body: Center(
+    return BaseLayout(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

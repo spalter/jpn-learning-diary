@@ -2,7 +2,15 @@ import 'dart:io' show exit;
 
 import 'package:flutter/material.dart';
 
+/// Custom app bar with integrated search functionality.
+///
+/// Provides a navigation bar with:
+/// - Menu button to open the navigation drawer
+/// - Search field with auto-complete suggestions
+/// - Window control buttons (minimize, maximize, close)
+/// - Custom styling matching the app theme
 class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
+  /// Controller for the search text field.
   final TextEditingController textController;
 
   const AppNavigationBar({
@@ -17,10 +25,18 @@ class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
+/// State for the navigation bar with search overlay management.
 class _AppNavigationBarState extends State<AppNavigationBar> {
+  /// Focus node for the search text field.
   final FocusNode _focusNode = FocusNode();
+  
+  /// Layer link for positioning the search suggestions overlay.
   final LayerLink _layerLink = LayerLink();
+  
+  /// Global key for the text field to get its position and size.
   final GlobalKey _textFieldKey = GlobalKey();
+  
+  /// The current search suggestions overlay entry.
   OverlayEntry? _overlayEntry;
 
   @override
@@ -37,6 +53,10 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
     super.dispose();
   }
 
+  /// Handles focus changes on the search text field.
+  ///
+  /// Shows the search suggestions overlay when focused,
+  /// hides it when focus is lost.
   void _onFocusChange() {
     if (_focusNode.hasFocus) {
       _showOverlay();
@@ -45,17 +65,23 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
     }
   }
 
+  /// Displays the search suggestions overlay below the search field.
   void _showOverlay() {
     _removeOverlay();
     _overlayEntry = _createOverlayEntry();
     Overlay.of(context).insert(_overlayEntry!);
   }
 
+  /// Removes the search suggestions overlay from the screen.
   void _removeOverlay() {
     _overlayEntry?.remove();
     _overlayEntry = null;
   }
 
+  /// Creates the overlay entry for search suggestions.
+  ///
+  /// Positions the overlay below the search field and styles it
+  /// to match the app theme.
   OverlayEntry _createOverlayEntry() {
     final RenderBox? renderBox = _textFieldKey.currentContext?.findRenderObject() as RenderBox?;
     final width = renderBox?.size.width ?? 400;

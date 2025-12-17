@@ -1,30 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:jpn_learning_diary/widgets/app_menu.dart';
-import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
+import 'package:jpn_learning_diary/widgets/base_layout.dart';
 
-class DashboardPage extends StatefulWidget {
+/// Dashboard page showing learning progress overview.
+///
+/// This is the main landing page of the application, displaying
+/// progress information and statistics about Japanese learning.
+class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
   @override
-  State<DashboardPage> createState() => _DashboardPageState();
-}
-
-class _DashboardPageState extends State<DashboardPage> {
-  final TextEditingController _textController = TextEditingController();
-
-  @override
-  void dispose() {
-    _textController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppNavigationBar(textController: _textController),
-      drawer: const AppMenu(),
-      backgroundColor: Theme.of(context).colorScheme.surface.withAlpha(100),
-      body: Center(
+    return BaseLayout(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

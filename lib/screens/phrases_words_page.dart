@@ -1,30 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:jpn_learning_diary/widgets/app_menu.dart';
-import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
+import 'package:jpn_learning_diary/widgets/base_layout.dart';
 
-class PhrasesWordsPage extends StatefulWidget {
+/// Phrases and words tracking page.
+///
+/// Displays and manages learned Japanese phrases and vocabulary words.
+/// Provides functionality to track learning progress and practice.
+class PhrasesWordsPage extends StatelessWidget {
   const PhrasesWordsPage({super.key});
 
   @override
-  State<PhrasesWordsPage> createState() => _PhrasesWordsPageState();
-}
-
-class _PhrasesWordsPageState extends State<PhrasesWordsPage> {
-  final TextEditingController _textController = TextEditingController();
-
-  @override
-  void dispose() {
-    _textController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppNavigationBar(textController: _textController),
-      drawer: const AppMenu(),
-      backgroundColor: Theme.of(context).colorScheme.surface.withAlpha(100),
-      body: Center(
+    return BaseLayout(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

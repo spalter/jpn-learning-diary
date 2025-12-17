@@ -1,30 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:jpn_learning_diary/widgets/app_menu.dart';
-import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
+import 'package:jpn_learning_diary/widgets/base_layout.dart';
 
-class HiraganaPage extends StatefulWidget {
+/// Hiragana alphabet learning and practice page.
+///
+/// Displays the hiragana character set and provides tools for
+/// learning and practicing hiragana reading and writing.
+class HiraganaPage extends StatelessWidget {
   const HiraganaPage({super.key});
 
   @override
-  State<HiraganaPage> createState() => _HiraganaPageState();
-}
-
-class _HiraganaPageState extends State<HiraganaPage> {
-  final TextEditingController _textController = TextEditingController();
-
-  @override
-  void dispose() {
-    _textController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppNavigationBar(textController: _textController),
-      drawer: const AppMenu(),
-      backgroundColor: Theme.of(context).colorScheme.surface.withAlpha(100),
-      body: Center(
+    return BaseLayout(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
