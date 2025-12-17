@@ -175,6 +175,12 @@ class DatabaseHelper {
     );
   }
 
+  /// Deletes all diary entries from the database.
+  Future<int> deleteAllEntries() async {
+    final db = await database;
+    return await db.delete('diary_entries');
+  }
+
   /// Closes the database connection.
   Future<void> close() async {
     final db = await database;
