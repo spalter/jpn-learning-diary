@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
+import 'package:jpn_learning_diary/widgets/app_about_dialog.dart';
 import 'package:jpn_learning_diary/widgets/base_layout.dart';
 
 /// Application settings and configuration page.
@@ -24,6 +25,35 @@ class _SettingsPageState extends State<SettingsPage> {
           Text(
             'Settings',
             style: Theme.of(context).textTheme.headlineMedium,
+          ),
+          const SizedBox(height: 24),
+          
+          // General Section
+          Text(
+            'General',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: Theme.of(context).colorScheme.primary.withAlpha(50),
+                  width: 1,
+                ),
+              ),
+            ),
+            child: ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text('About'),
+              subtitle: const Text('App information and licenses'),
+              trailing: TextButton(
+                onPressed: () {
+                  showAppAboutDialog(context);
+                },
+                child: const Text('View'),
+              ),
+            ),
           ),
           const SizedBox(height: 24),
           

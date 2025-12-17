@@ -11,6 +11,30 @@ A simple app to track your japanese language learning progress.
 * Search through your diary and the dictionary
 * Local data only (for now)
 
+### Copy to Clipboard
+
+Taping on a element will copy the japanese text to the systems clipboard.
+
+### Modify and Delete Items
+
+To modify items, hold on to the entry for a second, a popup with a edit form should appear. You can also delete entries from there.
+
+
+### Local DB
+
+The local database file should be in either of the following directories:
+
+#### Macos
+
+`/Users/<user>/Library/Containers/com.example.jpnLearningDiary/Data/Documents/diary.db`
+
+#### Windows
+
+Coming Soon™
+
+#### Linux
+
+Coming Soon™
 
 ## Development
 

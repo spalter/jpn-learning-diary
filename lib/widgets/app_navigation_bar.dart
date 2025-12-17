@@ -1,7 +1,12 @@
 import 'dart:io' show exit;
 
 import 'package:flutter/material.dart';
+import 'package:jpn_learning_diary/screens/dashboard_page.dart';
+import 'package:jpn_learning_diary/screens/hiragana_page.dart';
+import 'package:jpn_learning_diary/screens/katakana_page.dart';
+import 'package:jpn_learning_diary/screens/phrases_words_page.dart';
 import 'package:jpn_learning_diary/screens/search_results_page.dart';
+import 'package:jpn_learning_diary/screens/settings_page.dart';
 import 'package:jpn_learning_diary/widgets/app_menu.dart';
 import 'edit_diary_entry_dialog.dart';
 
@@ -56,7 +61,60 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
       ),
       title: Row(
         children: [
-          const Spacer(),
+          // Navigation buttons
+          IconButton(
+            icon: const Icon(Icons.dashboard),
+            tooltip: 'Dashboard',
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                NoAnimationPageRoute(builder: (context) => const DashboardPage()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.text_fields),
+            tooltip: 'Hiragana',
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                NoAnimationPageRoute(builder: (context) => const HiraganaPage()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.text_format),
+            tooltip: 'Katakana',
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                NoAnimationPageRoute(builder: (context) => const KatakanaPage()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.translate),
+            tooltip: 'Phrases & Words',
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                NoAnimationPageRoute(builder: (context) => const PhrasesWordsPage()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Settings',
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                NoAnimationPageRoute(builder: (context) => const SettingsPage()),
+              );
+            },
+          ),
+          const SizedBox(width: 16),
+          
+          // Add entry button
           IconButton(
             icon: const Icon(Icons.add_circle_outline),
             tooltip: 'Add new diary entry',

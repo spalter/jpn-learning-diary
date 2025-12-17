@@ -74,6 +74,17 @@ class AppMenu extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.book),
+            title: const Text('Diary'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                NoAnimationPageRoute(builder: (context) => const PhrasesWordsPage()),
+              );
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.text_fields),
             title: const Text('Hiragana'),
             onTap: () {
@@ -92,17 +103,6 @@ class AppMenu extends StatelessWidget {
               Navigator.push(
                 context,
                 NoAnimationPageRoute(builder: (context) => const KatakanaPage()),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.translate),
-            title: const Text('Phrases & Words'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                NoAnimationPageRoute(builder: (context) => const PhrasesWordsPage()),
               );
             },
           ),
