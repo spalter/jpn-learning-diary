@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:jpn_learning_diary/data/diary_data.dart';
+import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart';
 
 /// Card widget for displaying a single diary entry.
 ///
@@ -33,18 +34,20 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
-      child: Card(
+      child: Container(
         margin: const EdgeInsets.only(bottom: 12, right: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: _isHovering 
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.primary.withAlpha(100),
-            width: _isHovering ? 2 : 1,
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: Theme.of(context).colorScheme.primary.withAlpha(20),
+              width: 2,
+            ),
           ),
         ),
         child: InkWell(
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          hoverColor: Colors.transparent,
           onTap: () async {
             await Clipboard.setData(ClipboardData(text: widget.entry.japanese));
             if (context.mounted) {
@@ -55,6 +58,12 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
                 ),
               );
             }
+          },
+          onLongPress: () {
+            showDialog(
+              context: context,
+              builder: (context) => EditDiaryEntryDialog(entry: widget.entry),
+            );
           },
           borderRadius: BorderRadius.circular(12),
           child: Padding(
@@ -82,23 +91,25 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
                             widget.entry.japanese,
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
+                                  color: _isHovering ? Theme.of(context).colorScheme.primary : null,
                                 ),
                           ),
                         ],
                       ),
                     ),
+
                     // Date badge
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         DateFormat('MMM d').format(widget.entry.dateAdded),
                         style: TextStyle(
                           fontSize: 14,
-                          color: Theme.of(context).colorScheme.onPrimary,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                     ),
@@ -128,32 +139,25 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
                 // Notes (if available)
                 if (widget.entry.notes != null && widget.entry.notes!.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.note,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            widget.entry.notes!,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.note,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          widget.entry.notes!,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ],

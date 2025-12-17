@@ -149,6 +149,17 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
       title: Row(
         children: [
           const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline),
+            tooltip: 'Add new diary entry',
+            onPressed: () {
+              // TODO: Show add diary entry dialog
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Add new entry (placeholder)')),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
           Expanded(
             flex: 3,
             child: CompositedTransformTarget(

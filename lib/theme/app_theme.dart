@@ -17,7 +17,7 @@ class AppTheme {
   /// Alpha transparency value for scaffold backgrounds (0-255).
   ///
   /// Higher values are more opaque. Currently set to 200 for a semi-transparent effect.
-  static const int scaffoldBackgroundAlpha = 200;
+  static const int scaffoldBackgroundAlpha = 150;
 
   // Tokyo Night Storm colors (Dark Mode)
   
