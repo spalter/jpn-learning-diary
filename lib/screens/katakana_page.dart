@@ -15,9 +15,11 @@ class KatakanaPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BaseLayout(
       child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        child: Padding(
+          padding: const EdgeInsets.only(right: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // Base Characters Section
             _buildSection(
               context,
@@ -48,7 +50,8 @@ class KatakanaPage extends StatelessWidget {
               title: 'Combinations (Yōon)',
               characters: KatakanaData.combinations,
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );

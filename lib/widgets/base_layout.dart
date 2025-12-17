@@ -63,7 +63,7 @@ class _BaseLayoutState extends State<BaseLayout> {
       ),
       backgroundColor: AppTheme.scaffoldBackground(context),
       body: Padding(
-        padding: const EdgeInsets.only(left: 16, top: 16, right: 16, bottom: 0),
+        padding: const EdgeInsets.only(left: 16, top: 16, right:0, bottom: 0),
         child: widget.child,
       ),
     );

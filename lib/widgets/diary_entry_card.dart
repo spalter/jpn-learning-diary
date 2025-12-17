@@ -51,6 +51,7 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
         child: InkWell(
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
+          focusColor: Theme.of(context).colorScheme.primary.withAlpha(30),
           hoverColor: Colors.transparent,
           // Single tap: Copy Japanese text to clipboard.
           onTap: () async {

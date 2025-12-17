@@ -79,58 +79,66 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
       title: Row(
         children: [
           // Navigation buttons
-          IconButton(
-            icon: const Icon(Icons.menu_book),
-            tooltip: 'Diary (Phrases & Words)',
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                NoAnimationPageRoute(builder: (context) => const PhrasesWordsPage()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Text(
-              'あ',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ExcludeFocus(
+            child: IconButton(
+              icon: const Icon(Icons.menu_book),
+              tooltip: 'Diary (Phrases & Words)',
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  NoAnimationPageRoute(builder: (context) => const PhrasesWordsPage()),
+                );
+              },
             ),
-            tooltip: 'Hiragana',
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                NoAnimationPageRoute(builder: (context) => const HiraganaPage()),
-              );
-            },
           ),
-          IconButton(
-            icon: const Text(
-              'ア',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ExcludeFocus(
+            child: IconButton(
+              icon: const Text(
+                'あ',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              tooltip: 'Hiragana',
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  NoAnimationPageRoute(builder: (context) => const HiraganaPage()),
+                );
+              },
             ),
-            tooltip: 'Katakana',
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                NoAnimationPageRoute(builder: (context) => const KatakanaPage()),
-              );
-            },
+          ),
+          ExcludeFocus(
+            child: IconButton(
+              icon: const Text(
+                'ア',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              tooltip: 'Katakana',
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  NoAnimationPageRoute(builder: (context) => const KatakanaPage()),
+                );
+              },
+            ),
           ),
           const Spacer(),
           
           // Add entry button
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline),
-            tooltip: 'Add new diary entry',
-            onPressed: () async {
-              final result = await showDialog<bool>(
-                context: context,
-                builder: (context) => const EditDiaryEntryDialog(),
-              );
-              
-              if (result == true) {
-                widget.onEntryAdded?.call();
-              }
-            },
+          ExcludeFocus(
+            child: IconButton(
+              icon: const Icon(Icons.add_circle_outline),
+              tooltip: 'Add new diary entry',
+              onPressed: () async {
+                final result = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => const EditDiaryEntryDialog(),
+                );
+                
+                if (result == true) {
+                  widget.onEntryAdded?.call();
+                }
+              },
+            ),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -203,32 +211,38 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
         ],
       ),
       actions: [
-          IconButton(
-            icon: const Icon(Icons.leaderboard),
-            tooltip: 'Learning',
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                NoAnimationPageRoute(builder: (context) => const DashboardPage()),
-              );
-            },
+          ExcludeFocus(
+            child: IconButton(
+              icon: const Icon(Icons.leaderboard),
+              tooltip: 'Learning',
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  NoAnimationPageRoute(builder: (context) => const DashboardPage()),
+                );
+              },
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Settings',
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                NoAnimationPageRoute(builder: (context) => const SettingsPage()),
-              );
-            },
+          ExcludeFocus(
+            child: IconButton(
+              icon: const Icon(Icons.settings),
+              tooltip: 'Settings',
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  NoAnimationPageRoute(builder: (context) => const SettingsPage()),
+                );
+              },
+            ),
           ),
-        IconButton(
-          onPressed: () {
-            exit(0);
-          },
-          icon: const Icon(Icons.close),
-          tooltip: 'Exit',
+        ExcludeFocus(
+          child: IconButton(
+            onPressed: () {
+              exit(0);
+            },
+            icon: const Icon(Icons.close),
+            tooltip: 'Exit',
+          ),
         ),
       ],
     );
