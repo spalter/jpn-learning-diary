@@ -5,7 +5,8 @@
 library;
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
-import 'package:jpn_learning_diary/screens/dashboard_page.dart';
+import 'package:window_manager/window_manager.dart';
+import 'package:jpn_learning_diary/screens/phrases_words_page.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 
 /// Main entry point of the application.
@@ -14,6 +15,7 @@ import 'package:jpn_learning_diary/theme/app_theme.dart';
 /// - Sets up Mica effect for modern Windows appearance
 /// - Configures transparent titlebar
 /// - Hides default window controls for custom UI
+/// - Sets minimum window size to 700x300
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Window.initialize();
@@ -22,6 +24,10 @@ void main() async {
   await Window.makeTitlebarTransparent();
   await Window.enableFullSizeContentView();
   await Window.hideWindowControls();
+
+  // Initialize window manager and set minimum size
+  await windowManager.ensureInitialized();
+  await windowManager.setMinimumSize(const Size(700, 300));
 
   runApp(const JapaneseLearningDiary());
 }
@@ -67,7 +73,7 @@ class JapaneseLearningDiary extends StatelessWidget {
         useMaterial3: true,
       ),
       themeMode: ThemeMode.system,
-      home: const DashboardPage(),
+      home: const PhrasesWordsPage()
     );
   }
 }

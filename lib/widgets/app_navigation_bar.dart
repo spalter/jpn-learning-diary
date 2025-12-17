@@ -52,28 +52,24 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      leading: IconButton(
-        icon: const Icon(Icons.menu),
-        onPressed: () {
-          Scaffold.of(context).openDrawer();
-        },
-        tooltip: 'Menu',
-      ),
       title: Row(
         children: [
           // Navigation buttons
           IconButton(
-            icon: const Icon(Icons.dashboard),
-            tooltip: 'Dashboard',
+            icon: const Icon(Icons.menu_book),
+            tooltip: 'Diary (Phrases & Words)',
             onPressed: () {
               Navigator.pushReplacement(
                 context,
-                NoAnimationPageRoute(builder: (context) => const DashboardPage()),
+                NoAnimationPageRoute(builder: (context) => const PhrasesWordsPage()),
               );
             },
           ),
           IconButton(
-            icon: const Icon(Icons.text_fields),
+            icon: const Text(
+              'あ',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
             tooltip: 'Hiragana',
             onPressed: () {
               Navigator.pushReplacement(
@@ -83,7 +79,10 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.text_format),
+            icon: const Text(
+              'ア',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
             tooltip: 'Katakana',
             onPressed: () {
               Navigator.pushReplacement(
@@ -92,27 +91,7 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.translate),
-            tooltip: 'Phrases & Words',
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                NoAnimationPageRoute(builder: (context) => const PhrasesWordsPage()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Settings',
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                NoAnimationPageRoute(builder: (context) => const SettingsPage()),
-              );
-            },
-          ),
-          const SizedBox(width: 16),
+          const Spacer(),
           
           // Add entry button
           IconButton(
@@ -138,7 +117,7 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
               textAlign: TextAlign.left,
               onSubmitted: (value) {
                 if (value.trim().isNotEmpty) {
-                  Navigator.push(
+                  Navigator.pushReplacement(
                       context,
                       NoAnimationPageRoute(
                         builder: (context) => SearchResultsPage(
@@ -187,6 +166,26 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
         ],
       ),
       actions: [
+          IconButton(
+            icon: const Icon(Icons.leaderboard),
+            tooltip: 'Learning',
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                NoAnimationPageRoute(builder: (context) => const DashboardPage()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Settings',
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                NoAnimationPageRoute(builder: (context) => const SettingsPage()),
+              );
+            },
+          ),
         IconButton(
           onPressed: () {
             exit(0);

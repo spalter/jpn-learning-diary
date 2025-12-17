@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
-import 'package:jpn_learning_diary/widgets/app_menu.dart';
 import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 
 /// Base layout widget that provides common UI elements for all pages.
@@ -60,7 +59,6 @@ class _BaseLayoutState extends State<BaseLayout> {
         textController: _textController,
         onEntryAdded: widget.onEntryAdded,
       ),
-      drawer: const AppMenu(),
       backgroundColor: AppTheme.scaffoldBackground(context),
       body: Padding(
         padding: const EdgeInsets.only(left: 16, top: 16, right: 16, bottom: 0),

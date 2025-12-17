@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/data/hiragana_data.dart';
 import 'package:jpn_learning_diary/widgets/base_layout.dart';
 import 'package:jpn_learning_diary/widgets/character_card.dart';
@@ -98,7 +99,7 @@ class HiraganaPage extends StatelessWidget {
                   child: CharacterCard(
                     character: char.character,
                     romanization: char.romanization,
-                    onTap: () => _showCharacterDetails(context, char),
+                    onTap: () => _copyToClipboard(context, char),
                   ),
                 );
               }).toList(),
@@ -109,36 +110,12 @@ class HiraganaPage extends StatelessWidget {
     );
   }
 
-  void _showCharacterDetails(BuildContext context, CharacterData character) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          character.character,
-          style: const TextStyle(fontSize: 48),
-          textAlign: TextAlign.center,
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Romanization: ${character.romanization}',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              character.description ?? 'More information coming soon...',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
-          ),
-        ],
+  void _copyToClipboard(BuildContext context, CharacterData character) {
+    Clipboard.setData(ClipboardData(text: character.character));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Copied ${character.character} (${character.romanization}) to clipboard'),
+        duration: const Duration(seconds: 1),
       ),
     );
   }

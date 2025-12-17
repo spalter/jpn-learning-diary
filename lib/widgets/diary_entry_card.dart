@@ -43,7 +43,7 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: Theme.of(context).colorScheme.primary.withAlpha(20),
+              color: Theme.of(context).colorScheme.primary.withAlpha(0),
               width: 2,
             ),
           ),
@@ -149,12 +149,6 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.note,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           widget.entry.notes!,
