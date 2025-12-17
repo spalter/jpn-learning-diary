@@ -1,6 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:jpn_learning_diary/data/diary_data.dart';
+import 'package:jpn_learning_diary/data/kanji_data.dart';
 
 /// Database helper for managing diary entries in SQLite.
 ///
@@ -26,8 +30,9 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _upgradeDB,
     );
   }
 
@@ -47,6 +52,42 @@ class DatabaseHelper {
 
     // Insert dummy data for initial setup
     await _insertDummyData(db);
+    
+    // Create kanji table
+    await _createKanjiTable(db);
+  }
+
+  /// Upgrades the database schema when version changes.
+  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Add kanji table if upgrading from version 1
+      await _createKanjiTable(db);
+    }
+  }
+
+  /// Creates the kanji table and loads data from JSON.
+  Future<void> _createKanjiTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS kanji (
+        kanji TEXT PRIMARY KEY,
+        strokes INTEGER NOT NULL,
+        grade INTEGER,
+        freq INTEGER,
+        jlpt_old INTEGER,
+        jlpt_new INTEGER,
+        meanings TEXT NOT NULL,
+        readings_on TEXT NOT NULL,
+        readings_kun TEXT NOT NULL,
+        wk_level INTEGER,
+        wk_meanings TEXT,
+        wk_readings_on TEXT,
+        wk_readings_kun TEXT,
+        wk_radicals TEXT
+      )
+    ''');
+    
+    // Load kanji data from JSON
+    await _loadKanjiData(db);
   }
 
   /// Inserts initial dummy data into the database.
@@ -179,6 +220,134 @@ class DatabaseHelper {
   Future<int> deleteAllEntries() async {
     final db = await database;
     return await db.delete('diary_entries');
+  }
+
+  /// Loads kanji data from JSON asset into the database.
+  Future<void> _loadKanjiData(Database db) async {
+    try {
+      // Check if kanji data already exists
+      final count = Sqflite.firstIntValue(
+        await db.rawQuery('SELECT COUNT(*) FROM kanji'),
+      );
+      
+      if (count != null && count > 0) {
+        return; // Data already loaded
+      }
+
+      // Load JSON from assets
+      final String jsonString = await rootBundle.loadString('lib/assets/kanji_data.json');
+      final Map<String, dynamic> jsonData = json.decode(jsonString);
+
+      // Insert kanji data in batches for better performance
+      var batch = db.batch();
+      int batchCount = 0;
+      
+      for (var entry in jsonData.entries) {
+        final kanjiData = KanjiData.fromJson(entry.key, entry.value);
+        batch.insert('kanji', kanjiData.toMap());
+        batchCount++;
+        
+        // Commit batch every 500 entries and create a new batch
+        if (batchCount >= 500) {
+          await batch.commit(noResult: true);
+          batch = db.batch(); // Create new batch
+          batchCount = 0;
+        }
+      }
+      
+      // Commit remaining entries
+      if (batchCount > 0) {
+        await batch.commit(noResult: true);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Gets the count of kanji entries in the database (for debugging).
+  Future<int> getKanjiCount() async {
+    final db = await database;
+    final count = Sqflite.firstIntValue(
+      await db.rawQuery('SELECT COUNT(*) FROM kanji'),
+    );
+    return count ?? 0;
+  }
+
+  /// Searches for kanji by character, meaning, or reading.
+  /// Also extracts individual kanji characters from the query for more flexible matching.
+  Future<List<KanjiData>> searchKanji(String query) async {
+    final db = await database;
+    try {
+      final results = <String, KanjiData>{};
+      
+      // First, search by meaning and readings (original behavior)
+      final textResults = await db.query(
+        'kanji',
+        where: 'meanings LIKE ? OR readings_on LIKE ? OR readings_kun LIKE ?',
+        whereArgs: ['%$query%', '%$query%', '%$query%'],
+        limit: 50,
+      );
+      for (var json in textResults) {
+        final kanji = KanjiData.fromMap(json);
+        results[kanji.kanji] = kanji;
+      }
+      
+      // Extract individual kanji characters from the query
+      final kanjiPattern = RegExp(r'[\u4E00-\u9FFF\u3400-\u4DBF]');
+      final matches = kanjiPattern.allMatches(query);
+      
+      for (var match in matches) {
+        final kanjiChar = match.group(0)!;
+        final charResults = await db.query(
+          'kanji',
+          where: 'kanji = ?',
+          whereArgs: [kanjiChar],
+        );
+        for (var json in charResults) {
+          final kanji = KanjiData.fromMap(json);
+          results[kanji.kanji] = kanji;
+        }
+      }
+      
+      return results.values.take(50).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Gets a specific kanji by its character.
+  Future<KanjiData?> getKanji(String kanji) async {
+    final db = await database;
+    final result = await db.query(
+      'kanji',
+      where: 'kanji = ?',
+      whereArgs: [kanji],
+    );
+    if (result.isEmpty) return null;
+    return KanjiData.fromMap(result.first);
+  }
+
+  /// Gets the full path to the database file.
+  Future<String> getDatabasePath() async {
+    final dbPath = await getDatabasesPath();
+    return join(dbPath, 'diary.db');
+  }
+
+  /// Deletes the entire database file and resets the instance.
+  /// This will remove all data including diary entries and kanji.
+  Future<void> deleteDatabase() async {
+    try {
+      final path = await getDatabasePath();
+      await close();
+      _database = null;
+      
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (e) {
+      rethrow;
+    }
   }
 
   /// Closes the database connection.

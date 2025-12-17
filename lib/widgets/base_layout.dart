@@ -20,12 +20,16 @@ class BaseLayout extends StatefulWidget {
   
   /// Optional callback when a new entry is added.
   final VoidCallback? onEntryAdded;
+  
+  /// Optional initial text for the search field.
+  final String? initialSearchText;
 
   const BaseLayout({
     super.key,
     required this.child,
     this.title,
     this.onEntryAdded,
+    this.initialSearchText,
   });
 
   @override
@@ -35,7 +39,13 @@ class BaseLayout extends StatefulWidget {
 /// State for the base layout, managing search field state.
 class _BaseLayoutState extends State<BaseLayout> {
   /// Text controller for the search field in the navigation bar.
-  final TextEditingController _textController = TextEditingController();
+  late final TextEditingController _textController;
+
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: widget.initialSearchText ?? '');
+  }
 
   @override
   void dispose() {

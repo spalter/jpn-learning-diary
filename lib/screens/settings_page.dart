@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/widgets/base_layout.dart';
@@ -91,6 +92,109 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
+          
+          // Debug Section (only in debug mode)
+          if (kDebugMode) ...[
+            const SizedBox(height: 24),
+            Text(
+              'Debug',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: Theme.of(context).colorScheme.primary.withAlpha(50),
+                  width: 1,
+                ),
+              ),
+            ),
+            child: ListTile(
+              leading: Icon(
+                Icons.folder,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              title: const Text('Database Location'),
+              subtitle: FutureBuilder<String>(
+                future: DatabaseHelper.instance.getDatabasePath(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return SelectableText(
+                      snapshot.data!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontFamily: 'monospace',
+                      ),
+                    );
+                  }
+                  return const Text('Loading...');
+                },
+              ),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: Theme.of(context).colorScheme.primary.withAlpha(50),
+                  width: 1,
+                ),
+              ),
+            ),
+            child: ListTile(
+              leading: Icon(
+                Icons.delete_sweep,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              title: const Text('Delete Entire Database'),
+              subtitle: const Text('Remove database file and reload on restart'),
+              trailing: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                ),
+                onPressed: () async {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Delete Database'),
+                      content: const Text(
+                        'Are you sure you want to delete the entire database? '
+                        'This will remove all diary entries and kanji data. '
+                        'The app will restart with a fresh database.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('Cancel'),
+                        ),
+                        FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.error,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: const Text('Delete Database'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirmed == true && mounted) {
+                    await DatabaseHelper.instance.deleteDatabase();
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Database deleted. Please restart the app.'),
+                          duration: Duration(seconds: 5),
+                        ),
+                      );
+                    }
+                  }
+                },
+                child: const Text('Delete DB'),
+              ),
+            ),
+          ),
+          ],
         ],
       ),
     );

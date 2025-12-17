@@ -5,6 +5,7 @@ import 'package:jpn_learning_diary/screens/hiragana_page.dart';
 import 'package:jpn_learning_diary/screens/katakana_page.dart';
 import 'package:jpn_learning_diary/screens/phrases_words_page.dart';
 import 'package:jpn_learning_diary/screens/settings_page.dart';
+import 'package:jpn_learning_diary/widgets/app_about_dialog.dart';
 
 /// Custom page route with no transition animation.
 class NoAnimationPageRoute<T> extends MaterialPageRoute<T> {
@@ -121,7 +122,7 @@ class AppMenu extends StatelessWidget {
             title: const Text('About'),
             onTap: () {
               Navigator.pop(context);
-              _showAboutDialog(context);
+              showAppAboutDialog(context);
             },
           ),
           ListTile(
@@ -130,22 +131,6 @@ class AppMenu extends StatelessWidget {
             onTap: () {
               exit(0);
             },
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAboutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('About'),
-        content: const Text('Japanese Learning Diary\nVersion 1.0.0'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
           ),
         ],
       ),
