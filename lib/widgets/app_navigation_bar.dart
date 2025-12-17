@@ -1,6 +1,7 @@
 import 'dart:io' show exit;
 
 import 'package:flutter/material.dart';
+import 'edit_diary_entry_dialog.dart';
 
 /// Custom app bar with integrated search functionality.
 ///
@@ -12,10 +13,14 @@ import 'package:flutter/material.dart';
 class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
   /// Controller for the search text field.
   final TextEditingController textController;
+  
+  /// Optional callback when a new entry is added.
+  final VoidCallback? onEntryAdded;
 
   const AppNavigationBar({
     super.key,
     required this.textController,
+    this.onEntryAdded,
   });
 
   @override
@@ -152,11 +157,15 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
           IconButton(
             icon: const Icon(Icons.add_circle_outline),
             tooltip: 'Add new diary entry',
-            onPressed: () {
-              // TODO: Show add diary entry dialog
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Add new entry (placeholder)')),
+            onPressed: () async {
+              final result = await showDialog<bool>(
+                context: context,
+                builder: (context) => const EditDiaryEntryDialog(),
               );
+              
+              if (result == true) {
+                widget.onEntryAdded?.call();
+              }
             },
           ),
           const SizedBox(width: 8),

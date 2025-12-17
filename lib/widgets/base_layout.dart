@@ -17,11 +17,15 @@ class BaseLayout extends StatefulWidget {
   
   /// Optional page title to display (currently unused, but available for future use).
   final String? title;
+  
+  /// Optional callback when a new entry is added.
+  final VoidCallback? onEntryAdded;
 
   const BaseLayout({
     super.key,
     required this.child,
     this.title,
+    this.onEntryAdded,
   });
 
   @override
@@ -42,7 +46,10 @@ class _BaseLayoutState extends State<BaseLayout> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppNavigationBar(textController: _textController),
+      appBar: AppNavigationBar(
+        textController: _textController,
+        onEntryAdded: widget.onEntryAdded,
+      ),
       drawer: const AppMenu(),
       backgroundColor: AppTheme.scaffoldBackground(context),
       body: Padding(

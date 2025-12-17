@@ -1,7 +1,7 @@
 /// Model for a learned word or phrase entry in the diary.
 class DiaryEntry {
   /// Unique identifier for the entry.
-  final String id;
+  final int? id;
   
   /// Japanese text (kanji/kana).
   final String japanese;
@@ -22,7 +22,7 @@ class DiaryEntry {
   final DateTime dateAdded;
 
   const DiaryEntry({
-    required this.id,
+    this.id,
     required this.japanese,
     this.furigana,
     required this.romaji,
@@ -30,82 +30,51 @@ class DiaryEntry {
     this.notes,
     required this.dateAdded,
   });
-}
 
-/// Sample diary entries for demonstration.
-class DiaryData {
-  static final List<DiaryEntry> dummyEntries = [
-    DiaryEntry(
-      id: '1',
-      japanese: 'こんにちは',
-      furigana: 'こんにちは',
-      romaji: 'konnichiwa',
-      meaning: 'Hello, Good afternoon',
-      notes: 'Common greeting used during the day',
-      dateAdded: DateTime(2025, 12, 15),
-    ),
-    DiaryEntry(
-      id: '2',
-      japanese: '食べる',
-      furigana: 'たべる',
-      romaji: 'taberu',
-      meaning: 'to eat',
-      notes: 'Ichidan verb - basic daily verb',
-      dateAdded: DateTime(2025, 12, 14),
-    ),
-    DiaryEntry(
-      id: '3',
-      japanese: '図書館',
-      furigana: 'としょかん',
-      romaji: 'toshokan',
-      meaning: 'library',
-      notes: 'Useful for studying, remember the kanji: 図(diagram) 書(writing) 館(building)',
-      dateAdded: DateTime(2025, 12, 13),
-    ),
-    DiaryEntry(
-      id: '4',
-      japanese: 'ありがとう',
-      furigana: 'ありがとう',
-      romaji: 'arigatou',
-      meaning: 'Thank you',
-      notes: 'More polite form: ありがとうございます (arigatou gozaimasu)',
-      dateAdded: DateTime(2025, 12, 12),
-    ),
-    DiaryEntry(
-      id: '5',
-      japanese: '勉強する',
-      furigana: 'べんきょうする',
-      romaji: 'benkyou suru',
-      meaning: 'to study',
-      notes: 'Suru verb - very important for student life!',
-      dateAdded: DateTime(2025, 12, 11),
-    ),
-    DiaryEntry(
-      id: '6',
-      japanese: '美味しい',
-      furigana: 'おいしい',
-      romaji: 'oishii',
-      meaning: 'delicious',
-      notes: 'I-adjective, use it when eating good food',
-      dateAdded: DateTime(2025, 12, 10),
-    ),
-    DiaryEntry(
-      id: '7',
-      japanese: 'お願いします',
-      furigana: 'おねがいします',
-      romaji: 'onegai shimasu',
-      meaning: 'please',
-      notes: 'Very polite way to make a request',
-      dateAdded: DateTime(2025, 12, 9),
-    ),
-    DiaryEntry(
-      id: '8',
-      japanese: '明日',
-      furigana: 'あした',
-      romaji: 'ashita',
-      meaning: 'tomorrow',
-      notes: 'Can also be read as みょうにち (myounichi) in formal contexts',
-      dateAdded: DateTime(2025, 12, 8),
-    ),
-  ];
+  /// Creates a DiaryEntry from a database map.
+  factory DiaryEntry.fromMap(Map<String, dynamic> map) {
+    return DiaryEntry(
+      id: map['id'] as int?,
+      japanese: map['japanese'] as String,
+      furigana: map['furigana'] as String?,
+      romaji: map['romaji'] as String,
+      meaning: map['meaning'] as String,
+      notes: map['notes'] as String?,
+      dateAdded: DateTime.fromMillisecondsSinceEpoch(map['date_added'] as int),
+    );
+  }
+
+  /// Converts the DiaryEntry to a database map.
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'japanese': japanese,
+      'furigana': furigana,
+      'romaji': romaji,
+      'meaning': meaning,
+      'notes': notes,
+      'date_added': dateAdded.millisecondsSinceEpoch,
+    };
+  }
+
+  /// Creates a copy of this entry with the given fields replaced.
+  DiaryEntry copyWith({
+    int? id,
+    String? japanese,
+    String? furigana,
+    String? romaji,
+    String? meaning,
+    String? notes,
+    DateTime? dateAdded,
+  }) {
+    return DiaryEntry(
+      id: id ?? this.id,
+      japanese: japanese ?? this.japanese,
+      furigana: furigana ?? this.furigana,
+      romaji: romaji ?? this.romaji,
+      meaning: meaning ?? this.meaning,
+      notes: notes ?? this.notes,
+      dateAdded: dateAdded ?? this.dateAdded,
+    );
+  }
 }

@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/data/diary_data.dart';
+import 'package:jpn_learning_diary/services/database_helper.dart';
 
-/// Dialog for editing a diary entry.
+/// Dialog for creating or editing a diary entry.
 ///
 /// Displays input fields for all diary entry properties with
 /// save and cancel actions.
 class EditDiaryEntryDialog extends StatefulWidget {
-  /// The diary entry to edit.
-  final DiaryEntry entry;
+  /// The diary entry to edit. If null, creates a new entry.
+  final DiaryEntry? entry;
 
   const EditDiaryEntryDialog({
     super.key,
-    required this.entry,
+    this.entry,
   });
 
   @override
@@ -28,11 +29,11 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
   @override
   void initState() {
     super.initState();
-    _japaneseController = TextEditingController(text: widget.entry.japanese);
-    _furiganaController = TextEditingController(text: widget.entry.furigana);
-    _romajiController = TextEditingController(text: widget.entry.romaji);
-    _meaningController = TextEditingController(text: widget.entry.meaning);
-    _notesController = TextEditingController(text: widget.entry.notes);
+    _japaneseController = TextEditingController(text: widget.entry?.japanese ?? '');
+    _furiganaController = TextEditingController(text: widget.entry?.furigana ?? '');
+    _romajiController = TextEditingController(text: widget.entry?.romaji ?? '');
+    _meaningController = TextEditingController(text: widget.entry?.meaning ?? '');
+    _notesController = TextEditingController(text: widget.entry?.notes ?? '');
   }
 
   @override
@@ -47,8 +48,9 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.entry != null;
     return AlertDialog(
-      title: const Text('Edit Entry'),
+      title: Text(isEditing ? 'Edit Entry' : 'Add Entry'),
       content: SingleChildScrollView(
         child: SizedBox(
           width: 500,
@@ -127,17 +129,81 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
         ),
       ),
       actions: [
+        if (isEditing)
+          TextButton(
+            onPressed: () async {
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Delete Entry'),
+                  content: const Text('Are you sure you want to delete this entry? This cannot be undone.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel'),
+                    ),
+                    FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Delete'),
+                    ),
+                  ],
+                ),
+              );
+              
+              if (confirmed == true && context.mounted) {
+                await DatabaseHelper.instance.deleteEntry(widget.entry!.id!);
+                if (context.mounted) {
+                  Navigator.of(context).pop(true);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Entry deleted')),
+                  );
+                }
+              }
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        const Spacer(),
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(context).pop(false),
           child: const Text('Cancel'),
         ),
         FilledButton(
-          onPressed: () {
-            // TODO: Save the edited entry
-            Navigator.of(context).pop();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Entry saved (placeholder)')),
-            );
+          onPressed: () async {
+            final isEditing = widget.entry != null;
+            
+            if (isEditing) {
+              final updatedEntry = widget.entry!.copyWith(
+                japanese: _japaneseController.text,
+                furigana: _furiganaController.text.isEmpty ? null : _furiganaController.text,
+                romaji: _romajiController.text,
+                meaning: _meaningController.text,
+                notes: _notesController.text.isEmpty ? null : _notesController.text,
+              );
+              await DatabaseHelper.instance.updateEntry(updatedEntry);
+            } else {
+              final newEntry = DiaryEntry(
+                japanese: _japaneseController.text,
+                furigana: _furiganaController.text.isEmpty ? null : _furiganaController.text,
+                romaji: _romajiController.text,
+                meaning: _meaningController.text,
+                notes: _notesController.text.isEmpty ? null : _notesController.text,
+                dateAdded: DateTime.now(),
+              );
+              await DatabaseHelper.instance.createEntry(newEntry);
+            }
+            
+            if (context.mounted) {
+              Navigator.of(context).pop(true);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(isEditing ? 'Entry saved' : 'Entry added')),
+              );
+            }
           },
           child: const Text('Save'),
         ),

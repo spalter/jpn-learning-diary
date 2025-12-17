@@ -13,6 +13,9 @@ class DiaryEntryCard extends StatefulWidget {
   /// The diary entry to display.
   final DiaryEntry entry;
 
+  /// Callback when the entry is updated.
+  final VoidCallback? onUpdate;
+
   /// Creates a diary entry card.
   ///
   /// The [entry] parameter is required and contains all the information
@@ -20,6 +23,7 @@ class DiaryEntryCard extends StatefulWidget {
   const DiaryEntryCard({
     super.key,
     required this.entry,
+    this.onUpdate,
   });
 
   @override
@@ -59,11 +63,14 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
               );
             }
           },
-          onLongPress: () {
-            showDialog(
+          onLongPress: () async {
+            final updated = await showDialog<bool>(
               context: context,
               builder: (context) => EditDiaryEntryDialog(entry: widget.entry),
             );
+            if (updated == true && widget.onUpdate != null) {
+              widget.onUpdate!();
+            }
           },
           borderRadius: BorderRadius.circular(12),
           child: Padding(
