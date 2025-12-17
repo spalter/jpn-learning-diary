@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:jpn_learning_diary/data/diary_data.dart';
 import 'package:jpn_learning_diary/widgets/base_layout.dart';
+import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 
 /// Phrases and words tracking page.
 ///
@@ -11,27 +13,20 @@ class PhrasesWordsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BaseLayout(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.translate,
-              size: 64,
-              color: Theme.of(context).colorScheme.primary,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Entries list
+          Expanded(
+            child: ListView.builder(
+              itemCount: DiaryData.dummyEntries.length,
+              itemBuilder: (context, index) {
+                final entry = DiaryData.dummyEntries[index];
+                return DiaryEntryCard(entry: entry);
+              },
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Phrases & Words',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Learned phrases and words will be displayed here',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
