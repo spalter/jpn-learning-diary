@@ -38,6 +38,111 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     });
   }
 
+  /// Calculate the total number of items to display in the list.
+  int _buildItemCount(_SearchResults results) {
+    int count = 0;
+    if (results.diaryEntries.isNotEmpty) {
+      count += 2; // Header + spacing
+      count += results.diaryEntries.length;
+      count += 1; // Spacing after section
+    }
+    if (results.kanji.isNotEmpty) {
+      count += 2; // Header + spacing
+      count += results.kanji.length;
+    }
+    return count;
+  }
+
+  /// Build individual items for the list based on their position.
+  Widget _buildItem(BuildContext context, _SearchResults results, int index) {
+    int currentIndex = 0;
+    
+    // Diary Entries Section
+    if (results.diaryEntries.isNotEmpty) {
+      if (index == currentIndex) {
+        // Diary entries header
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Row(
+            children: [
+              Icon(
+                Icons.book,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Diary Entries (${results.diaryEntries.length})',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+      currentIndex++;
+      
+      if (index == currentIndex) {
+        return const SizedBox(height: 0); // Spacing placeholder
+      }
+      currentIndex++;
+      
+      // Diary entry cards
+      if (index < currentIndex + results.diaryEntries.length) {
+        final entryIndex = index - currentIndex;
+        return DiaryEntryCard(
+          entry: results.diaryEntries[entryIndex],
+          onUpdate: _performSearch,
+        );
+      }
+      currentIndex += results.diaryEntries.length;
+      
+      if (index == currentIndex) {
+        return const SizedBox(height: 32); // Section spacing
+      }
+      currentIndex++;
+    }
+    
+    // Kanji Section
+    if (results.kanji.isNotEmpty) {
+      if (index == currentIndex) {
+        // Kanji header
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Row(
+            children: [
+              Icon(
+                Icons.language,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Kanji (${results.kanji.length})',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+      currentIndex++;
+      
+      if (index == currentIndex) {
+        return const SizedBox(height: 0); // Spacing placeholder
+      }
+      currentIndex++;
+      
+      // Kanji cards
+      if (index < currentIndex + results.kanji.length) {
+        final kanjiIndex = index - currentIndex;
+        return KanjiCard(kanji: results.kanji[kanjiIndex]);
+      }
+    }
+    
+    return const SizedBox.shrink();
+  }
+
   /// Performs a comprehensive search across diary entries and kanji.
   /// 
   /// Searches through:
@@ -103,54 +208,11 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                   );
                 }
                 
-                return ListView(
-                  children: [
-                    // Diary Entries Section
-                    if (results.diaryEntries.isNotEmpty) ...[
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.book,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Diary Entries (${results.diaryEntries.length})',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      ...results.diaryEntries.map((entry) => DiaryEntryCard(
-                            entry: entry,
-                            onUpdate: _performSearch,
-                          )),
-                      const SizedBox(height: 32),
-                    ],
-                    
-                    // Kanji Section
-                    if (results.kanji.isNotEmpty) ...[
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.language,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Kanji (${results.kanji.length})',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      ...results.kanji.map((kanji) => KanjiCard(kanji: kanji)),
-                    ],
-                  ],
+                return ListView.builder(
+                  itemCount: _buildItemCount(results),
+                  itemBuilder: (context, index) {
+                    return _buildItem(context, results, index);
+                  },
                 );
               },
             ),

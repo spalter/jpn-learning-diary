@@ -34,14 +34,14 @@ class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
   });
 
   @override
-  State<AppNavigationBar> createState() => _AppNavigationBarState();
+  State<AppNavigationBar> createState() => AppNavigationBarState();
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 /// State for the navigation bar.
-class _AppNavigationBarState extends State<AppNavigationBar> {
+class AppNavigationBarState extends State<AppNavigationBar> {
   /// Focus node for the search text field.
   final FocusNode _focusNode = FocusNode();
 
@@ -59,6 +59,16 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
   void dispose() {
     _focusNode.dispose();
     super.dispose();
+  }
+  
+  /// Focus the search text field.
+  void focusSearchField() {
+    _focusNode.requestFocus();
+  }
+  
+  /// Check if the search text field is currently focused.
+  bool isSearchFieldFocused() {
+    return _focusNode.hasFocus;
   }
 
   /// Clears the search field and navigates to the diary page.

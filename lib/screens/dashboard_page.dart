@@ -60,6 +60,7 @@ class _DashboardPageState extends State<DashboardPage> {
           final data = snapshot.data!;
 
           return SingleChildScrollView(
+            primary: true,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

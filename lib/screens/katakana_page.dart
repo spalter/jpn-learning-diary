@@ -15,6 +15,7 @@ class KatakanaPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BaseLayout(
       child: SingleChildScrollView(
+        primary: true,
         child: Padding(
           padding: const EdgeInsets.only(right: 16.0),
           child: Column(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 
@@ -41,6 +42,9 @@ class BaseLayout extends StatefulWidget {
 class _BaseLayoutState extends State<BaseLayout> {
   /// Text controller for the search field in the navigation bar.
   late final TextEditingController _textController;
+  
+  /// Key to access the navigation bar's focus node.
+  final GlobalKey<AppNavigationBarState> _navBarKey = GlobalKey<AppNavigationBarState>();
 
   @override
   void initState() {
@@ -53,19 +57,47 @@ class _BaseLayoutState extends State<BaseLayout> {
     _textController.dispose();
     super.dispose();
   }
+  
+  /// Handle Cmd+F shortcut to focus search field.
+  void _focusSearchField() {
+    _navBarKey.currentState?.focusSearchField();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppNavigationBar(
-        textController: _textController,
-        onEntryAdded: widget.onEntryAdded,
-      ),
-      backgroundColor: AppTheme.scaffoldBackground(context),
-      body: Padding(
-        padding: const EdgeInsets.only(left: 16, top: 16, right:0, bottom: 0),
-        child: widget.child,
+    return Shortcuts(
+      shortcuts: <LogicalKeySet, Intent>{
+        LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyF): const FocusSearchIntent(),
+        LogicalKeySet(LogicalKeyboardKey.slash): const FocusSearchIntent(),
+        LogicalKeySet(LogicalKeyboardKey.f3): const FocusSearchIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          FocusSearchIntent: CallbackAction<FocusSearchIntent>(
+            onInvoke: (intent) => _focusSearchField(),
+          ),
+        },
+        child: Focus(
+          autofocus: true,
+          child: Scaffold(
+            appBar: AppNavigationBar(
+              key: _navBarKey,
+              textController: _textController,
+              onEntryAdded: widget.onEntryAdded,
+            ),
+            backgroundColor: AppTheme.scaffoldBackground(context),
+            body: Padding(
+              padding: const EdgeInsets.only(left: 16, top: 16, right:0, bottom: 0),
+              child: widget.child,
+            ),
+          ),
+        ),
       ),
     );
   }
+}
+
+/// Intent for focusing the search field.
+class FocusSearchIntent extends Intent {
+  const FocusSearchIntent();
 }
