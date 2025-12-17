@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:jpn_learning_diary/data/hiragana_data.dart';
 import 'package:jpn_learning_diary/widgets/base_layout.dart';
+import 'package:jpn_learning_diary/widgets/character_card.dart';
 
 /// Hiragana alphabet learning and practice page.
 ///
@@ -11,29 +13,132 @@ class HiraganaPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BaseLayout(
-      child: Center(
+      child: SingleChildScrollView(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+              // Base Characters Section
+              _buildSection(
+                context,
+                title: 'Base Characters (Gojūon)',
+                characters: HiraganaData.baseCharacters,
+              ),
+              const SizedBox(height: 32),
+              
+              // Dakuten Section
+              _buildSection(
+                context,
+                title: 'Dakuten (゛)',
+                characters: HiraganaData.dakutenCharacters,
+              ),
+              const SizedBox(height: 32),
+              
+              // Han-dakuten Section
+              _buildSection(
+                context,
+                title: 'Han-dakuten (゜)',
+                characters: HiraganaData.hanDakutenCharacters,
+              ),
+              const SizedBox(height: 32),
+              
+              // Combinations Section
+              _buildSection(
+                context,
+                title: 'Combinations (Yōon)',
+                characters: HiraganaData.combinations,
+              ),
+            ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSection(
+    BuildContext context, {
+    required String title,
+    required List<CharacterData> characters,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        const SizedBox(height: 12),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            // Calculate responsive card size
+            // Base size: 70x100, Max size: 84x120 (20% bigger)
+            final availableWidth = constraints.maxWidth;
+            final spacing = 8.0;
+            
+            // Try to fit as many cards as possible, then adjust size
+            int cardsPerRow = (availableWidth / (70 + spacing)).floor();
+            cardsPerRow = cardsPerRow < 1 ? 1 : cardsPerRow;
+            
+            // Calculate card width based on available space
+            double cardWidth = (availableWidth - (cardsPerRow - 1) * spacing) / cardsPerRow;
+            
+            // Constrain between min (70) and max (84)
+            cardWidth = cardWidth.clamp(70.0, 84.0);
+            
+            // Maintain aspect ratio (70:100 = 0.7)
+            double cardHeight = cardWidth / 0.7;
+            
+            return Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
+              children: characters.map((char) {
+                return SizedBox(
+                  width: cardWidth,
+                  height: cardHeight,
+                  child: CharacterCard(
+                    character: char.character,
+                    romanization: char.romanization,
+                    onTap: () => _showCharacterDetails(context, char),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  void _showCharacterDetails(BuildContext context, CharacterData character) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          character.character,
+          style: const TextStyle(fontSize: 48),
+          textAlign: TextAlign.center,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'あ',
-              style: TextStyle(
-                fontSize: 64,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+              'Romanization: ${character.romanization}',
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
             Text(
-              'Hiragana Alphabet',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Hiragana characters will be displayed here',
+              character.description ?? 'More information coming soon...',
               style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
             ),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }

@@ -45,7 +45,10 @@ class _BaseLayoutState extends State<BaseLayout> {
       appBar: AppNavigationBar(textController: _textController),
       drawer: const AppMenu(),
       backgroundColor: AppTheme.scaffoldBackground(context),
-      body: widget.child,
+      body: Padding(
+        padding: const EdgeInsets.only(left: 16, top: 16, right: 16, bottom: 0),
+        child: widget.child,
+      ),
     );
   }
 }
