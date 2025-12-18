@@ -1,5 +1,8 @@
-import 'package:flutter/foundation.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:restart_app/restart_app.dart';
+import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/widgets/app_about_dialog.dart';
 import 'package:jpn_learning_diary/widgets/base_layout.dart';
@@ -22,17 +25,8 @@ class _SettingsPageState extends State<SettingsPage> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(
-            'Settings',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const SizedBox(height: 24),
-          
           // General Section
-          Text(
-            'General',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text('General', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),
           Container(
             decoration: BoxDecoration(
@@ -56,7 +50,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Data Management Section
           Text(
             'Data Management',
@@ -78,7 +72,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 color: Theme.of(context).colorScheme.error,
               ),
               title: const Text('Clear All Data'),
-              subtitle: const Text('Delete all diary entries from the database'),
+              subtitle: const Text(
+                'Delete all diary entries from the database',
+              ),
               trailing: FilledButton(
                 style: FilledButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.error,
@@ -98,7 +94,9 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                         FilledButton(
                           style: FilledButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.error,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.error,
                           ),
                           onPressed: () => Navigator.of(context).pop(true),
                           child: const Text('Delete All'),
@@ -122,15 +120,6 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-          
-          // Debug Section (only in debug mode)
-          if (kDebugMode) ...[
-            const SizedBox(height: 24),
-            Text(
-              'Debug',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
           Container(
             decoration: BoxDecoration(
               border: Border(
@@ -141,90 +130,88 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             child: ListTile(
-              leading: Icon(
-                Icons.folder,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              title: const Text('Database Location'),
+              leading: const Icon(Icons.storage),
+              title: const Text('Database File'),
               subtitle: FutureBuilder<String>(
                 future: DatabaseHelper.instance.getDatabasePath(),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     return SelectableText(
                       snapshot.data!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontFamily: 'monospace',
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
                     );
                   }
                   return const Text('Loading...');
                 },
               ),
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: Theme.of(context).colorScheme.primary.withAlpha(50),
-                  width: 1,
-                ),
-              ),
-            ),
-            child: ListTile(
-              leading: Icon(
-                Icons.delete_sweep,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              title: const Text('Delete Entire Database'),
-              subtitle: const Text('Remove database file and reload on restart'),
               trailing: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
                 onPressed: () async {
-                  final confirmed = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Delete Database'),
-                      content: const Text(
-                        'Are you sure you want to delete the entire database? '
-                        'This will remove all diary entries and kanji data. '
-                        'The app will restart with a fresh database.',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: const Text('Cancel'),
-                        ),
-                        FilledButton(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.error,
-                          ),
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: const Text('Delete Database'),
-                        ),
-                      ],
-                    ),
+                  // Pick an existing database file
+                  final result = await FilePicker.platform.pickFiles(
+                    dialogTitle: 'Select Database File',
+                    type: FileType.custom,
+                    allowedExtensions: ['db'],
+                    allowMultiple: false,
                   );
 
-                  if (confirmed == true && mounted) {
-                    await DatabaseHelper.instance.deleteDatabase();
+                  if (result != null &&
+                      result.files.single.path != null &&
+                      mounted) {
+                    final selectedPath = result.files.single.path!;
+
+                    // Verify the file exists
+                    final file = File(selectedPath);
+                    if (!await file.exists()) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Selected file does not exist'),
+                          ),
+                        );
+                      }
+                      return;
+                    }
+
+                    // Save the new path (or clear if it's the default)
+                    await AppPreferences.setCustomDatabasePath(selectedPath);
+
+                    // Show restart dialog
                     if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Database deleted. Please restart the app.'),
-                          duration: Duration(seconds: 5),
+                      final shouldRestart = await showDialog<bool>(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Restart Required'),
+                          content: const Text(
+                            'The database file has been changed. '
+                            'The application needs to restart to load the new database.\n\n'
+                            'Would you like to restart now?',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: const Text('Later'),
+                            ),
+                            FilledButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: const Text('Restart Now'),
+                            ),
+                          ],
                         ),
                       );
+
+                      if (shouldRestart == true) {
+                        Restart.restartApp();
+                      }
                     }
                   }
                 },
-                child: const Text('Delete DB'),
+                child: const Text('Change'),
               ),
             ),
           ),
-          ],
         ],
       ),
     );

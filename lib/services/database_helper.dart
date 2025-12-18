@@ -3,25 +3,33 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:jpn_learning_diary/data/diary_data.dart';
 import 'package:jpn_learning_diary/data/kanji_data.dart';
+import 'package:jpn_learning_diary/services/app_preferences.dart';
 
 /// Database helper for managing diary entries in SQLite.
 ///
 /// Provides CRUD operations for diary entries with a singleton pattern.
 /// Designed to be easily replaceable with an API service later.
-/// 
+///
 /// Uses a singleton pattern to ensure only one database connection exists
 /// throughout the application lifecycle.
 class DatabaseHelper {
   /// Singleton instance of the database helper.
   static final DatabaseHelper instance = DatabaseHelper._init();
-  
+
   /// The SQLite database instance.
   static Database? _database;
 
   /// Private constructor to enforce singleton pattern.
-  DatabaseHelper._init();
+  DatabaseHelper._init() {
+    // Initialize FFI for desktop platforms (Windows, Linux, macOS)
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+  }
 
   /// Gets the database instance, initializing it if necessary.
   Future<Database> get database async {
@@ -31,9 +39,25 @@ class DatabaseHelper {
   }
 
   /// Initializes the database file and creates tables.
+  ///
+  /// Uses custom path from preferences if set, otherwise uses default path.
   Future<Database> _initDB(String filePath) async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, filePath);
+    // Check for custom database path in preferences
+    final customPath = await AppPreferences.getCustomDatabasePath();
+
+    final String path;
+    if (customPath != null && customPath.isNotEmpty) {
+      // Use custom path - ensure it ends with the filename
+      if (customPath.endsWith('.db')) {
+        path = customPath;
+      } else {
+        path = join(customPath, filePath);
+      }
+    } else {
+      // Use default path
+      final dbPath = await getDatabasesPath();
+      path = join(dbPath, filePath);
+    }
 
     return await openDatabase(
       path,
@@ -59,7 +83,7 @@ class DatabaseHelper {
 
     // Insert dummy data for initial setup
     await _insertDummyData(db);
-    
+
     // Create kanji table
     await _createKanjiTable(db);
   }
@@ -92,13 +116,13 @@ class DatabaseHelper {
         wk_radicals TEXT
       )
     ''');
-    
+
     // Load kanji data from JSON
     await _loadKanjiData(db);
   }
 
   /// Inserts initial dummy data into the database.
-  /// 
+  ///
   /// This provides example entries for new users to demonstrate
   /// the application's features. Includes common Japanese phrases,
   /// vocabulary, and usage examples with timestamps spread across
@@ -111,7 +135,9 @@ class DatabaseHelper {
         'romaji': 'konnichiwa',
         'meaning': 'Hello (daytime greeting)',
         'notes': 'Formal greeting used during the day',
-        'date_added': DateTime.now().subtract(const Duration(days: 7)).millisecondsSinceEpoch,
+        'date_added': DateTime.now()
+            .subtract(const Duration(days: 7))
+            .millisecondsSinceEpoch,
       },
       {
         'japanese': '食べる',
@@ -119,7 +145,9 @@ class DatabaseHelper {
         'romaji': 'taberu',
         'meaning': 'to eat',
         'notes': 'Ichidan verb (ru-verb)',
-        'date_added': DateTime.now().subtract(const Duration(days: 6)).millisecondsSinceEpoch,
+        'date_added': DateTime.now()
+            .subtract(const Duration(days: 6))
+            .millisecondsSinceEpoch,
       },
       {
         'japanese': '図書館',
@@ -127,7 +155,9 @@ class DatabaseHelper {
         'romaji': 'toshokan',
         'meaning': 'library',
         'notes': 'Compound word: 図書 (books) + 館 (building)',
-        'date_added': DateTime.now().subtract(const Duration(days: 5)).millisecondsSinceEpoch,
+        'date_added': DateTime.now()
+            .subtract(const Duration(days: 5))
+            .millisecondsSinceEpoch,
       },
       {
         'japanese': 'ありがとう',
@@ -135,7 +165,9 @@ class DatabaseHelper {
         'romaji': 'arigatou',
         'meaning': 'Thank you',
         'notes': 'Casual way to say thank you',
-        'date_added': DateTime.now().subtract(const Duration(days: 4)).millisecondsSinceEpoch,
+        'date_added': DateTime.now()
+            .subtract(const Duration(days: 4))
+            .millisecondsSinceEpoch,
       },
       {
         'japanese': '勉強する',
@@ -143,7 +175,9 @@ class DatabaseHelper {
         'romaji': 'benkyou suru',
         'meaning': 'to study',
         'notes': 'Suru verb - attach する to the noun 勉強',
-        'date_added': DateTime.now().subtract(const Duration(days: 3)).millisecondsSinceEpoch,
+        'date_added': DateTime.now()
+            .subtract(const Duration(days: 3))
+            .millisecondsSinceEpoch,
       },
       {
         'japanese': '美味しい',
@@ -151,7 +185,9 @@ class DatabaseHelper {
         'romaji': 'oishii',
         'meaning': 'delicious',
         'notes': 'I-adjective describing food taste',
-        'date_added': DateTime.now().subtract(const Duration(days: 2)).millisecondsSinceEpoch,
+        'date_added': DateTime.now()
+            .subtract(const Duration(days: 2))
+            .millisecondsSinceEpoch,
       },
       {
         'japanese': 'お願いします',
@@ -159,7 +195,9 @@ class DatabaseHelper {
         'romaji': 'onegai shimasu',
         'meaning': 'please',
         'notes': 'Polite request form',
-        'date_added': DateTime.now().subtract(const Duration(days: 1)).millisecondsSinceEpoch,
+        'date_added': DateTime.now()
+            .subtract(const Duration(days: 1))
+            .millisecondsSinceEpoch,
       },
       {
         'japanese': '明日',
@@ -177,7 +215,7 @@ class DatabaseHelper {
   }
 
   /// Creates a new diary entry in the database.
-  /// 
+  ///
   /// Returns a copy of the entry with the auto-generated ID populated.
   Future<DiaryEntry> createEntry(DiaryEntry entry) async {
     final db = await database;
@@ -193,15 +231,12 @@ class DatabaseHelper {
   }
 
   /// Retrieves all diary entries from the database.
-  /// 
+  ///
   /// Returns entries ordered by date added (newest first) to show
   /// recent learning progress at the top of lists.
   Future<List<DiaryEntry>> getAllEntries() async {
     final db = await database;
-    final result = await db.query(
-      'diary_entries',
-      orderBy: 'date_added DESC',
-    );
+    final result = await db.query('diary_entries', orderBy: 'date_added DESC');
     return result.map((json) => DiaryEntry.fromMap(json)).toList();
   }
 
@@ -226,11 +261,7 @@ class DatabaseHelper {
   /// Deletes a diary entry from the database.
   Future<int> deleteEntry(int id) async {
     final db = await database;
-    return await db.delete(
-      'diary_entries',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('diary_entries', where: 'id = ?', whereArgs: [id]);
   }
 
   /// Deletes all diary entries from the database.
@@ -246,24 +277,26 @@ class DatabaseHelper {
       final count = Sqflite.firstIntValue(
         await db.rawQuery('SELECT COUNT(*) FROM kanji'),
       );
-      
+
       if (count != null && count > 0) {
         return; // Data already loaded
       }
 
       // Load JSON from assets
-      final String jsonString = await rootBundle.loadString('lib/assets/kanji_data.json');
+      final String jsonString = await rootBundle.loadString(
+        'lib/assets/kanji_data.json',
+      );
       final Map<String, dynamic> jsonData = json.decode(jsonString);
 
       // Insert kanji data in batches for better performance
       var batch = db.batch();
       int batchCount = 0;
-      
+
       for (var entry in jsonData.entries) {
         final kanjiData = KanjiData.fromJson(entry.key, entry.value);
         batch.insert('kanji', kanjiData.toMap());
         batchCount++;
-        
+
         // Commit batch every 500 entries and create a new batch
         if (batchCount >= 500) {
           await batch.commit(noResult: true);
@@ -271,7 +304,7 @@ class DatabaseHelper {
           batchCount = 0;
         }
       }
-      
+
       // Commit remaining entries
       if (batchCount > 0) {
         await batch.commit(noResult: true);
@@ -296,7 +329,7 @@ class DatabaseHelper {
     final db = await database;
     try {
       final results = <String, KanjiData>{};
-      
+
       // First, search by meaning and readings (original behavior)
       final textResults = await db.query(
         'kanji',
@@ -308,11 +341,11 @@ class DatabaseHelper {
         final kanji = KanjiData.fromMap(json);
         results[kanji.kanji] = kanji;
       }
-      
+
       // Extract individual kanji characters from the query
       final kanjiPattern = RegExp(r'[\u4E00-\u9FFF\u3400-\u4DBF]');
       final matches = kanjiPattern.allMatches(query);
-      
+
       for (var match in matches) {
         final kanjiChar = match.group(0)!;
         final charResults = await db.query(
@@ -325,7 +358,7 @@ class DatabaseHelper {
           results[kanji.kanji] = kanji;
         }
       }
-      
+
       return results.values.take(50).toList();
     } catch (e) {
       return [];
@@ -345,7 +378,19 @@ class DatabaseHelper {
   }
 
   /// Gets the full path to the database file.
+  ///
+  /// Returns the custom path if set, otherwise returns the default path.
   Future<String> getDatabasePath() async {
+    final customPath = await AppPreferences.getCustomDatabasePath();
+
+    if (customPath != null && customPath.isNotEmpty) {
+      if (customPath.endsWith('.db')) {
+        return customPath;
+      } else {
+        return join(customPath, 'diary.db');
+      }
+    }
+
     final dbPath = await getDatabasesPath();
     return join(dbPath, 'diary.db');
   }
@@ -357,7 +402,7 @@ class DatabaseHelper {
       final path = await getDatabasePath();
       await close();
       _database = null;
-      
+
       final file = File(path);
       if (await file.exists()) {
         await file.delete();
