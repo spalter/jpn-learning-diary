@@ -202,7 +202,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                     child: Text(
                       'No results found',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        color: Theme.of(context).colorScheme.onSurface.withAlpha(153),
                       ),
                     ),
                   );

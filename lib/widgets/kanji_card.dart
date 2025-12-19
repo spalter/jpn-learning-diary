@@ -149,13 +149,13 @@ class _KanjiCardState extends State<KanjiCard> {
                       Icon(
                         Icons.smart_toy,
                         size: 16,
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                        color: Theme.of(context).colorScheme.primary.withAlpha(179),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'WaniKani Level ${widget.kanji.wkLevel}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                              color: Theme.of(context).colorScheme.primary.withAlpha(179),
                               fontStyle: FontStyle.italic,
                             ),
                       ),
@@ -177,7 +177,7 @@ class _KanjiCardState extends State<KanjiCard> {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(4),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+          color: Theme.of(context).colorScheme.outline.withAlpha(77),
         ),
       ),
       child: Row(
@@ -210,7 +210,7 @@ class _KanjiCardState extends State<KanjiCard> {
         Icon(
           icon,
           size: 16,
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+          color: Theme.of(context).colorScheme.primary.withAlpha(179),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -220,7 +220,7 @@ class _KanjiCardState extends State<KanjiCard> {
               Text(
                 title,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                      color: Theme.of(context).colorScheme.primary.withAlpha(179),
                       fontWeight: FontWeight.bold,
                     ),
               ),
