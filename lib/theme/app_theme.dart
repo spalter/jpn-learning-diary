@@ -81,4 +81,44 @@ class AppTheme {
   static Color scaffoldBackground(BuildContext context) {
     return Theme.of(context).colorScheme.surface.withAlpha(scaffoldBackgroundAlpha);
   }
+
+  /// Returns the light theme configuration using Tokyo Day colors.
+  /// 
+  /// Configures primary, secondary, tertiary, error, surface, and text colors.
+  /// Uses Material 3 design language.
+  static ThemeData getLightTheme() {
+    return ThemeData(
+      colorScheme: ColorScheme.light(
+        surface: tokyoDaySurface,
+        primary: tokyoDayPrimary,
+        secondary: tokyoDaySecondary,
+        tertiary: tokyoDayTertiary,
+        error: tokyoDayError,
+        onSurface: tokyoDayOnSurface,
+        onPrimary: tokyoDayBackground,
+        onSecondary: tokyoDayBackground,
+      ),
+      useMaterial3: true,
+    );
+  }
+
+  /// Returns the dark theme configuration using Tokyo Night Storm colors.
+  /// 
+  /// Configures primary, secondary, tertiary, error, surface, and text colors.
+  /// Uses Material 3 design language.
+  static ThemeData getDarkTheme() {
+    return ThemeData(
+      colorScheme: ColorScheme.dark(
+        surface: tokyoNightSurface,
+        primary: tokyoNightPrimary,
+        secondary: tokyoNightSecondary,
+        tertiary: tokyoNightTertiary,
+        error: tokyoNightError,
+        onSurface: tokyoNightOnSurface,
+        onPrimary: tokyoNightBackground,
+        onSecondary: tokyoNightBackground,
+      ),
+      useMaterial3: true,
+    );
+  }
 }

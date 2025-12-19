@@ -46,34 +46,10 @@ class JapaneseLearningDiary extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: AppTheme.appTitle,
-      theme: ThemeData(
-        colorScheme: ColorScheme.light(
-          surface: AppTheme.tokyoDaySurface,
-          primary: AppTheme.tokyoDayPrimary,
-          secondary: AppTheme.tokyoDaySecondary,
-          tertiary: AppTheme.tokyoDayTertiary,
-          error: AppTheme.tokyoDayError,
-          onSurface: AppTheme.tokyoDayOnSurface,
-          onPrimary: AppTheme.tokyoDayBackground,
-          onSecondary: AppTheme.tokyoDayBackground,
-        ),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.dark(
-          surface: AppTheme.tokyoNightSurface,
-          primary: AppTheme.tokyoNightPrimary,
-          secondary: AppTheme.tokyoNightSecondary,
-          tertiary: AppTheme.tokyoNightTertiary,
-          error: AppTheme.tokyoNightError,
-          onSurface: AppTheme.tokyoNightOnSurface,
-          onPrimary: AppTheme.tokyoNightBackground,
-          onSecondary: AppTheme.tokyoNightBackground,
-        ),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.getLightTheme(),
+      darkTheme: AppTheme.getDarkTheme(),
       themeMode: ThemeMode.system,
-      home: const PhrasesWordsPage()
+      home: const PhrasesWordsPage(),
     );
   }
 }
