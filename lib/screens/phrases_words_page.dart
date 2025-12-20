@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/data/diary_data.dart';
+import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/widgets/base_layout.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
+import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
 
 /// Phrases and words tracking page.
 ///
@@ -25,7 +27,7 @@ class _PhrasesWordsPageState extends State<PhrasesWordsPage> {
   }
 
   /// Fetches all diary entries from the database.
-  /// 
+  ///
   /// This is called when the page initializes and after any entry is added,
   /// updated, or deleted to ensure the list stays synchronized with the database.
   void _loadEntries() {
@@ -38,46 +40,105 @@ class _PhrasesWordsPageState extends State<PhrasesWordsPage> {
   Widget build(BuildContext context) {
     return BaseLayout(
       onEntryAdded: _loadEntries,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Entries list
-          Expanded(
-            child: FutureBuilder<List<DiaryEntry>>(
-              future: _entriesFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text('Error: ${snapshot.error}'),
-                  );
-                }
-                
-                final entries = snapshot.data ?? [];
-                
-                if (entries.isEmpty) {
-                  return const Center(
-                    child: Text('No entries yet. Add your first entry!'),
-                  );
-                }
-                
-                return ListView.builder(
-                  itemCount: entries.length,
-                  itemBuilder: (context, index) {
-                    return DiaryEntryCard(
-                      entry: entries[index],
-                      onUpdate: _loadEntries,
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
+      child: FutureBuilder<String>(
+        future: AppPreferences.getViewMode(),
+        builder: (context, snapshot) {
+          final viewMode = snapshot.data ?? 'list';
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: viewMode == 'grid'
+                    ? _buildEntriesGridView()
+                    : _buildEntriesList(),
+              ),
+            ],
+          );
+        },
       ),
     );
+  }
+
+  /// Builds the main entries list with loading and error states.
+  Widget _buildEntriesList() {
+    return FutureBuilder<List<DiaryEntry>>(
+      future: _entriesFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _buildLoadingState();
+        }
+
+        if (snapshot.hasError) {
+          return _buildErrorState(snapshot.error);
+        }
+
+        final entries = snapshot.data ?? [];
+
+        if (entries.isEmpty) {
+          return _buildEmptyState();
+        }
+
+        return _buildEntriesListView(entries);
+      },
+    );
+  }
+
+  /// Builds a grid view of diary entry cards.
+  Widget _buildEntriesGridView() {
+    return FutureBuilder<List<DiaryEntry>>(
+      future: _entriesFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _buildLoadingState();
+        }
+
+        if (snapshot.hasError) {
+          return _buildErrorState(snapshot.error);
+        }
+
+        final entries = snapshot.data ?? [];
+
+        if (entries.isEmpty) {
+          return _buildEmptyState();
+        }
+
+        return ResponsiveGridView(
+          itemCount: entries.length,
+          minCardWidth: 320.0,
+          itemBuilder: (context, index) => _buildEntryCard(
+            entries[index],
+            useBorderedStyle: true,
+          ),
+        );
+      },
+    );
+  }
+
+  /// Builds the loading indicator shown while fetching entries.
+  Widget _buildLoadingState() {
+    return const Center(child: CircularProgressIndicator());
+  }
+
+  /// Builds the error message display.
+  Widget _buildErrorState(Object? error) {
+    return Center(child: Text('Error: $error'));
+  }
+
+  /// Builds the empty state shown when there are no entries.
+  Widget _buildEmptyState() {
+    return const Center(child: Text('No entries yet. Add your first entry!'));
+  }
+
+  /// Builds the scrollable list of diary entry cards.
+  Widget _buildEntriesListView(List<DiaryEntry> entries) {
+    return ListView.builder(
+      itemCount: entries.length,
+      itemBuilder: (context, index) => _buildEntryCard(entries[index]),
+    );
+  }
+
+  /// Builds a single diary entry card.
+  Widget _buildEntryCard(DiaryEntry entry, {bool useBorderedStyle = false}) {
+    return DiaryEntryCard(entry: entry, onUpdate: _loadEntries, useBorderedStyle: useBorderedStyle);
   }
 }

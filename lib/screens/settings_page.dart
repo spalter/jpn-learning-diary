@@ -25,192 +25,299 @@ class _SettingsPageState extends State<SettingsPage> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // General Section
-          Text('General', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: Theme.of(context).colorScheme.primary.withAlpha(50),
-                  width: 1,
-                ),
-              ),
-            ),
-            child: ListTile(
-              leading: const Icon(Icons.info_outline),
-              title: const Text('About'),
-              subtitle: const Text('App information and licenses'),
-              trailing: TextButton(
-                onPressed: () {
-                  showAppAboutDialog(context);
-                },
-                child: const Text('View'),
-              ),
-            ),
-          ),
+          _buildGeneralSettings(context),
           const SizedBox(height: 24),
+          _buildVisualSettings(context),
+          const SizedBox(height: 24),
+          _buildDataManagementSettings(context),
+        ],
+      ),
+    );
+  }
 
-          // Data Management Section
-          Text(
-            'Data Management',
-            style: Theme.of(context).textTheme.titleMedium,
+  /// Builds the general settings section.
+  Widget _buildGeneralSettings(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(context, 'General'),
+        const SizedBox(height: 12),
+        _buildAboutSetting(context),
+      ],
+    );
+  }
+
+  /// Builds the visual settings section.
+  Widget _buildVisualSettings(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(context, 'Visual Settings'),
+        const SizedBox(height: 12),
+        _buildViewModeSetting(context),
+      ],
+    );
+  }
+
+  /// Builds the data management settings section.
+  Widget _buildDataManagementSettings(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(context, 'Data Management'),
+        const SizedBox(height: 12),
+        _buildClearDataSetting(context),
+        _buildDatabaseFileSetting(context),
+      ],
+    );
+  }
+
+  /// Builds a section title.
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    return Text(title, style: Theme.of(context).textTheme.titleMedium);
+  }
+
+  /// Builds a settings row container with bottom border.
+  Widget _buildSettingRow({
+    required BuildContext context,
+    required Widget child,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).colorScheme.primary.withAlpha(50),
+            width: 1,
           ),
-          const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: Theme.of(context).colorScheme.primary.withAlpha(50),
-                  width: 1,
-                ),
-              ),
-            ),
-            child: ListTile(
-              leading: Icon(
-                Icons.delete_forever,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              title: const Text('Clear All Data'),
-              subtitle: const Text(
-                'Delete all diary entries from the database',
-              ),
-              trailing: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
-                onPressed: () async {
-                  final confirmed = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Clear All Data'),
-                      content: const Text(
-                        'Are you sure you want to delete all diary entries? This action cannot be undone.',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: const Text('Cancel'),
-                        ),
-                        FilledButton(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.error,
-                          ),
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: const Text('Delete All'),
-                        ),
-                      ],
-                    ),
-                  );
+        ),
+      ),
+      child: child,
+    );
+  }
 
-                  if (confirmed == true && mounted) {
-                    await DatabaseHelper.instance.deleteAllEntries();
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('All data has been cleared'),
-                        ),
-                      );
-                    }
-                  }
-                },
-                child: const Text('Clear Data'),
+  /// Builds the view mode setting row.
+  Widget _buildViewModeSetting(BuildContext context) {
+    return _buildSettingRow(
+      context: context,
+      child: ListTile(
+        leading: const Icon(Icons.view_module),
+        title: const Text('Preferred View Mode'),
+        subtitle: const Text('Choose between grid or list view'),
+        trailing: FutureBuilder<String>(
+          future: AppPreferences.getViewMode(),
+          builder: (context, snapshot) {
+            final currentMode = snapshot.data ?? 'list';
+            return SegmentedButton<String>(
+              style: SegmentedButton.styleFrom(
+                selectedBackgroundColor: Theme.of(context).colorScheme.primary,
+                selectedForegroundColor: Theme.of(context).colorScheme.onPrimary,
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.primary.withAlpha(100),
+                ),
               ),
-            ),
+              segments: const [
+                ButtonSegment<String>(
+                  value: 'list',
+                  icon: Icon(Icons.view_list),
+                  label: Text('List'),
+                ),
+                ButtonSegment<String>(
+                  value: 'grid',
+                  icon: Icon(Icons.grid_view),
+                  label: Text('Grid'),
+                ),
+              ],
+              selected: {currentMode},
+              onSelectionChanged: (Set<String> selection) async {
+                await AppPreferences.setViewMode(selection.first);
+                setState(() {}); // Refresh to show updated selection
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Builds the About setting row.
+  Widget _buildAboutSetting(BuildContext context) {
+    return _buildSettingRow(
+      context: context,
+      child: ListTile(
+        leading: const Icon(Icons.info_outline),
+        title: const Text('About'),
+        subtitle: const Text('App information and licenses'),
+        trailing: TextButton(
+          onPressed: () => showAppAboutDialog(context),
+          child: const Text('View'),
+        ),
+      ),
+    );
+  }
+
+  /// Builds the Clear All Data setting row.
+  Widget _buildClearDataSetting(BuildContext context) {
+    return _buildSettingRow(
+      context: context,
+      child: ListTile(
+        leading: Icon(
+          Icons.delete_forever,
+          color: Theme.of(context).colorScheme.error,
+        ),
+        title: const Text('Clear All Data'),
+        subtitle: const Text('Delete all diary entries from the database'),
+        trailing: FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
-          Container(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: Theme.of(context).colorScheme.primary.withAlpha(50),
-                  width: 1,
-                ),
-              ),
+          onPressed: () => _handleClearAllData(context),
+          child: const Text('Clear Data'),
+        ),
+      ),
+    );
+  }
+
+  /// Builds the Database File setting row.
+  Widget _buildDatabaseFileSetting(BuildContext context) {
+    return _buildSettingRow(
+      context: context,
+      child: ListTile(
+        leading: const Icon(Icons.storage),
+        title: const Text('Database File'),
+        subtitle: _buildDatabasePathSubtitle(context),
+        trailing: FilledButton(
+          onPressed: () => _handleChangeDatabasePath(context),
+          child: const Text('Change'),
+        ),
+      ),
+    );
+  }
+
+  /// Builds the database path display as a subtitle.
+  Widget _buildDatabasePathSubtitle(BuildContext context) {
+    return FutureBuilder<String>(
+      future: DatabaseHelper.instance.getDatabasePath(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return SelectableText(
+            snapshot.data!,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(fontFamily: 'monospace'),
+          );
+        }
+        return const Text('Loading...');
+      },
+    );
+  }
+
+  /// Handles the clear all data action.
+  Future<void> _handleClearAllData(BuildContext context) async {
+    final confirmed = await _showClearDataConfirmation(context);
+
+    if (confirmed == true && mounted) {
+      await DatabaseHelper.instance.deleteAllEntries();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('All data has been cleared')),
+        );
+      }
+    }
+  }
+
+  /// Shows a confirmation dialog for clearing all data.
+  Future<bool?> _showClearDataConfirmation(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear All Data'),
+        content: const Text(
+          'Are you sure you want to delete all diary entries? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: ListTile(
-              leading: const Icon(Icons.storage),
-              title: const Text('Database File'),
-              subtitle: FutureBuilder<String>(
-                future: DatabaseHelper.instance.getDatabasePath(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return SelectableText(
-                      snapshot.data!,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
-                    );
-                  }
-                  return const Text('Loading...');
-                },
-              ),
-              trailing: FilledButton(
-                onPressed: () async {
-                  // Pick an existing database file
-                  final result = await FilePicker.platform.pickFiles(
-                    dialogTitle: 'Select Database File',
-                    type: FileType.custom,
-                    allowedExtensions: ['db'],
-                    allowMultiple: false,
-                  );
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete All'),
+          ),
+        ],
+      ),
+    );
+  }
 
-                  if (result != null &&
-                      result.files.single.path != null &&
-                      mounted) {
-                    final selectedPath = result.files.single.path!;
+  /// Handles changing the database path.
+  Future<void> _handleChangeDatabasePath(BuildContext context) async {
+    final selectedPath = await _pickDatabaseFile();
+    if (selectedPath == null) return;
 
-                    // Verify the file exists
-                    final file = File(selectedPath);
-                    if (!await file.exists()) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Selected file does not exist'),
-                          ),
-                        );
-                      }
-                      return;
-                    }
+    if (!mounted) return;
 
-                    // Save the new path (or clear if it's the default)
-                    await AppPreferences.setCustomDatabasePath(selectedPath);
+    if (!await _verifyFileExists(context, selectedPath)) return;
 
-                    // Show restart dialog
-                    if (mounted) {
-                      final shouldRestart = await showDialog<bool>(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Restart Required'),
-                          content: const Text(
-                            'The database file has been changed. '
-                            'The application needs to restart to load the new database.\n\n'
-                            'Would you like to restart now?',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: const Text('Later'),
-                            ),
-                            FilledButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: const Text('Restart Now'),
-                            ),
-                          ],
-                        ),
-                      );
+    await AppPreferences.setCustomDatabasePath(selectedPath);
 
-                      if (shouldRestart == true) {
-                        Restart.restartApp();
-                      }
-                    }
-                  }
-                },
-                child: const Text('Change'),
-              ),
-            ),
+    if (mounted) {
+      final shouldRestart = await _showRestartDialog(context);
+      if (shouldRestart == true) {
+        Restart.restartApp();
+      }
+    }
+  }
+
+  /// Picks a database file using the file picker.
+  Future<String?> _pickDatabaseFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      dialogTitle: 'Select Database File',
+      type: FileType.custom,
+      allowedExtensions: ['db'],
+      allowMultiple: false,
+    );
+
+    return result?.files.single.path;
+  }
+
+  /// Verifies that the selected file exists.
+  Future<bool> _verifyFileExists(BuildContext context, String path) async {
+    final file = File(path);
+    if (await file.exists()) {
+      return true;
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selected file does not exist')),
+      );
+    }
+    return false;
+  }
+
+  /// Shows a restart dialog after changing the database.
+  Future<bool?> _showRestartDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Restart Required'),
+        content: const Text(
+          'The database file has been changed. '
+          'The application needs to restart to load the new database.\n\n'
+          'Would you like to restart now?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Later'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Restart Now'),
           ),
         ],
       ),
