@@ -1,15 +1,5 @@
-import 'dart:io' show exit;
-
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:jpn_learning_diary/screens/dashboard_page.dart';
-import 'package:jpn_learning_diary/screens/hiragana_page.dart';
-import 'package:jpn_learning_diary/screens/katakana_page.dart';
-import 'package:jpn_learning_diary/screens/phrases_words_page.dart';
-import 'package:jpn_learning_diary/screens/search_results_page.dart';
-import 'package:jpn_learning_diary/screens/settings_page.dart';
-import 'package:jpn_learning_diary/widgets/no_animation_page_route.dart';
-import 'edit_diary_entry_dialog.dart';
 
 /// Custom app bar with integrated search functionality.
 ///
@@ -21,17 +11,56 @@ import 'edit_diary_entry_dialog.dart';
 /// - Learning dashboard and settings buttons
 /// - Exit button to close the application
 /// - Custom styling matching the app theme
+///
+/// Instead of managing navigation internally, this widget uses callbacks
+/// to notify the parent widget of navigation and action events.
 class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
   /// Controller for the search text field.
   final TextEditingController textController;
-  
-  /// Optional callback when a new entry is added.
-  final VoidCallback? onEntryAdded;
+
+  /// Focus node for the search field.
+  final FocusNode searchFocusNode;
+
+  /// Callback for navigating to phrases/words page.
+  final VoidCallback onNavigateToPhrasesWords;
+
+  /// Callback for navigating to hiragana page.
+  final VoidCallback onNavigateToHiragana;
+
+  /// Callback for navigating to katakana page.
+  final VoidCallback onNavigateToKatakana;
+
+  /// Callback for navigating to dashboard page.
+  final VoidCallback onNavigateToDashboard;
+
+  /// Callback for navigating to settings page.
+  final VoidCallback onNavigateToSettings;
+
+  /// Callback when search is submitted with the search query.
+  final void Function(String query) onSearch;
+
+  /// Callback when search should be cleared and navigate to phrases/words.
+  final VoidCallback onClearSearch;
+
+  /// Callback when add entry button is pressed.
+  final VoidCallback onAddEntry;
+
+  /// Callback when exit button is pressed.
+  final VoidCallback onExit;
 
   const AppNavigationBar({
     super.key,
     required this.textController,
-    this.onEntryAdded,
+    required this.searchFocusNode,
+    required this.onNavigateToPhrasesWords,
+    required this.onNavigateToHiragana,
+    required this.onNavigateToKatakana,
+    required this.onNavigateToDashboard,
+    required this.onNavigateToSettings,
+    required this.onSearch,
+    required this.onClearSearch,
+    required this.onAddEntry,
+    required this.onExit,
   });
 
   @override
@@ -43,9 +72,6 @@ class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
 
 /// State for the navigation bar.
 class AppNavigationBarState extends State<AppNavigationBar> {
-  /// Focus node for the search text field.
-  final FocusNode _focusNode = FocusNode();
-
   @override
   void initState() {
     super.initState();
@@ -54,33 +80,6 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     widget.textController.addListener(() {
       setState(() {});
     });
-  }
-
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
-  }
-  
-  /// Focus the search text field.
-  void focusSearchField() {
-    _focusNode.requestFocus();
-  }
-  
-  /// Check if the search text field is currently focused.
-  bool isSearchFieldFocused() {
-    return _focusNode.hasFocus;
-  }
-
-  /// Clears the search field and navigates to the diary page.
-  /// 
-  /// This is called when the user clicks the X button in the search field.
-  void _clearAndNavigateToDiary() {
-    widget.textController.clear();
-    Navigator.pushReplacement(
-      context,
-      NoAnimationPageRoute(builder: (context) => const PhrasesWordsPage()),
-    );
   }
 
   @override
@@ -99,10 +98,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
           ],
         ),
       ),
-      actions: [
-        ..._buildActionButtons(context),
-        const SizedBox(width: 16),
-      ],
+      actions: [..._buildActionButtons(context), const SizedBox(width: 16)],
     );
   }
 
@@ -113,7 +109,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
         child: IconButton(
           icon: const Icon(Icons.menu_book),
           tooltip: 'Diary (Phrases & Words)',
-          onPressed: () => _navigateTo(context, const PhrasesWordsPage()),
+          onPressed: widget.onNavigateToPhrasesWords,
         ),
       ),
       ExcludeFocus(
@@ -123,7 +119,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           tooltip: 'Hiragana',
-          onPressed: () => _navigateTo(context, const HiraganaPage()),
+          onPressed: widget.onNavigateToHiragana,
         ),
       ),
       ExcludeFocus(
@@ -133,7 +129,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           tooltip: 'Katakana',
-          onPressed: () => _navigateTo(context, const KatakanaPage()),
+          onPressed: widget.onNavigateToKatakana,
         ),
       ),
     ];
@@ -145,7 +141,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
       child: IconButton(
         icon: const Icon(Icons.add_circle_outline),
         tooltip: 'Add new diary entry',
-        onPressed: () => _handleAddEntry(context),
+        onPressed: widget.onAddEntry,
       ),
     );
   }
@@ -164,9 +160,9 @@ class AppNavigationBarState extends State<AppNavigationBar> {
         },
         child: TextField(
           controller: widget.textController,
-          focusNode: _focusNode,
+          focusNode: widget.searchFocusNode,
           textAlign: TextAlign.left,
-          onSubmitted: (value) => _handleSearchSubmit(context, value),
+          onSubmitted: (value) => widget.onSearch(value),
           decoration: _buildSearchDecoration(context),
         ),
       ),
@@ -181,7 +177,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
           ? IconButton(
               icon: const Icon(Icons.close, size: 20),
               tooltip: 'Clear and go to diary',
-              onPressed: _clearAndNavigateToDiary,
+              onPressed: widget.onClearSearch,
             )
           : null,
       border: OutlineInputBorder(
@@ -201,10 +197,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
           width: 2,
         ),
       ),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 4,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       isDense: true,
       filled: true,
       fillColor: Theme.of(context).colorScheme.surface,
@@ -218,69 +211,23 @@ class AppNavigationBarState extends State<AppNavigationBar> {
         child: IconButton(
           icon: const Icon(Icons.leaderboard),
           tooltip: 'Learning',
-          onPressed: () => _navigateTo(context, const DashboardPage()),
+          onPressed: widget.onNavigateToDashboard,
         ),
       ),
       ExcludeFocus(
         child: IconButton(
           icon: const Icon(Icons.settings),
           tooltip: 'Settings',
-          onPressed: () => _navigateTo(context, const SettingsPage()),
+          onPressed: widget.onNavigateToSettings,
         ),
       ),
       ExcludeFocus(
         child: IconButton(
-          onPressed: () => exit(0),
+          onPressed: widget.onExit,
           icon: const Icon(Icons.close),
           tooltip: 'Exit',
         ),
       ),
     ];
-  }
-
-  /// Navigates to a page with no animation.
-  void _navigateTo(BuildContext context, Widget page) {
-    Navigator.pushReplacement(
-      context,
-      NoAnimationPageRoute(builder: (context) => page),
-    );
-  }
-
-  /// Handles the add entry button press.
-  Future<void> _handleAddEntry(BuildContext context) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => const EditDiaryEntryDialog(),
-    );
-
-    if (result == true) {
-      widget.onEntryAdded?.call();
-    }
-  }
-
-  /// Handles search field submission.
-  void _handleSearchSubmit(BuildContext context, String value) {
-    if (value.trim().isNotEmpty) {
-      Navigator.pushReplacement(
-        context,
-        NoAnimationPageRoute(
-          builder: (context) => SearchResultsPage(
-            searchQuery: value.trim(),
-          ),
-        ),
-      );
-      // Select all text after navigation to keep it visible and ready for next search
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted) {
-          widget.textController.selection = TextSelection(
-            baseOffset: 0,
-            extentOffset: widget.textController.text.length,
-          );
-        }
-      });
-    } else {
-      // Navigate to diary page when field is empty
-      _navigateTo(context, const PhrasesWordsPage());
-    }
   }
 }

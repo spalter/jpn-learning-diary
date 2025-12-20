@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/data/diary_data.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
-import 'package:jpn_learning_diary/widgets/base_layout.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 
 /// Dashboard page showing learning progress overview.
@@ -25,7 +24,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   /// Triggers a reload of dashboard data from the database.
-  /// 
+  ///
   /// This is called when the page initializes and whenever a new entry is added.
   /// Uses setState to trigger a rebuild with fresh data.
   void _loadData() {
@@ -44,117 +43,118 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseLayout(
-      onEntryAdded: _loadData,
-      child: FutureBuilder<_DashboardData>(
-        future: _dataFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return FutureBuilder<_DashboardData>(
+      future: _dataFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
 
-          final data = snapshot.data!;
+        final data = snapshot.data!;
 
-          return SingleChildScrollView(
-            primary: true,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Statistics and Recent Entries Row
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Statistics Card
-                    Expanded(
-                      flex: 1,
-                      child: Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primaryContainer.withAlpha(20),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 16),
-                            Text(
-                              '${data.totalEntries}',
-                              style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Diary Entries',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                          ],
-                        ),
+        return SingleChildScrollView(
+          primary: true,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Statistics and Recent Entries Row
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Statistics Card
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer.withAlpha(20),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ),
-                    const SizedBox(width: 24),
-                    
-                    // Recent Entries
-                    Expanded(
-                      flex: 2,
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Recent Entries',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
                           const SizedBox(height: 16),
-                          if (data.recentEntries.isEmpty)
-                            Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(32),
-                                child: Text(
-                                  'No entries yet. Add your first entry!',
-                                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurface.withAlpha(153),
-                                  ),
+                          Text(
+                            '${data.totalEntries}',
+                            style: Theme.of(context).textTheme.displayLarge
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              ),
-                            )
-                          else
-                            ...data.recentEntries.map((entry) => DiaryEntryCard(
-                              entry: entry,
-                              onUpdate: _loadData,
-                            )),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Diary Entries',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+                  ),
+                  const SizedBox(width: 24),
+
+                  // Recent Entries
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Recent Entries',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 16),
+                        if (data.recentEntries.isEmpty)
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(32),
+                              child: Text(
+                                'No entries yet. Add your first entry!',
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface.withAlpha(153),
+                                    ),
+                              ),
+                            ),
+                          )
+                        else
+                          ...data.recentEntries.map(
+                            (entry) => DiaryEntryCard(
+                              entry: entry,
+                              onUpdate: _loadData,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
 /// Internal data model for dashboard statistics.
-/// 
+///
 /// Aggregates database query results into a single structure
 /// for display in the dashboard UI.
 class _DashboardData {
   /// Total count of all diary entries in the database.
   final int totalEntries;
-  
+
   /// The 5 most recently added diary entries.
   final List<DiaryEntry> recentEntries;
 
-  _DashboardData({
-    required this.totalEntries,
-    required this.recentEntries,
-  });
+  _DashboardData({required this.totalEntries, required this.recentEntries});
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/data/katakana_data.dart';
-import 'package:jpn_learning_diary/widgets/base_layout.dart';
 import 'package:jpn_learning_diary/widgets/character_card.dart';
 
 /// Katakana alphabet learning and practice page.
@@ -13,8 +12,7 @@ class KatakanaPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BaseLayout(
-      child: SingleChildScrollView(
+    return SingleChildScrollView(
         primary: true,
         child: Padding(
           padding: const EdgeInsets.only(right: 16.0),
@@ -54,8 +52,7 @@ class KatakanaPage extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildSection(

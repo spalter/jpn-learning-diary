@@ -3,12 +3,13 @@
 /// This Flutter application helps track Japanese language learning progress,
 /// including hiragana, katakana, phrases, and words.
 library;
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:jpn_learning_diary/screens/phrases_words_page.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
+import 'package:jpn_learning_diary/widgets/app_shell.dart';
 
 /// Main entry point of the application.
 ///
@@ -52,10 +53,10 @@ class JapaneseLearningDiary extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: AppTheme.appTitle,
-      theme: AppTheme.getLightTheme(),
-      darkTheme: AppTheme.getDarkTheme(),
+      theme: AppTheme.getTokyoDayTheme(),
+      darkTheme: AppTheme.getTokyoNightTheme(),
       themeMode: ThemeMode.system,
-      home: const PhrasesWordsPage(),
+      home: const AppShell(),
     );
   }
 }

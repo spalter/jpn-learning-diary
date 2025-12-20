@@ -5,7 +5,6 @@ import 'package:restart_app/restart_app.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/widgets/app_about_dialog.dart';
-import 'package:jpn_learning_diary/widgets/base_layout.dart';
 
 /// Application settings and configuration page.
 ///
@@ -21,8 +20,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
-    return BaseLayout(
-      child: ListView(
+    return ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _buildAboutSetting(context),
@@ -30,8 +28,7 @@ class _SettingsPageState extends State<SettingsPage> {
           _buildClearDataSetting(context),
           _buildDatabaseFileSetting(context),
         ],
-      ),
-    );
+      );
   }
 
   /// Builds a settings row container with bottom border.

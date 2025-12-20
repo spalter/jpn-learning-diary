@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/data/diary_data.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
-import 'package:jpn_learning_diary/widgets/base_layout.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
 
@@ -38,24 +37,21 @@ class _PhrasesWordsPageState extends State<PhrasesWordsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseLayout(
-      onEntryAdded: _loadEntries,
-      child: FutureBuilder<String>(
-        future: AppPreferences.getViewMode(),
-        builder: (context, snapshot) {
-          final viewMode = snapshot.data ?? 'list';
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: viewMode == 'grid'
-                    ? _buildEntriesGridView()
-                    : _buildEntriesList(),
-              ),
-            ],
-          );
-        },
-      ),
+    return FutureBuilder<String>(
+      future: AppPreferences.getViewMode(),
+      builder: (context, snapshot) {
+        final viewMode = snapshot.data ?? 'list';
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: viewMode == 'grid'
+                  ? _buildEntriesGridView()
+                  : _buildEntriesList(),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -105,10 +101,8 @@ class _PhrasesWordsPageState extends State<PhrasesWordsPage> {
         return ResponsiveGridView(
           itemCount: entries.length,
           minCardWidth: 320.0,
-          itemBuilder: (context, index) => _buildEntryCard(
-            entries[index],
-            useBorderedStyle: true,
-          ),
+          itemBuilder: (context, index) =>
+              _buildEntryCard(entries[index], useBorderedStyle: true),
         );
       },
     );
@@ -139,6 +133,10 @@ class _PhrasesWordsPageState extends State<PhrasesWordsPage> {
 
   /// Builds a single diary entry card.
   Widget _buildEntryCard(DiaryEntry entry, {bool useBorderedStyle = false}) {
-    return DiaryEntryCard(entry: entry, onUpdate: _loadEntries, useBorderedStyle: useBorderedStyle);
+    return DiaryEntryCard(
+      entry: entry,
+      onUpdate: _loadEntries,
+      useBorderedStyle: useBorderedStyle,
+    );
   }
 }

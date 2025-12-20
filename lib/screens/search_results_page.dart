@@ -3,7 +3,6 @@ import 'package:jpn_learning_diary/data/diary_data.dart';
 import 'package:jpn_learning_diary/data/kanji_data.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
-import 'package:jpn_learning_diary/widgets/base_layout.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 import 'package:jpn_learning_diary/widgets/kanji_card.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
@@ -16,10 +15,7 @@ class SearchResultsPage extends StatefulWidget {
   /// The search query text.
   final String searchQuery;
 
-  const SearchResultsPage({
-    super.key,
-    required this.searchQuery,
-  });
+  const SearchResultsPage({super.key, required this.searchQuery});
 
   @override
   State<SearchResultsPage> createState() => _SearchResultsPageState();
@@ -34,6 +30,15 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     _performSearch();
   }
 
+  @override
+  void didUpdateWidget(SearchResultsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Re-run search when the search query changes
+    if (oldWidget.searchQuery != widget.searchQuery) {
+      _performSearch();
+    }
+  }
+
   void _performSearch() {
     setState(() {
       _searchFuture = _search();
@@ -41,7 +46,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   }
 
   /// Calculates the total number of items to display in the list.
-  /// 
+  ///
   /// Includes section headers, spacing, diary entries, and kanji results.
   int _calculateItemCount(_SearchResults results) {
     int count = 0;
@@ -58,7 +63,12 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   }
 
   /// Builds individual items for the list based on their position.
-  Widget _buildResultItem(BuildContext context, _SearchResults results, int index, bool useBorderedStyle) {
+  Widget _buildResultItem(
+    BuildContext context,
+    _SearchResults results,
+    int index,
+    bool useBorderedStyle,
+  ) {
     int currentIndex = 0;
 
     // Diary Entries Section
@@ -80,7 +90,10 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
       // Diary entry cards
       if (index < currentIndex + results.diaryEntries.length) {
         final entryIndex = index - currentIndex;
-        return _buildDiaryEntryCard(results.diaryEntries[entryIndex], useBorderedStyle);
+        return _buildDiaryEntryCard(
+          results.diaryEntries[entryIndex],
+          useBorderedStyle,
+        );
       }
       currentIndex += results.diaryEntries.length;
 
@@ -117,7 +130,8 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   }
 
   /// Builds a section header with icon and title.
-  Widget _buildSectionHeader(BuildContext context, {
+  Widget _buildSectionHeader(
+    BuildContext context, {
     required IconData icon,
     required String title,
   }) {
@@ -129,9 +143,9 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
           const SizedBox(width: 8),
           Text(
             title,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -153,15 +167,15 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   }
 
   /// Performs a comprehensive search across diary entries and kanji.
-  /// 
+  ///
   /// Searches through:
   /// - Diary entries: Japanese text, furigana, romaji, meaning, and notes
   /// - Kanji database: character, meanings, and readings
-  /// 
+  ///
   /// Returns a [_SearchResults] object containing all matching results.
   Future<_SearchResults> _search() async {
     final db = DatabaseHelper.instance;
-    
+
     // Search diary entries across all text fields.
     final allEntries = await db.getAllEntries();
     final diaryResults = allEntries.where((entry) {
@@ -172,26 +186,18 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
           entry.meaning.toLowerCase().contains(query) ||
           (entry.notes?.toLowerCase().contains(query) ?? false);
     }).toList();
-    
+
     // Search kanji database using dedicated search method.
     final kanjiResults = await db.searchKanji(widget.searchQuery);
-    
-    return _SearchResults(
-      diaryEntries: diaryResults,
-      kanji: kanjiResults,
-    );
+
+    return _SearchResults(diaryEntries: diaryResults, kanji: kanjiResults);
   }
 
   @override
   Widget build(BuildContext context) {
-    return BaseLayout(
-      initialSearchText: widget.searchQuery,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(child: _buildSearchResults()),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [Expanded(child: _buildSearchResults())],
     );
   }
 
@@ -209,7 +215,8 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         }
 
         final results = snapshot.data!;
-        final hasResults = results.diaryEntries.isNotEmpty || results.kanji.isNotEmpty;
+        final hasResults =
+            results.diaryEntries.isNotEmpty || results.kanji.isNotEmpty;
 
         if (!hasResults) {
           return _buildNoResultsState();
@@ -254,7 +261,8 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   Widget _buildResultsList(_SearchResults results) {
     return ListView.builder(
       itemCount: _calculateItemCount(results),
-      itemBuilder: (context, index) => _buildResultItem(context, results, index, false),
+      itemBuilder: (context, index) =>
+          _buildResultItem(context, results, index, false),
     );
   }
 
@@ -282,7 +290,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             child: SizedBox(height: 32), // Section spacing
           ),
         ],
-        
+
         // Kanji Section
         if (results.kanji.isNotEmpty) ...[
           SliverToBoxAdapter(
@@ -308,8 +316,10 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   Widget _buildDiaryEntriesGrid(List<DiaryEntry> entries) {
     return SliverLayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = _calculateGridColumns(constraints.crossAxisExtent);
-        
+        final crossAxisCount = _calculateGridColumns(
+          constraints.crossAxisExtent,
+        );
+
         return SliverGrid(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
@@ -330,8 +340,10 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   Widget _buildKanjiGrid(List<KanjiData> kanjiList) {
     return SliverLayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = _calculateGridColumns(constraints.crossAxisExtent);
-        
+        final crossAxisCount = _calculateGridColumns(
+          constraints.crossAxisExtent,
+        );
+
         return SliverGrid(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
@@ -349,13 +361,13 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   }
 
   /// Calculates the number of columns based on available width.
-  /// 
+  ///
   /// Uses the same calculation logic as ResponsiveGridView.
   int _calculateGridColumns(double availableWidth) {
     return ResponsiveGridView.calculateCrossAxisCount(
       availableWidth,
       340.0, // minCardWidth
-      8.0,   // spacing
+      8.0, // spacing
       const EdgeInsets.symmetric(horizontal: 8),
     );
   }
@@ -367,8 +379,5 @@ class _SearchResults {
   final List<KanjiData> kanji;
 
   /// Creates a new instance of [_SearchResults].
-  _SearchResults({
-    required this.diaryEntries,
-    required this.kanji,
-  });
+  _SearchResults({required this.diaryEntries, required this.kanji});
 }
