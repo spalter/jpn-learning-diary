@@ -43,7 +43,7 @@ class _KanjiCardState extends State<KanjiCard> {
       borderRadius: BorderRadius.circular(12),
       color: _isHovering
           ? Theme.of(context).colorScheme.primary.withAlpha(20)
-          : Theme.of(context).colorScheme.surface
+          : Theme.of(context).colorScheme.primary.withAlpha(0)
     );
   }
 

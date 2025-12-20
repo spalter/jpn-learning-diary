@@ -25,56 +25,13 @@ class _SettingsPageState extends State<SettingsPage> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _buildGeneralSettings(context),
-          const SizedBox(height: 24),
-          _buildVisualSettings(context),
-          const SizedBox(height: 24),
-          _buildDataManagementSettings(context),
+          _buildAboutSetting(context),
+          _buildViewModeSetting(context),
+          _buildClearDataSetting(context),
+          _buildDatabaseFileSetting(context),
         ],
       ),
     );
-  }
-
-  /// Builds the general settings section.
-  Widget _buildGeneralSettings(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle(context, 'General'),
-        const SizedBox(height: 12),
-        _buildAboutSetting(context),
-      ],
-    );
-  }
-
-  /// Builds the visual settings section.
-  Widget _buildVisualSettings(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle(context, 'Visual Settings'),
-        const SizedBox(height: 12),
-        _buildViewModeSetting(context),
-      ],
-    );
-  }
-
-  /// Builds the data management settings section.
-  Widget _buildDataManagementSettings(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle(context, 'Data Management'),
-        const SizedBox(height: 12),
-        _buildClearDataSetting(context),
-        _buildDatabaseFileSetting(context),
-      ],
-    );
-  }
-
-  /// Builds a section title.
-  Widget _buildSectionTitle(BuildContext context, String title) {
-    return Text(title, style: Theme.of(context).textTheme.titleMedium);
   }
 
   /// Builds a settings row container with bottom border.
@@ -100,7 +57,6 @@ class _SettingsPageState extends State<SettingsPage> {
     return _buildSettingRow(
       context: context,
       child: ListTile(
-        leading: const Icon(Icons.view_module),
         title: const Text('Preferred View Mode'),
         subtitle: const Text('Choose between grid or list view'),
         trailing: FutureBuilder<String>(
@@ -144,10 +100,9 @@ class _SettingsPageState extends State<SettingsPage> {
     return _buildSettingRow(
       context: context,
       child: ListTile(
-        leading: const Icon(Icons.info_outline),
         title: const Text('About'),
         subtitle: const Text('App information and licenses'),
-        trailing: TextButton(
+        trailing: FilledButton(
           onPressed: () => showAppAboutDialog(context),
           child: const Text('View'),
         ),
@@ -160,10 +115,6 @@ class _SettingsPageState extends State<SettingsPage> {
     return _buildSettingRow(
       context: context,
       child: ListTile(
-        leading: Icon(
-          Icons.delete_forever,
-          color: Theme.of(context).colorScheme.error,
-        ),
         title: const Text('Clear All Data'),
         subtitle: const Text('Delete all diary entries from the database'),
         trailing: FilledButton(
@@ -182,7 +133,6 @@ class _SettingsPageState extends State<SettingsPage> {
     return _buildSettingRow(
       context: context,
       child: ListTile(
-        leading: const Icon(Icons.storage),
         title: const Text('Database File'),
         subtitle: _buildDatabasePathSubtitle(context),
         trailing: FilledButton(
