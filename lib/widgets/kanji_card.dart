@@ -11,6 +11,10 @@ class KanjiCard extends StatefulWidget {
   /// The kanji data to display.
   final KanjiData kanji;
 
+  /// Whether to use a bordered card style with hover effects.
+  /// Defaults to false for a minimal appearance.
+  final bool useBorderedStyle;
+
   /// Creates a kanji card.
   ///
   /// The [kanji] parameter is required and contains all the information
@@ -18,6 +22,7 @@ class KanjiCard extends StatefulWidget {
   const KanjiCard({
     super.key,
     required this.kanji,
+    this.useBorderedStyle = false,
   });
 
   @override
@@ -27,6 +32,32 @@ class KanjiCard extends StatefulWidget {
 class _KanjiCardState extends State<KanjiCard> {
   bool _isHovering = false;
 
+  Decoration _buildBorderedCardDecoration(BuildContext context) {
+    return BoxDecoration(
+      border: Border.all(
+        color: Theme.of(context).colorScheme.primary.withAlpha(
+          _isHovering ? 180 : 80,
+        ),
+        width: 1,
+      ),
+      borderRadius: BorderRadius.circular(12),
+      color: _isHovering
+          ? Theme.of(context).colorScheme.primary.withAlpha(20)
+          : Theme.of(context).colorScheme.surface
+    );
+  }
+
+  Decoration _buildMinimalCardDecoration(BuildContext context) {
+    return BoxDecoration(
+      border: Border(
+        bottom: BorderSide(
+          color: Theme.of(context).colorScheme.primary.withAlpha(0),
+          width: 0,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
@@ -34,14 +65,9 @@ class _KanjiCardState extends State<KanjiCard> {
       onExit: (_) => setState(() => _isHovering = false),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12, right: 16),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: Theme.of(context).colorScheme.primary.withAlpha(20),
-              width: 2,
-            ),
-          ),
-        ),
+        decoration: widget.useBorderedStyle
+            ? _buildBorderedCardDecoration(context)
+            : _buildMinimalCardDecoration(context),
         child: InkWell(
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,

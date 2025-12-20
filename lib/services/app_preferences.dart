@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// - Other app configuration settings
 class AppPreferences {
   static const String _keyCustomDbPath = 'custom_db_path';
+  static const String _keyViewMode = 'view_mode';
 
   /// Gets the custom database path if set by the user.
   ///
@@ -38,5 +39,21 @@ class AppPreferences {
   static Future<bool> hasCustomDatabasePath() async {
     final path = await getCustomDatabasePath();
     return path != null && path.isNotEmpty;
+  }
+
+  /// Gets the preferred view mode (grid or list).
+  ///
+  /// Returns 'grid' or 'list'. Defaults to 'list' if not set.
+  static Future<String> getViewMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyViewMode) ?? 'list';
+  }
+
+  /// Sets the preferred view mode.
+  ///
+  /// [mode] should be either 'grid' or 'list'.
+  static Future<void> setViewMode(String mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyViewMode, mode);
   }
 }
