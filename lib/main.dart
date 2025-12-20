@@ -3,6 +3,7 @@
 /// This Flutter application helps track Japanese language learning progress,
 /// including hiragana, katakana, phrases, and words.
 library;
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:window_manager/window_manager.dart';
@@ -28,7 +29,11 @@ void main() async {
   // Initialize window manager and set minimum size
   await windowManager.ensureInitialized();
   await windowManager.setMinimumSize(const Size(700, 300));
-  await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+
+  // Don't hide on MacOS, it will show the titlebar again for some reason
+  if (!Platform.isMacOS) {
+    await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+  }
 
   runApp(const JapaneseLearningDiary());
 }
