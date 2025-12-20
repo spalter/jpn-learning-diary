@@ -1,13 +1,14 @@
 import 'dart:io' show exit;
 
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:jpn_learning_diary/screens/dashboard_page.dart';
 import 'package:jpn_learning_diary/screens/hiragana_page.dart';
 import 'package:jpn_learning_diary/screens/katakana_page.dart';
 import 'package:jpn_learning_diary/screens/phrases_words_page.dart';
 import 'package:jpn_learning_diary/screens/search_results_page.dart';
 import 'package:jpn_learning_diary/screens/settings_page.dart';
-import 'package:jpn_learning_diary/widgets/app_menu.dart';
+import 'package:jpn_learning_diary/widgets/no_animation_page_route.dart';
 import 'edit_diary_entry_dialog.dart';
 
 /// Custom app bar with integrated search functionality.
@@ -86,8 +87,9 @@ class AppNavigationBarState extends State<AppNavigationBar> {
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      title: Row(
-        children: [
+      title: DragToMoveArea(
+        child: Row(
+          children: [
           // Navigation buttons
           ExcludeFocus(
             child: IconButton(
@@ -219,6 +221,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
             ),
           const Spacer(),
         ],
+      ),
       ),
       actions: [
           ExcludeFocus(

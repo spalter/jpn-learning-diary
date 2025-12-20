@@ -28,6 +28,7 @@ void main() async {
   // Initialize window manager and set minimum size
   await windowManager.ensureInitialized();
   await windowManager.setMinimumSize(const Size(700, 300));
+  await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
 
   runApp(const JapaneseLearningDiary());
 }
