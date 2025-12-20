@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/data/diary_data.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
+import 'package:jpn_learning_diary/widgets/common_states.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
+import 'package:jpn_learning_diary/widgets/section_header.dart';
 
 /// Dashboard page showing learning progress overview.
 ///
@@ -104,26 +106,13 @@ class _DashboardPageState extends State<DashboardPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Recent Entries',
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                        SectionHeader(
+                          title: 'Recent Entries',
+                          bottomPadding: 16,
                         ),
-                        const SizedBox(height: 16),
                         if (data.recentEntries.isEmpty)
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(32),
-                              child: Text(
-                                'No entries yet. Add your first entry!',
-                                style: Theme.of(context).textTheme.bodyLarge
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface.withAlpha(153),
-                                    ),
-                              ),
-                            ),
+                          const EmptyState(
+                            message: 'No entries yet. Add your first entry!',
                           )
                         else
                           ...data.recentEntries.map(

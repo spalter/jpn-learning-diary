@@ -176,7 +176,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
       suffixIcon: widget.textController.text.isNotEmpty
           ? IconButton(
               icon: const Icon(Icons.close, size: 20),
-              tooltip: 'Clear and go to diary',
+              tooltip: 'Clear',
               onPressed: widget.onClearSearch,
             )
           : null,

@@ -6,6 +6,7 @@ import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 import 'package:jpn_learning_diary/widgets/kanji_card.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
+import 'package:jpn_learning_diary/widgets/section_header.dart';
 
 /// Search results page that displays results based on search query.
 ///
@@ -74,8 +75,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     // Diary Entries Section
     if (results.diaryEntries.isNotEmpty) {
       if (index == currentIndex) {
-        return _buildSectionHeader(
-          context,
+        return SectionHeader(
           icon: Icons.book,
           title: 'Diary Entries (${results.diaryEntries.length})',
         );
@@ -106,8 +106,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     // Kanji Section
     if (results.kanji.isNotEmpty) {
       if (index == currentIndex) {
-        return _buildSectionHeader(
-          context,
+        return SectionHeader(
           icon: Icons.language,
           title: 'Kanji (${results.kanji.length})',
         );
@@ -127,29 +126,6 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     }
 
     return const SizedBox.shrink();
-  }
-
-  /// Builds a section header with icon and title.
-  Widget _buildSectionHeader(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        children: [
-          Icon(icon, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 8),
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
   }
 
   /// Builds a diary entry card.
@@ -274,9 +250,8 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         if (results.diaryEntries.isNotEmpty) ...[
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-              child: _buildSectionHeader(
-                context,
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+              child: SectionHeader(
                 icon: Icons.book,
                 title: 'Diary Entries (${results.diaryEntries.length})',
               ),
@@ -295,9 +270,8 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         if (results.kanji.isNotEmpty) ...[
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
-              child: _buildSectionHeader(
-                context,
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+              child: SectionHeader(
                 icon: Icons.language,
                 title: 'Kanji (${results.kanji.length})',
               ),

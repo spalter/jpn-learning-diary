@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/data/diary_data.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
+import 'package:jpn_learning_diary/widgets/common_states.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
 
@@ -61,17 +62,19 @@ class _PhrasesWordsPageState extends State<PhrasesWordsPage> {
       future: _entriesFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return _buildLoadingState();
+          return const LoadingState();
         }
 
         if (snapshot.hasError) {
-          return _buildErrorState(snapshot.error);
+          return ErrorState(error: snapshot.error);
         }
 
         final entries = snapshot.data ?? [];
 
         if (entries.isEmpty) {
-          return _buildEmptyState();
+          return const EmptyState(
+            message: 'No entries yet. Add your first entry!',
+          );
         }
 
         return _buildEntriesListView(entries);
@@ -85,17 +88,19 @@ class _PhrasesWordsPageState extends State<PhrasesWordsPage> {
       future: _entriesFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return _buildLoadingState();
+          return const LoadingState();
         }
 
         if (snapshot.hasError) {
-          return _buildErrorState(snapshot.error);
+          return ErrorState(error: snapshot.error);
         }
 
         final entries = snapshot.data ?? [];
 
         if (entries.isEmpty) {
-          return _buildEmptyState();
+          return const EmptyState(
+            message: 'No entries yet. Add your first entry!',
+          );
         }
 
         return ResponsiveGridView(
@@ -106,21 +111,6 @@ class _PhrasesWordsPageState extends State<PhrasesWordsPage> {
         );
       },
     );
-  }
-
-  /// Builds the loading indicator shown while fetching entries.
-  Widget _buildLoadingState() {
-    return const Center(child: CircularProgressIndicator());
-  }
-
-  /// Builds the error message display.
-  Widget _buildErrorState(Object? error) {
-    return Center(child: Text('Error: $error'));
-  }
-
-  /// Builds the empty state shown when there are no entries.
-  Widget _buildEmptyState() {
-    return const Center(child: Text('No entries yet. Add your first entry!'));
   }
 
   /// Builds the scrollable list of diary entry cards.
