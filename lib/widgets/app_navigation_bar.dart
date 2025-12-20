@@ -90,175 +90,197 @@ class AppNavigationBarState extends State<AppNavigationBar> {
       title: DragToMoveArea(
         child: Row(
           children: [
-          // Navigation buttons
-          ExcludeFocus(
-            child: IconButton(
-              icon: const Icon(Icons.menu_book),
-              tooltip: 'Diary (Phrases & Words)',
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  NoAnimationPageRoute(builder: (context) => const PhrasesWordsPage()),
-                );
-              },
-            ),
-          ),
-          ExcludeFocus(
-            child: IconButton(
-              icon: const Text(
-                'あ',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              tooltip: 'Hiragana',
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  NoAnimationPageRoute(builder: (context) => const HiraganaPage()),
-                );
-              },
-            ),
-          ),
-          ExcludeFocus(
-            child: IconButton(
-              icon: const Text(
-                'ア',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              tooltip: 'Katakana',
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  NoAnimationPageRoute(builder: (context) => const KatakanaPage()),
-                );
-              },
-            ),
-          ),
-          const Spacer(),
-          
-          // Add entry button
-          ExcludeFocus(
-            child: IconButton(
-              icon: const Icon(Icons.add_circle_outline),
-              tooltip: 'Add new diary entry',
-              onPressed: () async {
-                final result = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => const EditDiaryEntryDialog(),
-                );
-                
-                if (result == true) {
-                  widget.onEntryAdded?.call();
-                }
-              },
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            flex: 3,
-            child: TextField(
-              controller: widget.textController,
-              focusNode: _focusNode,
-              textAlign: TextAlign.left,
-              onSubmitted: (value) {
-                if (value.trim().isNotEmpty) {
-                  Navigator.pushReplacement(
-                      context,
-                      NoAnimationPageRoute(
-                        builder: (context) => SearchResultsPage(
-                          searchQuery: value.trim(),
-                        ),
-                      ),
-                    );
-                    // Select all text after navigation to keep it visible and ready for next search
-                    Future.delayed(const Duration(milliseconds: 100), () {
-                      if (mounted) {
-                        widget.textController.selection = TextSelection(
-                          baseOffset: 0,
-                          extentOffset: widget.textController.text.length,
-                        );
-                      }
-                    });
-                  } else {
-                    // Navigate to diary page when field is empty
-                    Navigator.pushReplacement(
-                      context,
-                      NoAnimationPageRoute(builder: (context) => const PhrasesWordsPage()),
-                    );
-                  }
-                },
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: widget.textController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.close, size: 20),
-                          tooltip: 'Clear and go to diary',
-                          onPressed: _clearAndNavigateToDiary,
-                        )
-                      : null,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.primary.withAlpha(128)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide:
-                        BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  isDense: true,
-                  filled: true,
-                  fillColor: Theme.of(context).colorScheme.surface,
-                ),
-              ),
-            ),
-          const Spacer(),
-        ],
-      ),
+            ..._buildNavigationButtons(context),
+            const Spacer(),
+            _buildAddButton(context),
+            const SizedBox(width: 8),
+            _buildSearchField(context),
+            const Spacer(),
+          ],
+        ),
       ),
       actions: [
-          ExcludeFocus(
-            child: IconButton(
-              icon: const Icon(Icons.leaderboard),
-              tooltip: 'Learning',
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  NoAnimationPageRoute(builder: (context) => const DashboardPage()),
-                );
-              },
-            ),
-          ),
-          ExcludeFocus(
-            child: IconButton(
-              icon: const Icon(Icons.settings),
-              tooltip: 'Settings',
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  NoAnimationPageRoute(builder: (context) => const SettingsPage()),
-                );
-              },
-            ),
-          ),
-        ExcludeFocus(
-          child: IconButton(
-            onPressed: () {
-              exit(0);
-            },
-            icon: const Icon(Icons.close),
-            tooltip: 'Exit',
-          ),
-        ),
+        ..._buildActionButtons(context),
         const SizedBox(width: 16),
       ],
     );
+  }
+
+  /// Builds the navigation buttons (Diary, Hiragana, Katakana).
+  List<Widget> _buildNavigationButtons(BuildContext context) {
+    return [
+      ExcludeFocus(
+        child: IconButton(
+          icon: const Icon(Icons.menu_book),
+          tooltip: 'Diary (Phrases & Words)',
+          onPressed: () => _navigateTo(context, const PhrasesWordsPage()),
+        ),
+      ),
+      ExcludeFocus(
+        child: IconButton(
+          icon: const Text(
+            'あ',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          tooltip: 'Hiragana',
+          onPressed: () => _navigateTo(context, const HiraganaPage()),
+        ),
+      ),
+      ExcludeFocus(
+        child: IconButton(
+          icon: const Text(
+            'ア',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          tooltip: 'Katakana',
+          onPressed: () => _navigateTo(context, const KatakanaPage()),
+        ),
+      ),
+    ];
+  }
+
+  /// Builds the add entry button.
+  Widget _buildAddButton(BuildContext context) {
+    return ExcludeFocus(
+      child: IconButton(
+        icon: const Icon(Icons.add_circle_outline),
+        tooltip: 'Add new diary entry',
+        onPressed: () => _handleAddEntry(context),
+      ),
+    );
+  }
+
+  /// Builds the search text field.
+  Widget _buildSearchField(BuildContext context) {
+    return Expanded(
+      flex: 3,
+      child: GestureDetector(
+        onDoubleTap: () {
+          // Select all text on double tap instead of maximizing window
+          widget.textController.selection = TextSelection(
+            baseOffset: 0,
+            extentOffset: widget.textController.text.length,
+          );
+        },
+        child: TextField(
+          controller: widget.textController,
+          focusNode: _focusNode,
+          textAlign: TextAlign.left,
+          onSubmitted: (value) => _handleSearchSubmit(context, value),
+          decoration: _buildSearchDecoration(context),
+        ),
+      ),
+    );
+  }
+
+  /// Builds the decoration for the search field.
+  InputDecoration _buildSearchDecoration(BuildContext context) {
+    return InputDecoration(
+      prefixIcon: const Icon(Icons.search),
+      suffixIcon: widget.textController.text.isNotEmpty
+          ? IconButton(
+              icon: const Icon(Icons.close, size: 20),
+              tooltip: 'Clear and go to diary',
+              onPressed: _clearAndNavigateToDiary,
+            )
+          : null,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(
+          color: Theme.of(context).colorScheme.primary.withAlpha(128),
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(
+          color: Theme.of(context).colorScheme.primary,
+          width: 2,
+        ),
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 4,
+      ),
+      isDense: true,
+      filled: true,
+      fillColor: Theme.of(context).colorScheme.surface,
+    );
+  }
+
+  /// Builds the action buttons (Learning, Settings, Exit).
+  List<Widget> _buildActionButtons(BuildContext context) {
+    return [
+      ExcludeFocus(
+        child: IconButton(
+          icon: const Icon(Icons.leaderboard),
+          tooltip: 'Learning',
+          onPressed: () => _navigateTo(context, const DashboardPage()),
+        ),
+      ),
+      ExcludeFocus(
+        child: IconButton(
+          icon: const Icon(Icons.settings),
+          tooltip: 'Settings',
+          onPressed: () => _navigateTo(context, const SettingsPage()),
+        ),
+      ),
+      ExcludeFocus(
+        child: IconButton(
+          onPressed: () => exit(0),
+          icon: const Icon(Icons.close),
+          tooltip: 'Exit',
+        ),
+      ),
+    ];
+  }
+
+  /// Navigates to a page with no animation.
+  void _navigateTo(BuildContext context, Widget page) {
+    Navigator.pushReplacement(
+      context,
+      NoAnimationPageRoute(builder: (context) => page),
+    );
+  }
+
+  /// Handles the add entry button press.
+  Future<void> _handleAddEntry(BuildContext context) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => const EditDiaryEntryDialog(),
+    );
+
+    if (result == true) {
+      widget.onEntryAdded?.call();
+    }
+  }
+
+  /// Handles search field submission.
+  void _handleSearchSubmit(BuildContext context, String value) {
+    if (value.trim().isNotEmpty) {
+      Navigator.pushReplacement(
+        context,
+        NoAnimationPageRoute(
+          builder: (context) => SearchResultsPage(
+            searchQuery: value.trim(),
+          ),
+        ),
+      );
+      // Select all text after navigation to keep it visible and ready for next search
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          widget.textController.selection = TextSelection(
+            baseOffset: 0,
+            extentOffset: widget.textController.text.length,
+          );
+        }
+      });
+    } else {
+      // Navigate to diary page when field is empty
+      _navigateTo(context, const PhrasesWordsPage());
+    }
   }
 }

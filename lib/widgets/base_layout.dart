@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
@@ -66,33 +67,62 @@ class _BaseLayoutState extends State<BaseLayout> {
   @override
   Widget build(BuildContext context) {
     return Shortcuts(
-      shortcuts: <LogicalKeySet, Intent>{
-        LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyF): const FocusSearchIntent(),
-        LogicalKeySet(LogicalKeyboardKey.slash): const FocusSearchIntent(),
-        LogicalKeySet(LogicalKeyboardKey.f3): const FocusSearchIntent(),
-      },
+      shortcuts: _buildShortcuts(),
       child: Actions(
-        actions: <Type, Action<Intent>>{
-          FocusSearchIntent: CallbackAction<FocusSearchIntent>(
-            onInvoke: (intent) => _focusSearchField(),
-          ),
-        },
-        child: Focus(
-          autofocus: true,
-          child: Scaffold(
-            appBar: AppNavigationBar(
-              key: _navBarKey,
-              textController: _textController,
-              onEntryAdded: widget.onEntryAdded,
-            ),
-            backgroundColor: AppTheme.scaffoldBackground(context),
-            body: Padding(
-              padding: const EdgeInsets.only(left: 16, top: 16, right:0, bottom: 0),
-              child: widget.child,
-            ),
-          ),
-        ),
+        actions: _buildActions(),
+        child: _buildScaffold(context),
       ),
+    );
+  }
+
+  /// Builds keyboard shortcuts for search field focus.
+  Map<LogicalKeySet, Intent> _buildShortcuts() {
+    return <LogicalKeySet, Intent>{
+      // Use Cmd+F on macOS, Ctrl+F on Windows/Linux
+      LogicalKeySet(
+        Platform.isMacOS ? LogicalKeyboardKey.meta : LogicalKeyboardKey.control,
+        LogicalKeyboardKey.keyF,
+      ): const FocusSearchIntent(),
+      LogicalKeySet(LogicalKeyboardKey.slash): const FocusSearchIntent(),
+      LogicalKeySet(LogicalKeyboardKey.f3): const FocusSearchIntent(),
+    };
+  }
+
+  /// Builds actions that respond to intents.
+  Map<Type, Action<Intent>> _buildActions() {
+    return <Type, Action<Intent>>{
+      FocusSearchIntent: CallbackAction<FocusSearchIntent>(
+        onInvoke: (intent) => _focusSearchField(),
+      ),
+    };
+  }
+
+  /// Builds the main scaffold with app bar and content.
+  Widget _buildScaffold(BuildContext context) {
+    return Focus(
+      autofocus: true,
+      child: Scaffold(
+        appBar: _buildAppBar(),
+        backgroundColor: AppTheme.scaffoldBackground(context),
+        body: _buildBody(),
+      ),
+    );
+  }
+
+  /// Builds the navigation bar app bar.
+  PreferredSizeWidget _buildAppBar() {
+    return AppNavigationBar(
+      key: _navBarKey,
+      textController: _textController,
+      onEntryAdded: widget.onEntryAdded,
+    );
+  }
+
+  /// Builds the body content with padding.
+  Widget _buildBody() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, top: 16, right: 0, bottom: 0),
+      child: widget.child,
     );
   }
 }
