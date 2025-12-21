@@ -54,6 +54,9 @@ class _AppShellState extends State<AppShell> {
   /// Current search query (when on search results page).
   String _searchQuery = '';
 
+  /// Key to force rebuild of pages when data changes.
+  Key _pageKey = UniqueKey();
+
   @override
   void initState() {
     super.initState();
@@ -133,14 +136,10 @@ class _AppShellState extends State<AppShell> {
     );
 
     if (result == true) {
-      // Refresh current page if it's dashboard or phrases/words
-      if (_currentPage == AppPage.dashboard ||
-          _currentPage == AppPage.phrasesWords ||
-          _currentPage == AppPage.searchResults) {
-        setState(() {
-          // Force rebuild to refresh data
-        });
-      }
+      // Refresh current page by generating a new key
+      setState(() {
+        _pageKey = UniqueKey();
+      });
     }
   }
 
@@ -153,17 +152,17 @@ class _AppShellState extends State<AppShell> {
   Widget _buildCurrentPage() {
     switch (_currentPage) {
       case AppPage.phrasesWords:
-        return const PhrasesWordsPage();
+        return PhrasesWordsPage(key: _pageKey);
       case AppPage.hiragana:
         return const HiraganaPage();
       case AppPage.katakana:
         return const KatakanaPage();
       case AppPage.dashboard:
-        return const DashboardPage();
+        return DashboardPage(key: _pageKey);
       case AppPage.settings:
         return const SettingsPage();
       case AppPage.searchResults:
-        return SearchResultsPage(searchQuery: _searchQuery);
+        return SearchResultsPage(key: _pageKey, searchQuery: _searchQuery);
     }
   }
 

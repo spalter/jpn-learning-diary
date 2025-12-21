@@ -41,13 +41,13 @@ class _CharacterCardState extends State<CharacterCard> {
         elevation: widget.isSelected ? 8 : 2,
         color: widget.isSelected 
             ? Theme.of(context).colorScheme.primaryContainer
-            : Theme.of(context).colorScheme.surface,
+            : Theme.of(context).colorScheme.surface.withAlpha(100),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
             color: _isHovering 
                 ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.primary.withAlpha(100),
+                : Theme.of(context).colorScheme.primary.withAlpha(0),
             width: _isHovering ? 2 : 1,
           ),
         ),

@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:restart_app/restart_app.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/widgets/app_about_dialog.dart';
@@ -21,14 +20,14 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _buildAboutSetting(context),
-          _buildViewModeSetting(context),
-          _buildClearDataSetting(context),
-          _buildDatabaseFileSetting(context),
-        ],
-      );
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildAboutSetting(context),
+        _buildViewModeSetting(context),
+        _buildDatabaseFileSetting(context),
+        _buildClearDataSetting(context),
+      ],
+    );
   }
 
   /// Builds a settings row container with bottom border.
@@ -63,7 +62,9 @@ class _SettingsPageState extends State<SettingsPage> {
             return SegmentedButton<String>(
               style: SegmentedButton.styleFrom(
                 selectedBackgroundColor: Theme.of(context).colorScheme.primary,
-                selectedForegroundColor: Theme.of(context).colorScheme.onPrimary,
+                selectedForegroundColor: Theme.of(
+                  context,
+                ).colorScheme.onPrimary,
                 side: BorderSide(
                   color: Theme.of(context).colorScheme.primary.withAlpha(100),
                 ),
@@ -134,7 +135,7 @@ class _SettingsPageState extends State<SettingsPage> {
         subtitle: _buildDatabasePathSubtitle(context),
         trailing: FilledButton(
           onPressed: () => _handleChangeDatabasePath(context),
-          child: const Text('Change'),
+          child: const Text('Select'),
         ),
       ),
     );
@@ -148,10 +149,9 @@ class _SettingsPageState extends State<SettingsPage> {
         if (snapshot.hasData) {
           return SelectableText(
             snapshot.data!,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(fontFamily: 'monospace'),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
           );
         }
         return const Text('Loading...');
@@ -209,13 +209,6 @@ class _SettingsPageState extends State<SettingsPage> {
     if (!await _verifyFileExists(context, selectedPath)) return;
 
     await AppPreferences.setCustomDatabasePath(selectedPath);
-
-    if (mounted) {
-      final shouldRestart = await _showRestartDialog(context);
-      if (shouldRestart == true) {
-        Restart.restartApp();
-      }
-    }
   }
 
   /// Picks a database file using the file picker.
@@ -234,6 +227,13 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<bool> _verifyFileExists(BuildContext context, String path) async {
     final file = File(path);
     if (await file.exists()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Database file updated successfully, please restart the app',
+          ),
+        ),
+      );
       return true;
     }
 
@@ -243,31 +243,5 @@ class _SettingsPageState extends State<SettingsPage> {
       );
     }
     return false;
-  }
-
-  /// Shows a restart dialog after changing the database.
-  Future<bool?> _showRestartDialog(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Restart Required'),
-        content: const Text(
-          'The database file has been changed. '
-          'The application needs to restart to load the new database.\n\n'
-          'Would you like to restart now?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Later'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Restart Now'),
-          ),
-        ],
-      ),
-    );
   }
 }

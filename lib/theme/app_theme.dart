@@ -5,6 +5,7 @@
 /// - Tokyo Day color palette (light mode)
 /// - Common styling values (alpha transparency, etc.)
 library;
+
 import 'package:flutter/material.dart';
 
 /// Centralized theme configuration containing all app colors and styling constants.
@@ -26,7 +27,7 @@ class AppTheme {
   }
 
   /// Returns the light theme configuration using Tokyo Day colors.
-  /// 
+  ///
   /// Configures primary, secondary, tertiary, error, surface, and text colors.
   /// Uses Material 3 design language.
   static ThemeData getTokyoDayTheme() {
@@ -46,7 +47,7 @@ class AppTheme {
   }
 
   /// Returns the dark theme configuration using Tokyo Night Storm colors.
-  /// 
+  ///
   /// Configures primary, secondary, tertiary, error, surface, and text colors.
   /// Uses Material 3 design language.
   static ThemeData getTokyoNightTheme() {
