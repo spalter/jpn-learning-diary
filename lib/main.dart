@@ -7,6 +7,7 @@ library;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/widgets/app_shell.dart';
@@ -18,22 +19,34 @@ import 'package:jpn_learning_diary/widgets/app_shell.dart';
 /// - Configures transparent titlebar
 /// - Hides default window controls for custom UI
 /// - Sets minimum window size to 700x300
-void main() async {
+void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Clear shared preferences if requested
+  if (args.contains('--reset-prefs')) {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
+
+  // Skip window effects if specified
+  if (args.contains('--no-effects')) {
+    runApp(const JapaneseLearningDiary());
+    return;
+  }
+
+  // Initialize window effects and settings
   await Window.initialize();
   await Window.setEffect(effect: WindowEffect.mica);
-  await Window.hideTitle();
-  await Window.makeTitlebarTransparent();
-  await Window.enableFullSizeContentView();
-  await Window.hideWindowControls();
-
-  // Initialize window manager and set minimum size
   await windowManager.ensureInitialized();
   await windowManager.setMinimumSize(const Size(700, 300));
 
-  // Don't hide on MacOS, it will show the titlebar again for some reason
-  if (!Platform.isMacOS) {
+  if (Platform.isWindows) {
     await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+  } else if (Platform.isMacOS) {
+    await Window.hideTitle();
+    await Window.makeTitlebarTransparent();
+    await Window.enableFullSizeContentView();
+    await Window.hideWindowControls();
   }
 
   runApp(const JapaneseLearningDiary());
