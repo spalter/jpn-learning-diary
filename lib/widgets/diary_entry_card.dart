@@ -52,8 +52,6 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
             ? _buildBorderedCardDecoration(context)
             : _buildMinimalCardDecoration(context),
         child: InkWell(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
           focusColor: Theme.of(context).colorScheme.primary.withAlpha(30),
           hoverColor: Colors.transparent,
           onTap: _handleCopyToClipboard,

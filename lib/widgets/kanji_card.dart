@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/data/kanji_data.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Card widget for displaying a single kanji entry.
 ///
@@ -69,8 +70,6 @@ class _KanjiCardState extends State<KanjiCard> {
             ? _buildBorderedCardDecoration(context)
             : _buildMinimalCardDecoration(context),
         child: InkWell(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
           hoverColor: Colors.transparent,
           // Tapping the card copies the kanji character to clipboard.
           onTap: () async {
@@ -79,6 +78,21 @@ class _KanjiCardState extends State<KanjiCard> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Copied: ${widget.kanji.kanji}'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          },
+          // Double-tapping opens the kanji in Takoboto dictionary.
+          onDoubleTap: () async {
+            final encodedKanji = Uri.encodeComponent(widget.kanji.kanji);
+            final url = Uri.parse('https://takoboto.jp/?q=$encodedKanji');
+            if (await canLaunchUrl(url)) {
+              await launchUrl(url, mode: LaunchMode.externalApplication);
+            } else if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Could not open URL: $url'),
                   duration: const Duration(seconds: 2),
                 ),
               );
