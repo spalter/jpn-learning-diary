@@ -168,7 +168,7 @@ class _AppShellState extends State<AppShell> {
       case AppPage.settings:
         return const SettingsPage();
       case AppPage.searchResults:
-        return SearchResultsPage(key: _pageKey, searchQuery: _searchQuery);
+        return SearchResultsPage(key: _pageKey, searchQuery: _searchQuery, onSearchTextSet: _setSearchText);
     }
   }
 

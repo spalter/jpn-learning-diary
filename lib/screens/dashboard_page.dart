@@ -52,18 +52,21 @@ class _DashboardPageState extends State<DashboardPage> {
 
         return SingleChildScrollView(
           primary: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Statistics Row
-              _buildStatisticsRow(context, data),
-              const SizedBox(height: 48),
+          child: Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Statistics Row
+                _buildStatisticsRow(context, data),
+                const SizedBox(height: 48),
 
-              // Learning Modes Section
-              SectionHeader(title: 'Learning Modes', bottomPadding: 16),
-              _buildLearningModesGrid(context),
-              const SizedBox(height: 24),
-            ],
+                // Learning Modes Section
+                SectionHeader(title: 'Learning Modes', bottomPadding: 16),
+                _buildLearningModesGrid(context),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         );
       },

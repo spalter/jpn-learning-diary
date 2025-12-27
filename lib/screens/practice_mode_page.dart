@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/data/diary_data.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
+import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:window_manager/window_manager.dart';
 
 /// Practice mode where users type Japanese text for given English meanings.
@@ -139,6 +140,7 @@ class _PracticeModePageState extends State<PracticeModePage> {
         ),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
+      backgroundColor: AppTheme.scaffoldBackground(context),
       body: FutureBuilder<List<DiaryEntry>>(
         future: _entriesFuture,
         builder: (context, snapshot) {
@@ -271,6 +273,9 @@ class _PracticeModePageState extends State<PracticeModePage> {
                     onPressed: _checkAnswer,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     child: const Text('Submit', style: TextStyle(fontSize: 18)),
                   ),
@@ -334,6 +339,11 @@ class _PracticeModePageState extends State<PracticeModePage> {
                         _currentIndex < _practiceEntries.length - 1
                             ? 'Next Question'
                             : 'Finish',
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
                   ],

@@ -16,7 +16,10 @@ class SearchResultsPage extends StatefulWidget {
   /// The search query text.
   final String searchQuery;
 
-  const SearchResultsPage({super.key, required this.searchQuery});
+  /// Callback to set search text in the navigation bar.
+  final void Function(String)? onSearchTextSet;
+
+  const SearchResultsPage({super.key, required this.searchQuery, this.onSearchTextSet});
 
   @override
   State<SearchResultsPage> createState() => _SearchResultsPageState();
@@ -133,6 +136,9 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     return DiaryEntryCard(
       entry: entry,
       onUpdate: _performSearch,
+      onTap: widget.onSearchTextSet != null
+          ? () => widget.onSearchTextSet!(entry.japanese)
+          : null,
       useBorderedStyle: useBorderedStyle,
     );
   }
