@@ -15,6 +15,9 @@ class DiaryEntryCard extends StatefulWidget {
   /// Callback when the entry is updated.
   final VoidCallback? onUpdate;
 
+  /// Callback when the card is tapped.
+  final VoidCallback? onTap;
+
   /// Whether to use a bordered card style with hover effects.
   /// Defaults to false for a minimal appearance.
   final bool useBorderedStyle;
@@ -27,6 +30,7 @@ class DiaryEntryCard extends StatefulWidget {
     super.key,
     required this.entry,
     this.onUpdate,
+    this.onTap,
     this.useBorderedStyle = false,
   });
 
@@ -53,6 +57,7 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
           focusColor: Theme.of(context).colorScheme.primary.withAlpha(30),
           hoverColor: Colors.transparent,
           onTap: _handleCopyToClipboard,
+          onDoubleTap: widget.onTap,
           onLongPress: _handleEditEntry,
           borderRadius: BorderRadius.circular(12),
           child: Padding(

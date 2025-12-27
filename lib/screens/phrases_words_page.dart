@@ -11,7 +11,10 @@ import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
 /// Displays and manages learned Japanese phrases and vocabulary words.
 /// Provides functionality to track learning progress and practice.
 class PhrasesWordsPage extends StatefulWidget {
-  const PhrasesWordsPage({super.key});
+  /// Callback to set search text in the navigation bar.
+  final void Function(String)? onSearchTextSet;
+
+  const PhrasesWordsPage({super.key, this.onSearchTextSet});
 
   @override
   State<PhrasesWordsPage> createState() => _PhrasesWordsPageState();
@@ -126,6 +129,9 @@ class _PhrasesWordsPageState extends State<PhrasesWordsPage> {
     return DiaryEntryCard(
       entry: entry,
       onUpdate: _loadEntries,
+      onTap: widget.onSearchTextSet != null
+          ? () => widget.onSearchTextSet!(entry.japanese)
+          : null,
       useBorderedStyle: useBorderedStyle,
     );
   }

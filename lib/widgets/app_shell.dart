@@ -148,11 +148,17 @@ class _AppShellState extends State<AppShell> {
     _searchFocusNode.requestFocus();
   }
 
+  /// Sets search text and focuses the search field.
+  void _setSearchText(String text) {
+    _searchController.text = text;
+    _searchFocusNode.requestFocus();
+  }
+
   /// Builds the current page content based on navigation state.
   Widget _buildCurrentPage() {
     switch (_currentPage) {
       case AppPage.phrasesWords:
-        return PhrasesWordsPage(key: _pageKey);
+        return PhrasesWordsPage(key: _pageKey, onSearchTextSet: _setSearchText);
       case AppPage.hiragana:
         return const HiraganaPage();
       case AppPage.katakana:
