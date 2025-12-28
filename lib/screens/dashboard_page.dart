@@ -32,7 +32,12 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Future<_DashboardData> _fetchDashboardData() async {
     final entries = await DatabaseHelper.instance.getAllEntries();
-    return _DashboardData(totalEntries: entries.length);
+    final jlptStats = await DatabaseHelper.instance
+        .getLearnedKanjiByJlptLevel();
+    return _DashboardData(
+      totalEntries: entries.length,
+      kanjiByJlptLevel: jlptStats,
+    );
   }
 
   @override
@@ -86,24 +91,80 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ),
         const SizedBox(width: 16),
-        Expanded(
-          child: _buildStatCard(
-            context,
-            title: 'Coming Soon',
-            value: '-',
-            icon: Icons.more_horiz,
-          ),
-        ),
+        Expanded(child: _buildKanjiStatCard(context, data)),
         const SizedBox(width: 16),
-        Expanded(
-          child: _buildStatCard(
-            context,
-            title: 'Coming Soon',
-            value: '-',
-            icon: Icons.more_horiz,
-          ),
-        ),
+        Expanded(child: _buildJlptLevelsCard(context, data)),
       ],
+    );
+  }
+
+  /// Builds the kanji statistics card.
+  Widget _buildKanjiStatCard(BuildContext context, _DashboardData data) {
+    return _buildStatCard(
+      context,
+      title: 'Unique Kanji',
+      value: '${data.totalKanji}',
+      icon: Icons.translate,
+    );
+  }
+
+  /// Builds the JLPT levels card with horizontal layout.
+  Widget _buildJlptLevelsCard(BuildContext context, _DashboardData data) {
+    final levels = [5, 4, 3, 2, 1];
+    final levelNames = {5: 'N5', 4: 'N4', 3: 'N3', 2: 'N2', 1: 'N1'};
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer.withAlpha(20),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withAlpha(80),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.school,
+            size: 32,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(height: 14),
+          // Horizontal layout of JLPT levels
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: levels.map((level) {
+              final count = data.kanjiByJlptLevel[level] ?? 0;
+              return Column(
+                children: [
+                  Text(
+                    levelNames[level]!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$count',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'JLPT Levels',
+            style: Theme.of(context).textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
@@ -154,7 +215,7 @@ class _DashboardPageState extends State<DashboardPage> {
       children: [
         _buildLearningModeButton(
           context,
-          title: 'Practice',
+          title: 'Diary Quiz',
           icon: Icons.edit_note,
           onTap: () {
             Navigator.of(context).push(
@@ -167,8 +228,11 @@ class _DashboardPageState extends State<DashboardPage> {
           title: 'Kanji Quiz',
           icon: Icons.history_edu,
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Kanji Quiz mode coming soon!')),
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) =>
+                    const PracticeModePage(mode: PracticeMode.kanji),
+              ),
             );
           },
         ),
@@ -228,5 +292,13 @@ class _DashboardData {
   /// Total count of all diary entries in the database.
   final int totalEntries;
 
-  _DashboardData({required this.totalEntries});
+  /// Count of unique kanji by JLPT level found in diary entries.
+  /// Keys: 5 (N5), 4 (N4), 3 (N3), 2 (N2), 1 (N1), null (unclassified)
+  final Map<int?, int> kanjiByJlptLevel;
+
+  _DashboardData({required this.totalEntries, required this.kanjiByJlptLevel});
+
+  /// Gets the total count of all unique kanji across all JLPT levels.
+  int get totalKanji =>
+      kanjiByJlptLevel.values.fold(0, (sum, count) => sum + count);
 }

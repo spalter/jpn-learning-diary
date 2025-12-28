@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -375,6 +376,118 @@ class DatabaseHelper {
     );
     if (result.isEmpty) return null;
     return KanjiData.fromMap(result.first);
+  }
+
+  /// Gets JLPT level statistics for kanji found in diary entries.
+  ///
+  /// Extracts all unique kanji characters from diary entries and queries
+  /// the kanji table to get their JLPT levels. Returns a map with counts
+  /// for each JLPT level (N5-N1, using jlpt_new field).
+  ///
+  /// Returns a map with keys: 5, 4, 3, 2, 1 (N5 to N1) and null for unclassified.
+  Future<Map<int?, int>> getLearnedKanjiByJlptLevel() async {
+    final db = await database;
+
+    // Get all diary entries
+    final allEntries = await getAllEntries();
+
+    if (allEntries.isEmpty) {
+      return {5: 0, 4: 0, 3: 0, 2: 0, 1: 0, null: 0};
+    }
+
+    // Extract all unique kanji characters from diary entries
+    final kanjiPattern = RegExp(r'[\u4E00-\u9FFF\u3400-\u4DBF]');
+    final uniqueKanji = <String>{};
+
+    for (var entry in allEntries) {
+      final matches = kanjiPattern.allMatches(entry.japanese);
+      for (var match in matches) {
+        uniqueKanji.add(match.group(0)!);
+      }
+    }
+
+    if (uniqueKanji.isEmpty) {
+      return {5: 0, 4: 0, 3: 0, 2: 0, 1: 0, null: 0};
+    }
+
+    // Query kanji table for JLPT levels
+    final placeholders = List.filled(uniqueKanji.length, '?').join(',');
+    final results = await db.query(
+      'kanji',
+      columns: ['jlpt_new'],
+      where: 'kanji IN ($placeholders)',
+      whereArgs: uniqueKanji.toList(),
+    );
+
+    // Count kanji by JLPT level
+    final Map<int?, int> levelCounts = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0, null: 0};
+
+    for (var result in results) {
+      final level = result['jlpt_new'] as int?;
+      levelCounts[level] = (levelCounts[level] ?? 0) + 1;
+    }
+
+    return levelCounts;
+  }
+
+  /// Gets random kanji data for practice from those found in diary entries.
+  ///
+  /// This method ensures practice is relevant by only including kanji that
+  /// the user has encountered in their diary entries. The algorithm:
+  ///
+  /// 1. Fetches all diary entries
+  /// 2. Extracts unique kanji characters using Unicode ranges:
+  ///    - U+4E00-U+9FFF (CJK Unified Ideographs)
+  ///    - U+3400-U+4DBF (CJK Extension A)
+  /// 3. Queries the kanji table for matching characters (efficient WHERE IN)
+  /// 4. Shuffles and returns up to [count] random kanji
+  ///
+  /// Returns an empty list if no diary entries exist or no kanji are found.
+  Future<List<KanjiData>> getRandomKanjiFromDiary({int count = 10}) async {
+    final db = await database;
+
+    // Get all diary entries to extract kanji from
+    final allEntries = await getAllEntries();
+
+    if (allEntries.isEmpty) {
+      return [];
+    }
+
+    // Extract all unique kanji characters from diary entries
+    final kanjiPattern = RegExp(r'[\u4E00-\u9FFF\u3400-\u4DBF]');
+    final uniqueKanji = <String>{};
+
+    for (var entry in allEntries) {
+      final matches = kanjiPattern.allMatches(entry.japanese);
+      for (var match in matches) {
+        uniqueKanji.add(match.group(0)!);
+      }
+    }
+
+    if (uniqueKanji.isEmpty) {
+      return [];
+    }
+
+    // Query kanji table for only those kanji that appear in diary entries
+    final placeholders = List.filled(uniqueKanji.length, '?').join(',');
+    final results = await db.query(
+      'kanji',
+      where: 'kanji IN ($placeholders)',
+      whereArgs: uniqueKanji.toList(),
+    );
+
+    if (results.isEmpty) {
+      return [];
+    }
+
+    // Convert to KanjiData and shuffle
+    final allKanji = results.map((json) => KanjiData.fromMap(json)).toList();
+
+    final random = Random();
+    allKanji.shuffle(random);
+
+    // Take up to the requested count
+    return allKanji.take(min(count, allKanji.length)).toList();
   }
 
   /// Gets the full path to the database file.

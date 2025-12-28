@@ -209,7 +209,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     return [
       ExcludeFocus(
         child: IconButton(
-          icon: const Icon(Icons.leaderboard),
+          icon: const Icon(Icons.school),
           tooltip: 'Learning',
           onPressed: widget.onNavigateToDashboard,
         ),
