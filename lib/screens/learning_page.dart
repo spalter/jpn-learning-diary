@@ -7,14 +7,14 @@ import 'package:jpn_learning_diary/widgets/section_header.dart';
 ///
 /// Displays progress statistics and provides access to different
 /// learning and training scenarios.
-class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key});
+class LearningPage extends StatefulWidget {
+  const LearningPage({super.key});
 
   @override
-  State<DashboardPage> createState() => _DashboardPageState();
+  State<LearningPage> createState() => _LearningPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class _LearningPageState extends State<LearningPage> {
   late Future<_DashboardData> _dataFuture;
 
   @override

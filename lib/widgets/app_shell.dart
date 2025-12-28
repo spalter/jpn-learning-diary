@@ -1,7 +1,7 @@
 import 'dart:io' show Platform, exit;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jpn_learning_diary/screens/dashboard_page.dart';
+import 'package:jpn_learning_diary/screens/learning_page.dart';
 import 'package:jpn_learning_diary/screens/hiragana_page.dart';
 import 'package:jpn_learning_diary/screens/katakana_page.dart';
 import 'package:jpn_learning_diary/screens/phrases_words_page.dart';
@@ -51,6 +51,10 @@ class _AppShellState extends State<AppShell> {
   /// Focus node for the search field.
   final FocusNode _searchFocusNode = FocusNode();
 
+  /// Global key to access the navigation bar state.
+  final GlobalKey<AppNavigationBarState> _navigationBarKey =
+      GlobalKey<AppNavigationBarState>();
+
   /// Current search query (when on search results page).
   String _searchQuery = '';
 
@@ -75,7 +79,7 @@ class _AppShellState extends State<AppShell> {
   /// Called when search text changes.
   void _onSearchTextChanged() {
     final query = _searchController.text.trim();
-    
+
     if (query.isNotEmpty) {
       // Automatically navigate to search results and update query
       setState(() {
@@ -164,11 +168,16 @@ class _AppShellState extends State<AppShell> {
       case AppPage.katakana:
         return const KatakanaPage();
       case AppPage.dashboard:
-        return DashboardPage(key: _pageKey);
+        return LearningPage(key: _pageKey);
       case AppPage.settings:
         return const SettingsPage();
       case AppPage.searchResults:
-        return SearchResultsPage(key: _pageKey, searchQuery: _searchQuery, onSearchTextSet: _setSearchText);
+        return SearchResultsPage(
+          key: _pageKey,
+          searchQuery: _searchQuery,
+          onSearchTextSet: _setSearchText,
+          navigationBarKey: _navigationBarKey,
+        );
     }
   }
 
@@ -182,6 +191,7 @@ class _AppShellState extends State<AppShell> {
           autofocus: true,
           child: Scaffold(
             appBar: AppNavigationBar(
+              key: _navigationBarKey,
               textController: _searchController,
               searchFocusNode: _searchFocusNode,
               onNavigateToPhrasesWords: () =>

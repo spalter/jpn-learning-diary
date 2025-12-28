@@ -357,171 +357,22 @@ class _PracticeModePageState extends State<PracticeModePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Progress indicator
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Question ${_currentIndex + 1} of ${_practiceItems.length}',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              Text(
-                'Correct: $_correctCount',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+          _buildProgressIndicator(context),
           const SizedBox(height: 32),
-
-          // Center content with max width
           Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 800),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Question
-                  Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Text(
-                      currentItem.prompt,
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+                  _buildQuestionPrompt(context, currentItem.prompt),
                   const SizedBox(height: 32),
-
-                  // Answer input field
-                  TextField(
-                    controller: _answerController,
-                    focusNode: _answerFocusNode,
-                    autofocus: true,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                    decoration: InputDecoration(
-                      labelText: 'Your answer',
-                      hintText: 'Type in Japanese...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withAlpha(128),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 2,
-                        ),
-                      ),
-                      suffixIcon: _isCorrect
-                          ? const Icon(Icons.check_circle, color: Colors.green)
-                          : null,
-                    ),
-                    onSubmitted: (_) => _checkAnswer(),
-                  ),
+                  _buildAnswerInput(context),
                   const SizedBox(height: 16),
-
-                  // Submit button
-                  ElevatedButton(
-                    onPressed: _checkAnswer,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('Submit', style: TextStyle(fontSize: 18)),
-                  ),
-
-                  // Correct answer display (shown when wrong)
+                  _buildSubmitButton(context),
                   if (_showCorrectAnswer) ...[
                     const SizedBox(height: 24),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.red.withAlpha(10),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.red.withAlpha(180),
-                          width: 1,
-                        ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.info_outline,
-                                  color: Colors.red[700],
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Correct answer:',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.red[700],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (currentItem.furigana != null &&
-                                    currentItem.furigana !=
-                                        currentItem.correctAnswer)
-                                  Text(
-                                    currentItem.furigana!,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                    ),
-                                  ),
-                                Text(
-                                  currentItem.correctAnswer,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineSmall
-                                      ?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            ElevatedButton.icon(
-                              onPressed: _moveToNext,
-                              icon: const Icon(Icons.arrow_forward),
-                              label: Text(
-                                _currentIndex < _practiceItems.length - 1
-                                    ? 'Next Question'
-                                    : 'Finish',
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    _buildCorrectAnswerPanel(context, currentItem),
                   ],
                 ],
               ),
@@ -532,9 +383,168 @@ class _PracticeModePageState extends State<PracticeModePage> {
     );
   }
 
+  /// Builds the progress indicator row.
+  Widget _buildProgressIndicator(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'Question ${_currentIndex + 1} of ${_practiceItems.length}',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        Text(
+          'Correct: $_correctCount',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Builds the question prompt display.
+  Widget _buildQuestionPrompt(BuildContext context, String prompt) {
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Text(
+        prompt,
+        style: Theme.of(
+          context,
+        ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  /// Builds the answer input text field.
+  Widget _buildAnswerInput(BuildContext context) {
+    return TextField(
+      controller: _answerController,
+      focusNode: _answerFocusNode,
+      autofocus: true,
+      style: Theme.of(context).textTheme.headlineSmall,
+      decoration: _buildInputDecoration(context),
+      onSubmitted: (_) => _checkAnswer(),
+    );
+  }
+
+  /// Creates the input decoration for the answer field.
+  InputDecoration _buildInputDecoration(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
+    return InputDecoration(
+      labelText: 'Your answer',
+      hintText: 'Type in Japanese...',
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: primaryColor),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: primaryColor.withAlpha(128)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: primaryColor, width: 2),
+      ),
+      suffixIcon: _isCorrect
+          ? const Icon(Icons.check_circle, color: Colors.green)
+          : null,
+    );
+  }
+
+  /// Builds the submit answer button.
+  Widget _buildSubmitButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: _checkAnswer,
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      child: const Text('Submit', style: TextStyle(fontSize: 18)),
+    );
+  }
+
+  /// Builds the panel showing the correct answer after an incorrect attempt.
+  Widget _buildCorrectAnswerPanel(BuildContext context, PracticeItem item) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.red.withAlpha(10),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.withAlpha(180), width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildCorrectAnswerHeader(context),
+            const SizedBox(height: 8),
+            _buildCorrectAnswerText(context, item),
+            const SizedBox(height: 12),
+            _buildNextButton(context),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Builds the header for the correct answer panel.
+  Widget _buildCorrectAnswerHeader(BuildContext context) {
+    return Row(
+      children: [
+        Icon(Icons.info_outline, color: Colors.red[700]),
+        const SizedBox(width: 8),
+        Text(
+          'Correct answer:',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red[700]),
+        ),
+      ],
+    );
+  }
+
+  /// Builds the correct answer text with optional furigana.
+  Widget _buildCorrectAnswerText(BuildContext context, PracticeItem item) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (item.furigana != null && item.furigana != item.correctAnswer)
+          Text(
+            item.furigana!,
+            style: TextStyle(
+              fontSize: 11,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        Text(
+          item.correctAnswer,
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+
+  /// Builds the next/finish button in the correct answer panel.
+  Widget _buildNextButton(BuildContext context) {
+    final isLastQuestion = _currentIndex >= _practiceItems.length - 1;
+
+    return ElevatedButton.icon(
+      onPressed: _moveToNext,
+      icon: const Icon(Icons.arrow_forward),
+      label: Text(isLastQuestion ? 'Finish' : 'Next Question'),
+      style: ElevatedButton.styleFrom(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
   /// Builds the completion screen shown after all questions are answered.
   ///
   /// Displays:
+  /// - Celebration icon (🎉 if ≥70%, 👍 if <70%)
   /// - "Practice Complete!" title
   /// - Score as fraction (e.g., "7 out of 10")
   /// - Percentage score in large text
@@ -552,64 +562,83 @@ class _PracticeModePageState extends State<PracticeModePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              percentage >= 70 ? Icons.celebration : Icons.thumb_up,
-              size: 80,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+            _buildCompletionIcon(context, percentage),
             const SizedBox(height: 24),
-            Text(
-              'Practice Complete!',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),
-            ),
+            _buildCompletionTitle(context),
             const SizedBox(height: 16),
-            Text(
-              'You got $_correctCount out of ${_practiceItems.length} correct on first try',
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
+            _buildScoreText(context),
             const SizedBox(height: 8),
-            Text(
-              '$percentage%',
-              style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            _buildPercentageText(context, percentage),
             const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: _restart,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Practice Again'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.arrow_back),
-                  label: const Text('Back to Dashboard'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            _buildCompletionButtons(context),
           ],
         ),
       ),
+    );
+  }
+
+  /// Builds the completion screen icon based on score.
+  Widget _buildCompletionIcon(BuildContext context, int percentage) {
+    return Icon(
+      percentage >= 70 ? Icons.celebration : Icons.thumb_up,
+      size: 80,
+      color: Theme.of(context).colorScheme.primary,
+    );
+  }
+
+  /// Builds the completion title.
+  Widget _buildCompletionTitle(BuildContext context) {
+    return Text(
+      'Practice Complete!',
+      style: Theme.of(
+        context,
+      ).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),
+    );
+  }
+
+  /// Builds the score text showing fraction.
+  Widget _buildScoreText(BuildContext context) {
+    return Text(
+      'You got $_correctCount out of ${_practiceItems.length} correct on first try',
+      style: Theme.of(context).textTheme.titleLarge,
+      textAlign: TextAlign.center,
+    );
+  }
+
+  /// Builds the large percentage display.
+  Widget _buildPercentageText(BuildContext context, int percentage) {
+    return Text(
+      '$percentage%',
+      style: Theme.of(context).textTheme.displayLarge?.copyWith(
+        color: Theme.of(context).colorScheme.primary,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  /// Builds the action buttons for completion screen.
+  Widget _buildCompletionButtons(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton.icon(
+          onPressed: _restart,
+          icon: const Icon(Icons.refresh),
+          label: const Text('Practice Again'),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          ),
+        ),
+        const SizedBox(width: 16),
+        OutlinedButton.icon(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.arrow_back),
+          label: const Text('Back to Dashboard'),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          ),
+        ),
+      ],
     );
   }
 }

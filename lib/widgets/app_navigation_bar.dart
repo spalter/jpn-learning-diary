@@ -82,6 +82,16 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     });
   }
 
+  /// Inserts or replaces text in the search field and focuses it.
+  void insertSearchText(String text) {
+    widget.textController.text = text;
+    widget.searchFocusNode.requestFocus();
+    // Position cursor at the end
+    widget.textController.selection = TextSelection.fromPosition(
+      TextPosition(offset: widget.textController.text.length),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppBar(
@@ -130,6 +140,13 @@ class AppNavigationBarState extends State<AppNavigationBar> {
           ),
           tooltip: 'Katakana',
           onPressed: widget.onNavigateToKatakana,
+        ),
+      ),
+      ExcludeFocus(
+        child: IconButton(
+          icon: const Icon(Icons.school),
+          tooltip: 'Learning',
+          onPressed: widget.onNavigateToDashboard,
         ),
       ),
     ];
@@ -209,16 +226,32 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     return [
       ExcludeFocus(
         child: IconButton(
-          icon: const Icon(Icons.school),
-          tooltip: 'Learning',
-          onPressed: widget.onNavigateToDashboard,
+          icon: const Icon(Icons.settings),
+          tooltip: 'Settings',
+          onPressed: widget.onNavigateToSettings,
         ),
       ),
       ExcludeFocus(
         child: IconButton(
-          icon: const Icon(Icons.settings),
-          tooltip: 'Settings',
-          onPressed: widget.onNavigateToSettings,
+          icon: const Icon(Icons.remove),
+          tooltip: 'Minimize',
+          onPressed: () async {
+            await windowManager.minimize();
+          },
+        ),
+      ),
+      ExcludeFocus(
+        child: IconButton(
+          icon: const Icon(Icons.crop_square),
+          tooltip: 'Maximize',
+          onPressed: () async {
+            final isMaximized = await windowManager.isMaximized();
+            if (isMaximized) {
+              await windowManager.unmaximize();
+            } else {
+              await windowManager.maximize();
+            }
+          },
         ),
       ),
       ExcludeFocus(

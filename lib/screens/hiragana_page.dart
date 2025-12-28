@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/data/hiragana_data.dart';
-import 'package:jpn_learning_diary/widgets/character_section.dart';
+import 'package:jpn_learning_diary/screens/character_set_page.dart';
 
 /// Hiragana alphabet learning and practice page.
 ///
@@ -11,46 +11,12 @@ class HiraganaPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      primary: true,
-      child: Padding(
-        padding: const EdgeInsets.only(right: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Base Characters Section
-            CharacterSection(
-              title: 'Base Characters (Gojūon)',
-              characters: HiraganaData.baseCharacters,
-              characterTypeName: 'hiragana',
-            ),
-            const SizedBox(height: 32),
-
-            // Dakuten Section
-            CharacterSection(
-              title: 'Dakuten (゛)',
-              characters: HiraganaData.dakutenCharacters,
-              characterTypeName: 'hiragana',
-            ),
-            const SizedBox(height: 32),
-
-            // Han-dakuten Section
-            CharacterSection(
-              title: 'Han-dakuten (゜)',
-              characters: HiraganaData.hanDakutenCharacters,
-              characterTypeName: 'hiragana',
-            ),
-            const SizedBox(height: 32),
-
-            // Combinations Section
-            CharacterSection(
-              title: 'Combinations (Yōon)',
-              characters: HiraganaData.combinations,
-              characterTypeName: 'hiragana',
-            ),
-          ],
-        ),
-      ),
+    return CharacterSetPage(
+      characterTypeName: 'hiragana',
+      baseCharacters: HiraganaData.baseCharacters,
+      dakutenCharacters: HiraganaData.dakutenCharacters,
+      hanDakutenCharacters: HiraganaData.hanDakutenCharacters,
+      combinations: HiraganaData.combinations,
     );
   }
 }

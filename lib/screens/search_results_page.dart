@@ -3,6 +3,7 @@ import 'package:jpn_learning_diary/data/diary_data.dart';
 import 'package:jpn_learning_diary/data/kanji_data.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
+import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 import 'package:jpn_learning_diary/widgets/kanji_card.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
@@ -19,7 +20,15 @@ class SearchResultsPage extends StatefulWidget {
   /// Callback to set search text in the navigation bar.
   final void Function(String)? onSearchTextSet;
 
-  const SearchResultsPage({super.key, required this.searchQuery, this.onSearchTextSet});
+  /// Global key to access the navigation bar for inserting search text.
+  final GlobalKey<AppNavigationBarState>? navigationBarKey;
+
+  const SearchResultsPage({
+    super.key,
+    required this.searchQuery,
+    this.onSearchTextSet,
+    this.navigationBarKey,
+  });
 
   @override
   State<SearchResultsPage> createState() => _SearchResultsPageState();
@@ -145,7 +154,11 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
   /// Builds a kanji card.
   Widget _buildKanjiCard(KanjiData kanji, bool useBorderedStyle) {
-    return KanjiCard(kanji: kanji, useBorderedStyle: useBorderedStyle);
+    return KanjiCard(
+      kanji: kanji,
+      useBorderedStyle: useBorderedStyle,
+      navigationBarKey: widget.navigationBarKey,
+    );
   }
 
   /// Performs a comprehensive search across diary entries and kanji.
