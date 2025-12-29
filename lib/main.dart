@@ -10,7 +10,7 @@ import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
-import 'package:jpn_learning_diary/widgets/app_shell.dart';
+import 'package:jpn_learning_diary/screens/splash_screen.dart';
 
 /// Main entry point of the application.
 ///
@@ -39,6 +39,7 @@ void main(List<String> args) async {
   await Window.setEffect(effect: WindowEffect.mica);
   await windowManager.ensureInitialized();
   await windowManager.setMinimumSize(const Size(700, 300));
+  await windowManager.center();
 
   if (Platform.isWindows) {
     await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
@@ -69,7 +70,8 @@ class JapaneseLearningDiary extends StatelessWidget {
       theme: AppTheme.getTokyoDayTheme(),
       darkTheme: AppTheme.getTokyoNightTheme(),
       themeMode: ThemeMode.system,
-      home: const AppShell(),
+      home: const SplashScreen(),
     );
   }
 }
+
