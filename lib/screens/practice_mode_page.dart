@@ -2,7 +2,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
-import 'package:jpn_learning_diary/services/database_helper.dart';
+import 'package:jpn_learning_diary/repositories/diary_repository.dart';
+import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -155,10 +156,12 @@ class _PracticeModePageState extends State<PracticeModePage> {
   /// Updates [_practiceItems] state and returns the loaded items.
   Future<List<PracticeItem>> _loadRandomItems() async {
     List<PracticeItem> items = [];
+    final diaryRepository = DiaryRepository();
+    final kanjiRepository = KanjiRepository();
 
     switch (widget.mode) {
       case PracticeMode.diaryEntries:
-        final allEntries = await DatabaseHelper.instance.getAllEntries();
+        final allEntries = await diaryRepository.getAllEntries();
         if (allEntries.isNotEmpty) {
           final random = Random();
           final shuffled = List<DiaryEntry>.from(allEntries)..shuffle(random);
@@ -170,7 +173,7 @@ class _PracticeModePageState extends State<PracticeModePage> {
         break;
 
       case PracticeMode.kanji:
-        final kanjiList = await DatabaseHelper.instance.getRandomKanjiFromDiary(
+        final kanjiList = await kanjiRepository.getRandomKanjiFromDiary(
           count: 10,
         );
         items = kanjiList.map((k) => PracticeItem.fromKanji(k)).toList();

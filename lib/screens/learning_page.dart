@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:jpn_learning_diary/repositories/diary_repository.dart';
+import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
 import 'package:jpn_learning_diary/screens/practice_mode_page.dart';
-import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/widgets/section_header.dart';
 
 /// Dashboard page showing learning progress overview and training modes.
@@ -16,6 +17,8 @@ class LearningPage extends StatefulWidget {
 
 class _LearningPageState extends State<LearningPage> {
   late Future<_DashboardData> _dataFuture;
+  final DiaryRepository _diaryRepository = DiaryRepository();
+  final KanjiRepository _kanjiRepository = KanjiRepository();
 
   @override
   void initState() {
@@ -31,9 +34,8 @@ class _LearningPageState extends State<LearningPage> {
   }
 
   Future<_DashboardData> _fetchDashboardData() async {
-    final entries = await DatabaseHelper.instance.getAllEntries();
-    final jlptStats = await DatabaseHelper.instance
-        .getLearnedKanjiByJlptLevel();
+    final entries = await _diaryRepository.getAllEntries();
+    final jlptStats = await _kanjiRepository.getLearnedKanjiByJlptLevel();
     return _DashboardData(
       totalEntries: entries.length,
       kanjiByJlptLevel: jlptStats,

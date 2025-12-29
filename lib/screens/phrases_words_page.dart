@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
+import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
-import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/widgets/common_states.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
@@ -22,6 +22,7 @@ class PhrasesWordsPage extends StatefulWidget {
 
 class _PhrasesWordsPageState extends State<PhrasesWordsPage> {
   late Future<List<DiaryEntry>> _entriesFuture;
+  final DiaryRepository _diaryRepository = DiaryRepository();
 
   @override
   void initState() {
@@ -35,7 +36,7 @@ class _PhrasesWordsPageState extends State<PhrasesWordsPage> {
   /// updated, or deleted to ensure the list stays synchronized with the database.
   void _loadEntries() {
     setState(() {
-      _entriesFuture = DatabaseHelper.instance.getAllEntries();
+      _entriesFuture = _diaryRepository.getAllEntries();
     });
   }
 

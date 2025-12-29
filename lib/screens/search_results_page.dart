@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
+import 'package:jpn_learning_diary/repositories/diary_repository.dart';
+import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
-import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 import 'package:jpn_learning_diary/widgets/kanji_card.dart';
@@ -169,10 +170,11 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   ///
   /// Returns a [_SearchResults] object containing all matching results.
   Future<_SearchResults> _search() async {
-    final db = DatabaseHelper.instance;
+    final diaryRepository = DiaryRepository();
+    final kanjiRepository = KanjiRepository();
 
     // Search diary entries across all text fields.
-    final allEntries = await db.getAllEntries();
+    final allEntries = await diaryRepository.getAllEntries();
     final diaryResults = allEntries.where((entry) {
       final query = widget.searchQuery.toLowerCase();
       return entry.japanese.toLowerCase().contains(query) ||
@@ -183,7 +185,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     }).toList();
 
     // Search kanji database using dedicated search method.
-    final kanjiResults = await db.searchKanji(widget.searchQuery);
+    final kanjiResults = await kanjiRepository.searchKanji(widget.searchQuery);
 
     return _SearchResults(diaryEntries: diaryResults, kanji: kanjiResults);
   }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/widgets/app_about_dialog.dart';
@@ -164,7 +165,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final confirmed = await _showClearDataConfirmation(context);
 
     if (confirmed == true && mounted) {
-      await DatabaseHelper.instance.deleteAllEntries();
+      final diaryRepository = DiaryRepository();
+      await diaryRepository.deleteAllEntries();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('All data has been cleared')),
