@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:jpn_learning_diary/repositories/diary_repository.dart';
-import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
+import 'package:jpn_learning_diary/controllers/learning_controller.dart';
 import 'package:jpn_learning_diary/screens/practice_mode_page.dart';
 import 'package:jpn_learning_diary/widgets/section_header.dart';
+import 'package:provider/provider.dart';
 
 /// Dashboard page showing learning progress overview and training modes.
 ///
@@ -16,72 +16,67 @@ class LearningPage extends StatefulWidget {
 }
 
 class _LearningPageState extends State<LearningPage> {
-  late Future<_DashboardData> _dataFuture;
-  final DiaryRepository _diaryRepository = DiaryRepository();
-  final KanjiRepository _kanjiRepository = KanjiRepository();
+  late LearningController _controller;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _controller = LearningController();
+    _controller.loadData();
   }
 
-  /// Triggers a reload of dashboard data from the database.
-  void _loadData() {
-    setState(() {
-      _dataFuture = _fetchDashboardData();
-    });
-  }
-
-  Future<_DashboardData> _fetchDashboardData() async {
-    final entries = await _diaryRepository.getAllEntries();
-    final jlptStats = await _kanjiRepository.getLearnedKanjiByJlptLevel();
-    return _DashboardData(
-      totalEntries: entries.length,
-      kanjiByJlptLevel: jlptStats,
-    );
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<_DashboardData>(
-      future: _dataFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return ChangeNotifierProvider.value(
+      value: _controller,
+      child: Consumer<LearningController>(
+        builder: (context, controller, child) {
+          if (controller.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
+          if (controller.errorMessage != null) {
+            return Center(child: Text('Error: ${controller.errorMessage}'));
+          }
 
-        final data = snapshot.data!;
+          if (!controller.hasData) {
+            return const Center(child: Text('No data available'));
+          }
 
-        return SingleChildScrollView(
-          primary: true,
-          child: Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Statistics Row
-                _buildStatisticsRow(context, data),
-                const SizedBox(height: 48),
+          final data = controller.data!;
 
-                // Learning Modes Section
-                SectionHeader(title: 'Learning Modes', bottomPadding: 16),
-                _buildLearningModesGrid(context),
-                const SizedBox(height: 24),
-              ],
+          return SingleChildScrollView(
+            primary: true,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Statistics Row
+                  _buildStatisticsRow(context, data),
+                  const SizedBox(height: 48),
+
+                  // Learning Modes Section
+                  SectionHeader(title: 'Learning Modes', bottomPadding: 16),
+                  _buildLearningModesGrid(context),
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
   /// Builds the statistics cards row showing key metrics.
-  Widget _buildStatisticsRow(BuildContext context, _DashboardData data) {
+  Widget _buildStatisticsRow(BuildContext context, DashboardData data) {
     return Row(
       children: [
         Expanded(
@@ -101,7 +96,7 @@ class _LearningPageState extends State<LearningPage> {
   }
 
   /// Builds the kanji statistics card.
-  Widget _buildKanjiStatCard(BuildContext context, _DashboardData data) {
+  Widget _buildKanjiStatCard(BuildContext context, DashboardData data) {
     return _buildStatCard(
       context,
       title: 'Unique Kanji',
@@ -111,7 +106,7 @@ class _LearningPageState extends State<LearningPage> {
   }
 
   /// Builds the JLPT levels card with horizontal layout.
-  Widget _buildJlptLevelsCard(BuildContext context, _DashboardData data) {
+  Widget _buildJlptLevelsCard(BuildContext context, DashboardData data) {
     final levels = [5, 4, 3, 2, 1];
     final levelNames = {5: 'N5', 4: 'N4', 3: 'N3', 2: 'N2', 1: 'N1'};
 
@@ -287,20 +282,4 @@ class _LearningPageState extends State<LearningPage> {
       ),
     );
   }
-}
-
-/// Internal data model for dashboard statistics.
-class _DashboardData {
-  /// Total count of all diary entries in the database.
-  final int totalEntries;
-
-  /// Count of unique kanji by JLPT level found in diary entries.
-  /// Keys: 5 (N5), 4 (N4), 3 (N3), 2 (N2), 1 (N1), null (unclassified)
-  final Map<int?, int> kanjiByJlptLevel;
-
-  _DashboardData({required this.totalEntries, required this.kanjiByJlptLevel});
-
-  /// Gets the total count of all unique kanji across all JLPT levels.
-  int get totalKanji =>
-      kanjiByJlptLevel.values.fold(0, (sum, count) => sum + count);
 }

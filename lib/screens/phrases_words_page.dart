@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:jpn_learning_diary/controllers/diary_entries_controller.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
-import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/widgets/common_states.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
+import 'package:provider/provider.dart';
 
 /// Phrases and words tracking page.
 ///
@@ -21,99 +22,97 @@ class PhrasesWordsPage extends StatefulWidget {
 }
 
 class _PhrasesWordsPageState extends State<PhrasesWordsPage> {
-  late Future<List<DiaryEntry>> _entriesFuture;
-  final DiaryRepository _diaryRepository = DiaryRepository();
+  late DiaryEntriesController _controller;
 
   @override
   void initState() {
     super.initState();
-    _loadEntries();
+    _controller = DiaryEntriesController();
+    _controller.loadEntries();
   }
 
-  /// Fetches all diary entries from the database.
-  ///
-  /// This is called when the page initializes and after any entry is added,
-  /// updated, or deleted to ensure the list stays synchronized with the database.
-  void _loadEntries() {
-    setState(() {
-      _entriesFuture = _diaryRepository.getAllEntries();
-    });
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String>(
-      future: AppPreferences.getViewMode(),
-      builder: (context, snapshot) {
-        final viewMode = snapshot.data ?? 'list';
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: viewMode == 'grid'
-                  ? _buildEntriesGridView()
-                  : _buildEntriesList(),
-            ),
-          ],
-        );
-      },
+    return ChangeNotifierProvider.value(
+      value: _controller,
+      child: FutureBuilder<String>(
+        future: AppPreferences.getViewMode(),
+        builder: (context, snapshot) {
+          final viewMode = snapshot.data ?? 'list';
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: viewMode == 'grid'
+                    ? _buildEntriesGridView()
+                    : _buildEntriesList(),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
   /// Builds the main entries list with loading and error states.
   Widget _buildEntriesList() {
-    return FutureBuilder<List<DiaryEntry>>(
-      future: _entriesFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+    return Consumer<DiaryEntriesController>(
+      builder: (context, controller, child) {
+        if (controller.isLoading) {
           return const LoadingState();
         }
 
-        if (snapshot.hasError) {
-          return ErrorState(error: snapshot.error);
+        if (controller.errorMessage != null) {
+          return ErrorState(error: controller.errorMessage);
         }
 
-        final entries = snapshot.data ?? [];
-
-        if (entries.isEmpty) {
+        if (controller.isEmpty) {
           return const EmptyState(
             message: 'No entries yet. Add your first entry!',
           );
         }
 
-        return _buildEntriesListView(entries);
+        return _buildEntriesListView(controller.entries);
       },
     );
   }
 
   /// Builds a grid view of diary entry cards.
   Widget _buildEntriesGridView() {
-    return FutureBuilder<List<DiaryEntry>>(
-      future: _entriesFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+    return Consumer<DiaryEntriesController>(
+      builder: (context, controller, child) {
+        if (controller.isLoading) {
           return const LoadingState();
         }
 
-        if (snapshot.hasError) {
-          return ErrorState(error: snapshot.error);
+        if (controller.errorMessage != null) {
+          return ErrorState(error: controller.errorMessage);
         }
 
-        final entries = snapshot.data ?? [];
-
-        if (entries.isEmpty) {
+        if (controller.isEmpty) {
           return const EmptyState(
             message: 'No entries yet. Add your first entry!',
           );
         }
 
-        return ResponsiveGridView(
-          itemCount: entries.length,
-          minCardWidth: 320.0,
-          itemBuilder: (context, index) =>
-              _buildEntryCard(entries[index], useBorderedStyle: true),
-        );
+        return _buildGridView(controller.entries);
       },
+    );
+  }
+
+  /// Builds the grid view of diary entry cards.
+  Widget _buildGridView(List<DiaryEntry> entries) {
+    return ResponsiveGridView(
+      itemCount: entries.length,
+      minCardWidth: 320.0,
+      itemBuilder: (context, index) =>
+          _buildEntryCard(entries[index], useBorderedStyle: true),
     );
   }
 
@@ -129,7 +128,7 @@ class _PhrasesWordsPageState extends State<PhrasesWordsPage> {
   Widget _buildEntryCard(DiaryEntry entry, {bool useBorderedStyle = false}) {
     return DiaryEntryCard(
       entry: entry,
-      onUpdate: _loadEntries,
+      onUpdate: () => _controller.refresh(),
       onTap: widget.onSearchTextSet != null
           ? () => widget.onSearchTextSet!(entry.japanese)
           : null,
