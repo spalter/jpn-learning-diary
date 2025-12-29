@@ -8,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AppPreferences {
   static const String _keyCustomDbPath = 'custom_db_path';
   static const String _keyViewMode = 'view_mode';
+  static const String _keyShowRomaji = 'show_romaji';
+  static const String _keyShowFurigana = 'show_furigana';
 
   /// Gets the custom database path if set by the user.
   ///
@@ -55,5 +57,33 @@ class AppPreferences {
   static Future<void> setViewMode(String mode) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyViewMode, mode);
+  }
+
+  /// Gets whether to show romaji in diary entries.
+  ///
+  /// Returns true by default if not set.
+  static Future<bool> getShowRomaji() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyShowRomaji) ?? true;
+  }
+
+  /// Sets whether to show romaji in diary entries.
+  static Future<void> setShowRomaji(bool show) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyShowRomaji, show);
+  }
+
+  /// Gets whether to show furigana in diary entries.
+  ///
+  /// Returns true by default if not set.
+  static Future<bool> getShowFurigana() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyShowFurigana) ?? true;
+  }
+
+  /// Sets whether to show furigana in diary entries.
+  static Future<void> setShowFurigana(bool show) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyShowFurigana, show);
   }
 }

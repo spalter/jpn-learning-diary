@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
+import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/widgets/app_card.dart';
 import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart';
 
@@ -37,41 +38,51 @@ class DiaryEntryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      style: useBorderedStyle ? AppCardStyle.bordered : AppCardStyle.minimal,
-      margin: const EdgeInsets.only(bottom: 12, right: 16),
-      padding: const EdgeInsets.all(16),
-      onTap: () => _handleCopyToClipboard(context),
-      onDoubleTap: onTap,
-      onLongPress: () => _handleEditEntry(context),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeaderRow(context),
-          const SizedBox(height: 8),
-          _buildRomaji(context),
-          const SizedBox(height: 8),
-          _buildMeaning(context),
-          if (_hasNotes) ...[const SizedBox(height: 8), _buildNotes(context)],
-        ],
-      ),
+    return FutureBuilder<List<bool>>(
+      future: Future.wait([
+        AppPreferences.getShowRomaji(),
+        AppPreferences.getShowFurigana(),
+      ]),
+      builder: (context, snapshot) {
+        final showRomaji = snapshot.data?[0] ?? true;
+        final showFurigana = snapshot.data?[1] ?? true;
+
+        return AppCard(
+          style: useBorderedStyle ? AppCardStyle.bordered : AppCardStyle.minimal,
+          margin: const EdgeInsets.only(bottom: 12, right: 16),
+          padding: const EdgeInsets.all(16),
+          onTap: () => _handleCopyToClipboard(context),
+          onDoubleTap: onTap,
+          onLongPress: () => _handleEditEntry(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeaderRow(context, showFurigana: showFurigana),
+              if (showRomaji) ...[const SizedBox(height: 8), _buildRomaji(context)],
+              const SizedBox(height: 8),
+              _buildMeaning(context),
+              if (_hasNotes) ...[const SizedBox(height: 8), _buildNotes(context)],
+            ],
+          ),
+        );
+      },
     );
   }
 
   /// Builds the header row with Japanese text, furigana, and date badge
-  Widget _buildHeaderRow(BuildContext context) {
+  Widget _buildHeaderRow(BuildContext context, {required bool showFurigana}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [Expanded(child: _buildJapaneseText(context))],
+      children: [Expanded(child: _buildJapaneseText(context, showFurigana: showFurigana))],
     );
   }
 
   /// Builds the Japanese text with optional furigana
-  Widget _buildJapaneseText(BuildContext context) {
+  Widget _buildJapaneseText(BuildContext context, {required bool showFurigana}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (_hasFurigana) _buildFurigana(context),
+        if (showFurigana && _hasFurigana) _buildFurigana(context),
         Text(
           entry.japanese,
           style: Theme.of(

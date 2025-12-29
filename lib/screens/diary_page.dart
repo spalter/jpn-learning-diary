@@ -11,17 +11,17 @@ import 'package:provider/provider.dart';
 ///
 /// Displays and manages learned Japanese phrases and vocabulary words.
 /// Provides functionality to track learning progress and practice.
-class PhrasesWordsPage extends StatefulWidget {
+class DiaryPage extends StatefulWidget {
   /// Callback to set search text in the navigation bar.
   final void Function(String)? onSearchTextSet;
 
-  const PhrasesWordsPage({super.key, this.onSearchTextSet});
+  const DiaryPage({super.key, this.onSearchTextSet});
 
   @override
-  State<PhrasesWordsPage> createState() => _PhrasesWordsPageState();
+  State<DiaryPage> createState() => _DiaryPageState();
 }
 
-class _PhrasesWordsPageState extends State<PhrasesWordsPage> {
+class _DiaryPageState extends State<DiaryPage> {
   late DiaryEntriesController _controller;
 
   @override

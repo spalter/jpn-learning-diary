@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/screens/learning_page.dart';
 import 'package:jpn_learning_diary/screens/hiragana_page.dart';
 import 'package:jpn_learning_diary/screens/katakana_page.dart';
-import 'package:jpn_learning_diary/screens/phrases_words_page.dart';
+import 'package:jpn_learning_diary/screens/diary_page.dart';
 import 'package:jpn_learning_diary/screens/search_results_page.dart';
 import 'package:jpn_learning_diary/screens/settings_page.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
@@ -162,7 +162,7 @@ class _AppShellState extends State<AppShell> {
   Widget _buildCurrentPage() {
     switch (_currentPage) {
       case AppPage.phrasesWords:
-        return PhrasesWordsPage(key: _pageKey, onSearchTextSet: _setSearchText);
+        return DiaryPage(key: _pageKey, onSearchTextSet: _setSearchText);
       case AppPage.hiragana:
         return const HiraganaPage();
       case AppPage.katakana:

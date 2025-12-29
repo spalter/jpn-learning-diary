@@ -25,6 +25,7 @@ class _SettingsPageState extends State<SettingsPage> {
       children: [
         _buildAboutSetting(context),
         _buildViewModeSetting(context),
+        _buildDisplaySettingsSection(context),
         _buildDatabaseFileSetting(context),
         _buildClearDataSetting(context),
       ],
@@ -90,6 +91,61 @@ class _SettingsPageState extends State<SettingsPage> {
             );
           },
         ),
+      ),
+    );
+  }
+
+  /// Builds the display settings section.
+  Widget _buildDisplaySettingsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildShowRomajiSetting(context),
+        _buildShowFuriganaSetting(context),
+      ],
+    );
+  }
+
+  /// Builds the show romaji toggle setting.
+  Widget _buildShowRomajiSetting(BuildContext context) {
+    return _buildSettingRow(
+      context: context,
+      child: FutureBuilder<bool>(
+        future: AppPreferences.getShowRomaji(),
+        builder: (context, snapshot) {
+          final showRomaji = snapshot.data ?? true;
+          return SwitchListTile(
+            title: const Text('Show Romaji'),
+            subtitle: const Text('Display romanization in diary entry cards'),
+            value: showRomaji,
+            onChanged: (value) async {
+              await AppPreferences.setShowRomaji(value);
+              setState(() {}); // Refresh to show updated value
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  /// Builds the show furigana toggle setting.
+  Widget _buildShowFuriganaSetting(BuildContext context) {
+    return _buildSettingRow(
+      context: context,
+      child: FutureBuilder<bool>(
+        future: AppPreferences.getShowFurigana(),
+        builder: (context, snapshot) {
+          final showFurigana = snapshot.data ?? true;
+          return SwitchListTile(
+            title: const Text('Show Furigana'),
+            subtitle: const Text('Display reading guides above Japanese text'),
+            value: showFurigana,
+            onChanged: (value) async {
+              await AppPreferences.setShowFurigana(value);
+              setState(() {}); // Refresh to show updated value
+            },
+          );
+        },
       ),
     );
   }
