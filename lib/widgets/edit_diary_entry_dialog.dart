@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jpn_learning_diary/data/diary_data.dart';
+import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
 
 /// Dialog for creating or editing a diary entry.

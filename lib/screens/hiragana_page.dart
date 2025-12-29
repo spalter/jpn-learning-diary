@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jpn_learning_diary/data/hiragana_data.dart';
+import 'package:jpn_learning_diary/models/hiragana_data.dart';
 import 'package:jpn_learning_diary/screens/character_set_page.dart';
 
 /// Hiragana alphabet learning and practice page.
@@ -15,7 +15,7 @@ class HiraganaPage extends StatelessWidget {
       characterTypeName: 'hiragana',
       baseCharacters: HiraganaData.baseCharacters,
       dakutenCharacters: HiraganaData.dakutenCharacters,
-      hanDakutenCharacters: HiraganaData.hanDakutenCharacters,
+      hanDakutenCharacters: HiraganaData.handakutenCharacters,
       combinations: HiraganaData.combinations,
     );
   }

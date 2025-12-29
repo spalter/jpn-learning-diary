@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jpn_learning_diary/data/diary_data.dart';
+import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/widgets/app_card.dart';
 import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart';
 

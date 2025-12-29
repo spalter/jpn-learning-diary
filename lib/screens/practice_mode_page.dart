@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:jpn_learning_diary/data/diary_data.dart';
-import 'package:jpn_learning_diary/data/kanji_data.dart';
+import 'package:jpn_learning_diary/models/diary_entry.dart';
+import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:window_manager/window_manager.dart';

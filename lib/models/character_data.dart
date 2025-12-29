@@ -1,5 +1,9 @@
+import 'package:equatable/equatable.dart';
+
 /// Data model for Japanese characters (hiragana, katakana, etc.).
-class CharacterData {
+///
+/// Pure data model with no business logic.
+class CharacterData extends Equatable {
   final String character;
   final String romanization;
   final String? description;
@@ -9,4 +13,10 @@ class CharacterData {
     required this.romanization,
     this.description,
   });
+
+  @override
+  List<Object?> get props => [character, romanization, description];
+
+  @override
+  bool get stringify => true;
 }

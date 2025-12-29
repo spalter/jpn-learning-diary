@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jpn_learning_diary/data/katakana_data.dart';
+import 'package:jpn_learning_diary/models/katakana_data.dart';
 import 'package:jpn_learning_diary/screens/character_set_page.dart';
 
 /// Katakana alphabet learning and practice page.
@@ -15,7 +15,7 @@ class KatakanaPage extends StatelessWidget {
       characterTypeName: 'katakana',
       baseCharacters: KatakanaData.baseCharacters,
       dakutenCharacters: KatakanaData.dakutenCharacters,
-      hanDakutenCharacters: KatakanaData.hanDakutenCharacters,
+      hanDakutenCharacters: KatakanaData.handakutenCharacters,
       combinations: KatakanaData.combinations,
     );
   }

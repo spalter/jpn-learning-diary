@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jpn_learning_diary/data/character_data.dart';
+import 'package:jpn_learning_diary/models/character_data.dart';
 import 'package:jpn_learning_diary/widgets/character_section.dart';
 
 /// Generic character set learning page.

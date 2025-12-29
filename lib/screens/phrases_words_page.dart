@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jpn_learning_diary/data/diary_data.dart';
+import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/widgets/common_states.dart';

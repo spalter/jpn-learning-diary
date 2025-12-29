@@ -5,8 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:jpn_learning_diary/data/diary_data.dart';
-import 'package:jpn_learning_diary/data/kanji_data.dart';
+import 'package:jpn_learning_diary/models/diary_entry.dart';
+import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 
 /// Database helper for managing diary entries in SQLite.

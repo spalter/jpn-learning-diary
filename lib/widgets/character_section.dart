@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jpn_learning_diary/data/character_data.dart';
+import 'package:jpn_learning_diary/models/character_data.dart';
 import 'package:jpn_learning_diary/widgets/character_card.dart';
 
 /// A reusable character section widget with responsive grid layout.

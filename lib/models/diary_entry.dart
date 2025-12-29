@@ -1,23 +1,28 @@
+import 'package:equatable/equatable.dart';
+
 /// Model for a learned word or phrase entry in the diary.
-class DiaryEntry {
+///
+/// This is a pure data model representing a vocabulary entry with no business logic.
+/// Immutable and value-comparable for use in state management.
+class DiaryEntry extends Equatable {
   /// Unique identifier for the entry.
   final int? id;
-  
+
   /// Japanese text (kanji/kana).
   final String japanese;
-  
+
   /// Furigana/reading guide (hiragana above kanji).
   final String? furigana;
-  
+
   /// Romanized version (romaji).
   final String romaji;
-  
+
   /// English translation or meaning.
   final String meaning;
-  
+
   /// User's notes about the entry.
   final String? notes;
-  
+
   /// When the entry was created/learned.
   final DateTime dateAdded;
 
@@ -77,4 +82,18 @@ class DiaryEntry {
       dateAdded: dateAdded ?? this.dateAdded,
     );
   }
+
+  @override
+  List<Object?> get props => [
+        id,
+        japanese,
+        furigana,
+        romaji,
+        meaning,
+        notes,
+        dateAdded,
+      ];
+
+  @override
+  bool get stringify => true;
 }

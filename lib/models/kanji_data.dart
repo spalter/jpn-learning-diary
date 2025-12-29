@@ -1,8 +1,11 @@
+import 'package:equatable/equatable.dart';
+
 /// Kanji data model for storing kanji information from the kanji-data JSON.
 ///
+/// This is a pure data model with no business logic.
 /// Data source: https://github.com/davidluzgouveia/kanji-data
 /// Licensed under MIT License
-class KanjiData {
+class KanjiData extends Equatable {
   final String kanji;
   final int strokes;
   final int? grade;
@@ -18,7 +21,7 @@ class KanjiData {
   final String? wkReadingsKun;
   final String? wkRadicals;
 
-  KanjiData({
+  const KanjiData({
     required this.kanji,
     required this.strokes,
     this.grade,
@@ -68,7 +71,7 @@ class KanjiData {
       readingsOn: (json['readings_on'] as List).join(', '),
       readingsKun: (json['readings_kun'] as List).join(', '),
       wkLevel: json['wk_level'] as int?,
-      wkMeanings: json['wk_meanings'] != null 
+      wkMeanings: json['wk_meanings'] != null
           ? (json['wk_meanings'] as List).join(', ')
           : null,
       wkReadingsOn: json['wk_readings_on'] != null
@@ -102,4 +105,34 @@ class KanjiData {
       'wk_radicals': wkRadicals,
     };
   }
+
+  /// Helper to get the current JLPT level (prioritizes new system).
+  int? get jlptLevel => jlptNew ?? jlptOld;
+
+  /// Helper to check if kanji is beginner-friendly (N5 or N4).
+  bool get isBeginnerLevel {
+    final level = jlptLevel;
+    return level != null && level >= 4;
+  }
+
+  @override
+  List<Object?> get props => [
+        kanji,
+        strokes,
+        grade,
+        freq,
+        jlptOld,
+        jlptNew,
+        meanings,
+        readingsOn,
+        readingsKun,
+        wkLevel,
+        wkMeanings,
+        wkReadingsOn,
+        wkReadingsKun,
+        wkRadicals,
+      ];
+
+  @override
+  bool get stringify => true;
 }

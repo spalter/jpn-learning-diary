@@ -1,6 +1,8 @@
-import 'package:jpn_learning_diary/data/character_data.dart';
+import 'package:jpn_learning_diary/models/character_data.dart';
 
 /// Katakana character data organized by type.
+///
+/// Pure static data collection with no business logic.
 class KatakanaData {
   /// Base katakana characters (gojūon).
   static const List<CharacterData> baseCharacters = [
@@ -73,7 +75,7 @@ class KatakanaData {
     CharacterData(character: 'ン', romanization: 'n'),
   ];
 
-  /// Dakuten characters (voiced consonants).
+  /// Dakuten characters (濁点).
   static const List<CharacterData> dakutenCharacters = [
     // G-row
     CharacterData(character: 'ガ', romanization: 'ga'),
@@ -104,8 +106,9 @@ class KatakanaData {
     CharacterData(character: 'ボ', romanization: 'bo'),
   ];
 
-  /// Han-dakuten characters (p-sounds).
-  static const List<CharacterData> hanDakutenCharacters = [
+  /// Handakuten characters (半濁点).
+  static const List<CharacterData> handakutenCharacters = [
+    // P-row
     CharacterData(character: 'パ', romanization: 'pa'),
     CharacterData(character: 'ピ', romanization: 'pi'),
     CharacterData(character: 'プ', romanization: 'pu'),
@@ -113,61 +116,49 @@ class KatakanaData {
     CharacterData(character: 'ポ', romanization: 'po'),
   ];
 
-  /// Combination characters (yōon).
+  /// Combination characters (拗音).
   static const List<CharacterData> combinations = [
-    // K-combinations
+    // KY-combinations
     CharacterData(character: 'キャ', romanization: 'kya'),
     CharacterData(character: 'キュ', romanization: 'kyu'),
     CharacterData(character: 'キョ', romanization: 'kyo'),
 
-    // S-combinations
+    // SH-combinations
     CharacterData(character: 'シャ', romanization: 'sha'),
     CharacterData(character: 'シュ', romanization: 'shu'),
     CharacterData(character: 'ショ', romanization: 'sho'),
 
-    // C-combinations
+    // CH-combinations
     CharacterData(character: 'チャ', romanization: 'cha'),
     CharacterData(character: 'チュ', romanization: 'chu'),
     CharacterData(character: 'チョ', romanization: 'cho'),
 
-    // N-combinations
+    // NY-combinations
     CharacterData(character: 'ニャ', romanization: 'nya'),
     CharacterData(character: 'ニュ', romanization: 'nyu'),
     CharacterData(character: 'ニョ', romanization: 'nyo'),
 
-    // H-combinations
+    // HY-combinations
     CharacterData(character: 'ヒャ', romanization: 'hya'),
     CharacterData(character: 'ヒュ', romanization: 'hyu'),
     CharacterData(character: 'ヒョ', romanization: 'hyo'),
 
-    // M-combinations
+    // MY-combinations
     CharacterData(character: 'ミャ', romanization: 'mya'),
     CharacterData(character: 'ミュ', romanization: 'myu'),
     CharacterData(character: 'ミョ', romanization: 'myo'),
 
-    // R-combinations
+    // RY-combinations
     CharacterData(character: 'リャ', romanization: 'rya'),
     CharacterData(character: 'リュ', romanization: 'ryu'),
     CharacterData(character: 'リョ', romanization: 'ryo'),
-
-    // G-combinations
-    CharacterData(character: 'ギャ', romanization: 'gya'),
-    CharacterData(character: 'ギュ', romanization: 'gyu'),
-    CharacterData(character: 'ギョ', romanization: 'gyo'),
-
-    // J-combinations
-    CharacterData(character: 'ジャ', romanization: 'ja'),
-    CharacterData(character: 'ジュ', romanization: 'ju'),
-    CharacterData(character: 'ジョ', romanization: 'jo'),
-
-    // B-combinations
-    CharacterData(character: 'ビャ', romanization: 'bya'),
-    CharacterData(character: 'ビュ', romanization: 'byu'),
-    CharacterData(character: 'ビョ', romanization: 'byo'),
-
-    // P-combinations
-    CharacterData(character: 'ピャ', romanization: 'pya'),
-    CharacterData(character: 'ピュ', romanization: 'pyu'),
-    CharacterData(character: 'ピョ', romanization: 'pyo'),
   ];
+
+  /// All katakana characters combined.
+  static List<CharacterData> get allCharacters => [
+        ...baseCharacters,
+        ...dakutenCharacters,
+        ...handakutenCharacters,
+        ...combinations,
+      ];
 }

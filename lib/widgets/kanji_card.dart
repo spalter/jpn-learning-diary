@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jpn_learning_diary/data/kanji_data.dart';
+import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/widgets/app_card.dart';
 import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
