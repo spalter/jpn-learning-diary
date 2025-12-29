@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
+import 'package:jpn_learning_diary/services/file_access_service.dart';
 import 'package:jpn_learning_diary/widgets/app_about_dialog.dart';
 
 /// Application settings and configuration page.
@@ -257,16 +258,74 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  /// Handles changing the database path.
+  /// Handles the process of changing the database file location.
+  ///
+  /// **Workflow:**
+  /// 1. Prompts user to select a .db file via file picker
+  /// 2. Verifies the selected file exists
+  /// 3. Saves the file path to preferences
+  /// 4. On macOS: Creates a security-scoped bookmark for persistent access
+  /// 5. Resets database connection to immediately use the new file
+  /// 6. Refreshes UI to display the new path
+  ///
+  /// **macOS Security-Scoped Bookmarks:**
+  /// On macOS, creating a bookmark is essential for maintaining access to files
+  /// outside the app's sandbox across app restarts. If bookmark creation fails,
+  /// the user will need to re-select the file after each app restart.
+  ///
+  /// **Use Case:**
+  /// Allows users to store their database in a custom location such as:
+  /// - Cloud storage folders (Dropbox, Google Drive, iCloud Drive)
+  /// - External drives
+  /// - Network shares
+  /// - Any location accessible to the user
   Future<void> _handleChangeDatabasePath(BuildContext context) async {
+    // Show file picker and wait for user selection
     final selectedPath = await _pickDatabaseFile();
-    if (selectedPath == null) return;
+    if (selectedPath == null) return; // User cancelled
 
     if (!mounted) return;
 
+    // Verify file exists before proceeding
     if (!await _verifyFileExists(context, selectedPath)) return;
 
+    // Persist the selected path to preferences
     await AppPreferences.setCustomDatabasePath(selectedPath);
+    
+    // macOS: Create security-scoped bookmark for persistent file access
+    // This allows the app to access the file across restarts without re-selection
+    if (Platform.isMacOS) {
+      final bookmarkSaved = await FileAccessService.saveBookmark(selectedPath);
+      if (!bookmarkSaved && mounted) {
+        // Warn user if bookmark creation failed
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Warning: Could not save persistent access. You may need to select the file again after restart.',
+            ),
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+    
+    // Close existing database connection and force reconnection with new path
+    await DatabaseHelper.instance.resetConnection();
+    
+    if (mounted) {
+      // Notify user of success
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Database file updated successfully. Reloading...',
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      
+      // Trigger UI rebuild to show updated database path
+      setState(() {});
+    }
   }
 
   /// Picks a database file using the file picker.
@@ -285,13 +344,6 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<bool> _verifyFileExists(BuildContext context, String path) async {
     final file = File(path);
     if (await file.exists()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Database file updated successfully, please restart the app',
-          ),
-        ),
-      );
       return true;
     }
 

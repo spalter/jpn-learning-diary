@@ -8,6 +8,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
+import 'package:jpn_learning_diary/services/file_access_service.dart';
 
 /// Database helper for managing diary entries in SQLite.
 ///
@@ -41,21 +42,45 @@ class DatabaseHelper {
 
   /// Initializes the database file and creates tables.
   ///
-  /// Uses custom path from preferences if set, otherwise uses default path.
+  /// Determines the database path based on user preferences and platform:
+  /// - If custom path exists: Uses it (with security-scoped bookmark on macOS)
+  /// - Otherwise: Uses default application documents directory
+  ///
+  /// **macOS Security-Scoped Bookmarks:**
+  /// On macOS, attempts to resolve a saved bookmark first to regain access
+  /// to custom database files outside the sandbox. Falls back to stored path
+  /// if bookmark resolution fails (which may result in SQLITE error 14: CANTOPEN).
+  ///
+  /// **Parameters:**
+  /// - [filePath]: Default database filename (e.g., 'diary.db')
+  ///
+  /// **Returns:** Initialized SQLite database instance
+  ///
+  /// **Throws:** May throw database exceptions if file cannot be opened
   Future<Database> _initDB(String filePath) async {
-    // Check for custom database path in preferences
+    // Retrieve custom database path from user preferences (if set)
     final customPath = await AppPreferences.getCustomDatabasePath();
 
     final String path;
     if (customPath != null && customPath.isNotEmpty) {
-      // Use custom path - ensure it ends with the filename
-      if (customPath.endsWith('.db')) {
-        path = customPath;
+      // Custom path exists - handle platform-specific access requirements
+      if (Platform.isMacOS) {
+        // On macOS, try to resolve security-scoped bookmark for persistent access
+        final resolvedPath = await FileAccessService.resolveBookmark();
+        if (resolvedPath != null) {
+          // Bookmark successfully resolved - use the resolved path
+          path = resolvedPath;
+        } else {
+          // No bookmark or resolution failed - use stored path directly
+          // Note: This may fail with SQLITE error 14 (CANTOPEN) due to sandbox restrictions
+          path = customPath.endsWith('.db') ? customPath : join(customPath, filePath);
+        }
       } else {
-        path = join(customPath, filePath);
+        // Other platforms don't need security-scoped bookmarks
+        path = customPath.endsWith('.db') ? customPath : join(customPath, filePath);
       }
     } else {
-      // Use default path
+      // No custom path set - use default application database directory
       final dbPath = await getDatabasesPath();
       path = join(dbPath, filePath);
     }
@@ -529,5 +554,14 @@ class DatabaseHelper {
   Future<void> close() async {
     final db = await database;
     db.close();
+  }
+
+  /// Resets the database connection.
+  /// Call this after changing the database path to force a reconnection.
+  Future<void> resetConnection() async {
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+    }
   }
 }
