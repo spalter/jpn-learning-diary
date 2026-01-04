@@ -7,7 +7,6 @@ import 'package:jpn_learning_diary/screens/katakana_page.dart';
 import 'package:jpn_learning_diary/screens/diary_page.dart';
 import 'package:jpn_learning_diary/screens/search_results_page.dart';
 import 'package:jpn_learning_diary/screens/settings_page.dart';
-import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart';
 
@@ -181,8 +180,28 @@ class _AppShellState extends State<AppShell> {
     }
   }
 
+  /// Gets the current page name for the status bar.
+  String _getCurrentPageName() {
+    switch (_currentPage) {
+      case AppPage.phrasesWords:
+        return 'DIARY';
+      case AppPage.hiragana:
+        return 'HIRAGANA';
+      case AppPage.katakana:
+        return 'KATAKANA';
+      case AppPage.dashboard:
+        return 'LEARNING';
+      case AppPage.settings:
+        return 'SETTINGS';
+      case AppPage.searchResults:
+        return 'SEARCH';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Shortcuts(
       shortcuts: _buildShortcuts(),
       child: Actions(
@@ -205,15 +224,64 @@ class _AppShellState extends State<AppShell> {
               onAddEntry: _handleAddEntry,
               onExit: () => exit(0),
             ),
-            backgroundColor: AppTheme.scaffoldBackground(context),
-            body: Padding(
-              padding: const EdgeInsets.only(
-                left: 16,
-                top: 16,
-                right: 0,
-                bottom: 0,
-              ),
-              child: _buildCurrentPage(),
+            backgroundColor: theme.scaffoldBackgroundColor,
+            body: Column(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      left: 16,
+                      top: 16,
+                      right: 0,
+                      bottom: 0,
+                    ),
+                    child: _buildCurrentPage(),
+                  ),
+                ),
+                // Retro status bar
+                Container(
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    border: Border(
+                      top: BorderSide(color: theme.colorScheme.outline),
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      Text(
+                        '[ ${_getCurrentPageName()} ]',
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                          color: theme.colorScheme.primary,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        'JAPANESE LEARNING DIARY',
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                          color: theme.colorScheme.tertiary,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '日本語学習日記',
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                          color: theme.colorScheme.secondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),

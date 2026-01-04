@@ -74,6 +74,7 @@ flutter:
   assets:
     - lib/assets/kanji_data.json
     - lib/assets/bird.png
+    - lib/assets/bird_crop.png
     - assets/icon/app_icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see

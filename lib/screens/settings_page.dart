@@ -1,11 +1,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/services/file_access_service.dart';
+import 'package:jpn_learning_diary/theme/retro_theme.dart';
+import 'package:jpn_learning_diary/theme/retro_theme_provider.dart';
 import 'package:jpn_learning_diary/widgets/app_about_dialog.dart';
+import 'package:jpn_learning_diary/widgets/retro_widgets.dart';
 
 /// Application settings and configuration page.
 ///
@@ -25,11 +29,150 @@ class _SettingsPageState extends State<SettingsPage> {
       padding: const EdgeInsets.all(16),
       children: [
         _buildAboutSetting(context),
+        _buildThemeSection(context),
         _buildViewModeSetting(context),
         _buildDisplaySettingsSection(context),
         _buildDatabaseFileSetting(context),
         _buildClearDataSetting(context),
       ],
+    );
+  }
+
+  /// Builds the theme customization section.
+  Widget _buildThemeSection(BuildContext context) {
+    final themeProvider = Provider.of<RetroThemeProvider>(context);
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildColorSchemeSetting(context, themeProvider),
+        _buildScanlinesToggle(context, themeProvider),
+        _buildScanlineOpacitySetting(context, themeProvider),
+        _buildMonitorGlowToggle(context, themeProvider),
+        _buildResetThemeButton(context, themeProvider),
+      ],
+    );
+  }
+
+  /// Builds the color scheme selector.
+  Widget _buildColorSchemeSetting(BuildContext context, RetroThemeProvider themeProvider) {
+    return _buildSettingRow(
+      context: context,
+      child: ListTile(
+        title: const Text('COLOR SCHEME'),
+        subtitle: Text(
+          RetroTheme.getSchemeName(themeProvider.colorScheme),
+          style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: RetroColorScheme.values.map((scheme) {
+            final palette = RetroTheme.getPalette(scheme);
+            final isSelected = themeProvider.colorScheme == scheme;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Tooltip(
+                message: RetroTheme.getSchemeName(scheme),
+                child: InkWell(
+                  onTap: () => themeProvider.setColorScheme(scheme),
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: palette.primary,
+                      border: Border.all(
+                        color: isSelected
+                            ? Colors.white
+                            : palette.primary.withOpacity(0.5),
+                        width: isSelected ? 3 : 1,
+                      ),
+                    ),
+                    child: isSelected
+                        ? Icon(
+                            Icons.check,
+                            size: 16,
+                            color: palette.background,
+                          )
+                        : null,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  /// Builds the scanlines toggle setting.
+  Widget _buildScanlinesToggle(BuildContext context, RetroThemeProvider themeProvider) {
+    return _buildSettingRow(
+      context: context,
+      child: SwitchListTile(
+        title: const Text('SCANLINES'),
+        subtitle: Text(
+          'CRT-style horizontal scanline effect',
+          style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+        ),
+        value: themeProvider.effectsConfig.scanlinesEnabled,
+        onChanged: (value) => themeProvider.setScanlinesEnabled(value),
+      ),
+    );
+  }
+
+  /// Builds the scanline opacity slider.
+  Widget _buildScanlineOpacitySetting(BuildContext context, RetroThemeProvider themeProvider) {
+    if (!themeProvider.effectsConfig.scanlinesEnabled) {
+      return const SizedBox.shrink();
+    }
+
+    return _buildSettingRow(
+      context: context,
+      child: ListTile(
+        title: const Text('SCANLINE INTENSITY'),
+        subtitle: Slider(
+          value: themeProvider.effectsConfig.scanlineOpacity,
+          min: 0.02,
+          max: 0.20,
+          divisions: 9,
+          label: '${(themeProvider.effectsConfig.scanlineOpacity * 100).toInt()}%',
+          onChanged: (value) => themeProvider.setScanlineOpacity(value),
+        ),
+      ),
+    );
+  }
+
+  /// Builds the glow toggle setting.
+  Widget _buildMonitorGlowToggle(BuildContext context, RetroThemeProvider themeProvider) {
+    return _buildSettingRow(
+      context: context,
+      child: SwitchListTile(
+        title: const Text('MONITOR GLOW'),
+        subtitle: Text(
+          'Phosphor glow on UI elements',
+          style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+        ),
+        value: themeProvider.effectsConfig.glowEnabled,
+        onChanged: (value) => themeProvider.setGlowEnabled(value),
+      ),
+    );
+  }
+
+  /// Builds the reset theme button.
+  Widget _buildResetThemeButton(BuildContext context, RetroThemeProvider themeProvider) {
+    return _buildSettingRow(
+      context: context,
+      child: ListTile(
+        title: const Text('RESET THEME'),
+        subtitle: Text(
+          'Restore default theme settings',
+          style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+        ),
+        trailing: RetroButton.text(
+          text: 'RESET',
+          onPressed: () => themeProvider.resetToDefaults(),
+        ),
+      ),
     );
   }
 

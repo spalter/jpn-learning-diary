@@ -4,7 +4,6 @@ import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
-import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:window_manager/window_manager.dart';
 
 /// Practice mode types for different learning scenarios.
@@ -297,7 +296,7 @@ class _PracticeModePageState extends State<PracticeModePage> {
         ),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      backgroundColor: AppTheme.scaffoldBackground(context),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: FutureBuilder<List<PracticeItem>>(
         future: _itemsFuture,
         builder: (context, snapshot) {

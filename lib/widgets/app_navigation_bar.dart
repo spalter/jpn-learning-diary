@@ -186,7 +186,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     );
   }
 
-  /// Builds the decoration for the search field.
+  /// Builds the decoration for the search field with sharp edges.
   InputDecoration _buildSearchDecoration(BuildContext context) {
     return InputDecoration(
       prefixIcon: const Icon(Icons.search),
@@ -197,18 +197,19 @@ class AppNavigationBarState extends State<AppNavigationBar> {
               onPressed: widget.onClearSearch,
             )
           : null,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+      border: const OutlineInputBorder(
+        borderRadius: BorderRadius.zero,
+        borderSide: BorderSide(width: 1),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.zero,
         borderSide: BorderSide(
-          color: Theme.of(context).colorScheme.primary.withAlpha(128),
+          color: Theme.of(context).colorScheme.outline,
+          width: 1,
         ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.zero,
         borderSide: BorderSide(
           color: Theme.of(context).colorScheme.primary,
           width: 2,

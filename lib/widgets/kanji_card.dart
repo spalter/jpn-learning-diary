@@ -184,9 +184,8 @@ class KanjiCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(4),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withAlpha(77),
+          color: Theme.of(context).colorScheme.outline,
         ),
       ),
       child: Row(
@@ -194,7 +193,14 @@ class KanjiCard extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 4),
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontSize: 10,
+              fontFamily: 'monospace',
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
         ],
       ),
     );

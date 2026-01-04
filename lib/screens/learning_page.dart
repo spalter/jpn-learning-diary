@@ -113,10 +113,9 @@ class _LearningPageState extends State<LearningPage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer.withAlpha(20),
-        borderRadius: BorderRadius.circular(12),
+        color: Theme.of(context).colorScheme.surface,
         border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withAlpha(80),
+          color: Theme.of(context).colorScheme.outline,
           width: 1,
         ),
       ),
@@ -175,10 +174,9 @@ class _LearningPageState extends State<LearningPage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer.withAlpha(20),
-        borderRadius: BorderRadius.circular(12),
+        color: Theme.of(context).colorScheme.surface,
         border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withAlpha(80),
+          color: Theme.of(context).colorScheme.outline,
           width: 1,
         ),
       ),
@@ -249,14 +247,12 @@ class _LearningPageState extends State<LearningPage> {
       height: 120,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primaryContainer.withAlpha(30),
-            borderRadius: BorderRadius.circular(12),
+            color: Theme.of(context).colorScheme.surface,
             border: Border.all(
-              color: Theme.of(context).colorScheme.primary.withAlpha(80),
+              color: Theme.of(context).colorScheme.outline,
               width: 1,
             ),
           ),

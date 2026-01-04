@@ -137,7 +137,6 @@ class _AppCardState extends State<AppCard> {
         hoverColor: widget.style == AppCardStyle.elevated
             ? null
             : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
         child: content,
       );
     }
@@ -179,16 +178,15 @@ class _AppCardState extends State<AppCard> {
     }
   }
 
-  /// Builds a bordered card decoration with rounded corners and hover effects.
+  /// Builds a bordered card decoration with sharp edges and hover effects.
   BoxDecoration _buildBorderedDecoration(BuildContext context) {
     return BoxDecoration(
       border: Border.all(
         color: Theme.of(
           context,
         ).colorScheme.primary.withAlpha(_isHovering ? 180 : 80),
-        width: 1,
+        width: _isHovering ? 2 : 1,
       ),
-      borderRadius: BorderRadius.circular(12),
       color: _isHovering
           ? Theme.of(context).colorScheme.primary.withAlpha(10)
           : null,
@@ -207,37 +205,37 @@ class _AppCardState extends State<AppCard> {
     );
   }
 
-  /// Builds an elevated Material card decoration.
+  /// Builds an elevated Material card decoration with sharp edges.
   BoxDecoration _buildElevatedDecoration(BuildContext context) {
     final elevation = widget.isSelected ? 8.0 : (widget.elevation ?? 2.0);
     final borderWidth = _isHovering ? 2.0 : 1.0;
     final borderColor = _isHovering
         ? Theme.of(context).colorScheme.primary
-        : Theme.of(context).colorScheme.primary.withAlpha(0);
+        : Theme.of(context).colorScheme.outline;
 
     return BoxDecoration(
       color: widget.isSelected
           ? Theme.of(context).colorScheme.primaryContainer
-          : Theme.of(context).colorScheme.surface.withAlpha(100),
-      borderRadius: BorderRadius.circular(12),
+          : Theme.of(context).colorScheme.surface,
       border: Border.all(color: borderColor, width: borderWidth),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withAlpha((0.2 * elevation).round()),
-          blurRadius: elevation * 2,
-          offset: Offset(0, elevation / 2),
-        ),
-      ],
+      boxShadow: widget.isSelected || _isHovering
+          ? [
+              BoxShadow(
+                color: Theme.of(context).colorScheme.primary.withAlpha(30),
+                blurRadius: elevation * 2,
+                spreadRadius: 1,
+              ),
+            ]
+          : null,
     );
   }
 
-  /// Builds a stat card decoration for dashboard statistics.
+  /// Builds a stat card decoration for dashboard statistics with sharp edges.
   BoxDecoration _buildStatDecoration(BuildContext context) {
     return BoxDecoration(
-      color: Theme.of(context).colorScheme.primaryContainer.withAlpha(20),
-      borderRadius: BorderRadius.circular(12),
+      color: Theme.of(context).colorScheme.surface,
       border: Border.all(
-        color: Theme.of(context).colorScheme.primary.withAlpha(80),
+        color: Theme.of(context).colorScheme.outline,
         width: 1,
       ),
     );

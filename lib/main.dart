@@ -7,10 +7,13 @@ library;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:jpn_learning_diary/theme/app_theme.dart';
+import 'package:jpn_learning_diary/theme/retro_theme.dart';
+import 'package:jpn_learning_diary/theme/retro_theme_provider.dart';
 import 'package:jpn_learning_diary/screens/splash_screen.dart';
+import 'package:jpn_learning_diary/widgets/scanline_overlay.dart';
 
 /// Main entry point of the application.
 ///
@@ -56,21 +59,76 @@ void main(List<String> args) async {
 /// Root widget of the Japanese Learning Diary application.
 ///
 /// Configures the Material app with:
-/// - Tokyo Night theme for dark mode
-/// - Tokyo Day theme for light mode
-/// - Material 3 design language
-/// - System-based theme switching
-class JapaneseLearningDiary extends StatelessWidget {
+/// - Retro CRT-style theme with customizable color schemes
+/// - Scanline and visual effects overlay
+/// - Sharp-edged UI components
+class JapaneseLearningDiary extends StatefulWidget {
   const JapaneseLearningDiary({super.key});
 
   @override
+  State<JapaneseLearningDiary> createState() => _JapaneseLearningDiaryState();
+}
+
+class _JapaneseLearningDiaryState extends State<JapaneseLearningDiary> {
+  final RetroThemeProvider _themeProvider = RetroThemeProvider();
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeTheme();
+  }
+
+  Future<void> _initializeTheme() async {
+    await _themeProvider.loadPreferences();
+    if (mounted) {
+      setState(() {
+        _isInitialized = true;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: AppTheme.appTitle,
-      theme: AppTheme.getTokyoDayTheme(),
-      darkTheme: AppTheme.getTokyoNightTheme(),
-      themeMode: ThemeMode.system,
-      home: const SplashScreen(),
+    if (!_isInitialized) {
+      // Show a simple loading screen while theme loads
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: RetroTheme.getThemeData(RetroColorScheme.phosphorGreen),
+        home: const Scaffold(
+          body: Center(
+            child: Text(
+              'INITIALIZING...',
+              style: TextStyle(
+                fontFamily: 'monospace',
+                letterSpacing: 2,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ChangeNotifierProvider.value(
+      value: _themeProvider,
+      child: Consumer<RetroThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'Japanese Learning Diary',
+            debugShowCheckedModeBanner: false,
+            theme: themeProvider.themeData,
+            // Wrap ALL routes with the scanline overlay for retro CRT effect
+            builder: (context, child) {
+              return ScanlineOverlay(
+                config: themeProvider.effectsConfig,
+                colorScheme: themeProvider.colorScheme,
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
+            home: const SplashScreen(),
+          );
+        },
+      ),
     );
   }
 }

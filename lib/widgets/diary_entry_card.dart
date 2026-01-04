@@ -56,6 +56,7 @@ class DiaryEntryCard extends StatelessWidget {
           onLongPress: () => _handleEditEntry(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               _buildHeaderRow(context, showFurigana: showFurigana),
               if (showRomaji) ...[const SizedBox(height: 8), _buildRomaji(context)],
