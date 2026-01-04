@@ -41,16 +41,26 @@ class _DiaryPageState extends State<DiaryPage> {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: _controller,
-      child: FutureBuilder<String>(
-        future: AppPreferences.getViewMode(),
+      child: FutureBuilder<List<dynamic>>(
+        future: Future.wait([
+          AppPreferences.getViewMode(),
+          AppPreferences.getShowRomaji(),
+          AppPreferences.getShowFurigana(),
+        ]),
         builder: (context, snapshot) {
-          final viewMode = snapshot.data ?? 'list';
+          final viewMode = snapshot.data?[0] as String? ?? 'list';
+          final showRomaji = snapshot.data?[1] as bool? ?? true;
+          final showFurigana = snapshot.data?[2] as bool? ?? true;
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: viewMode == 'grid'
-                    ? _buildEntriesGridView()
+                    ? _buildEntriesGridView(
+                        showRomaji: showRomaji,
+                        showFurigana: showFurigana,
+                      )
                     : _buildEntriesList(),
               ),
             ],
@@ -84,7 +94,10 @@ class _DiaryPageState extends State<DiaryPage> {
   }
 
   /// Builds a grid view of diary entry cards.
-  Widget _buildEntriesGridView() {
+  Widget _buildEntriesGridView({
+    required bool showRomaji,
+    required bool showFurigana,
+  }) {
     return Consumer<DiaryEntriesController>(
       builder: (context, controller, child) {
         if (controller.isLoading) {
@@ -101,16 +114,30 @@ class _DiaryPageState extends State<DiaryPage> {
           );
         }
 
-        return _buildGridView(controller.entries);
+        return _buildGridView(
+          controller.entries,
+          showRomaji: showRomaji,
+          showFurigana: showFurigana,
+        );
       },
     );
   }
 
   /// Builds the grid view of diary entry cards.
-  Widget _buildGridView(List<DiaryEntry> entries) {
+  Widget _buildGridView(
+    List<DiaryEntry> entries, {
+    required bool showRomaji,
+    required bool showFurigana,
+  }) {
+    // Use a taller aspect ratio (wider cards) when content is hidden
+    // Default: 4/3 (~1.33), Compact: 5/2 (2.5) for shorter cards
+    final isCompact = !showRomaji && !showFurigana;
+    final aspectRatio = isCompact ? 5 / 3 : 4 / 3;
+
     return ResponsiveGridView(
       itemCount: entries.length,
       minCardWidth: 320.0,
+      childAspectRatio: aspectRatio,
       itemBuilder: (context, index) =>
           _buildEntryCard(entries[index], useBorderedStyle: true),
     );

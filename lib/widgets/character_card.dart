@@ -28,9 +28,7 @@ class CharacterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppCard.elevated(
-      elevation: isSelected ? 8 : 2,
-      isSelected: isSelected,
+    return AppCard.bordered(
       onTap: onTap,
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       child: Column(
