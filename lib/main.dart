@@ -36,12 +36,16 @@ void main(List<String> args) async {
 
   // Initialize window effects and settings
   await Window.initialize();
-  await Window.setEffect(effect: WindowEffect.mica);
+
+  if (Platform.isWindows) {
+    await Window.setEffect(effect: WindowEffect.mica);
+  }
+
   await windowManager.ensureInitialized();
   await windowManager.setMinimumSize(const Size(700, 300));
   await windowManager.center();
 
-  if (Platform.isWindows) {
+  if (Platform.isWindows || Platform.isLinux) {
     await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
   } else if (Platform.isMacOS) {
     await Window.hideTitle();
