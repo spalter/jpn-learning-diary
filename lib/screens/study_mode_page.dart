@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
+import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/widgets/kanji_card.dart';
@@ -126,6 +127,7 @@ class _StudyModePageState extends State<StudyModePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.scaffoldBackground(context),
       appBar: const LearningModeAppBar(title: 'Study Mode'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

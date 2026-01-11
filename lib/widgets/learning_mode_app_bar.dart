@@ -38,6 +38,9 @@ class LearningModeAppBar extends StatelessWidget
       title: DragToMoveArea(
         child: Row(
           children: [
+            // Left spacing to align with navigation bar
+            const SizedBox(width: 8),
+
             // Back button
             _buildBackButton(context),
 

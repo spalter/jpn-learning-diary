@@ -19,15 +19,28 @@ void showAppAboutDialog(BuildContext context) {
       ),
       const SizedBox(height: 8),
       const Text(
-        'kanji-data by David Gouveia',
+        'kanjiapi.dev',
       ),
       const SizedBox(height: 4),
       Text(
-          'https://github.com/davidluzgouveia/kanji-data',
+          'https://kanjiapi.dev/',
         ),
       const SizedBox(height: 8),
       const Text(
-        'Licensed under the MIT License',
+        'Which uses the EDICT and KANJIDIC dictionary files. These files are the property of the Electronic Dictionary Research and Development Group, and are used in conformance with the Group\'s licence.',
+        style: TextStyle(fontStyle: FontStyle.italic),
+      ),
+      const SizedBox(height: 8),
+      const Text(
+        'EDRDG',
+      ),
+      const SizedBox(height: 4),
+      Text(
+          'https://www.edrdg.org/edrdg/licence.html',
+        ),
+      const SizedBox(height: 8),
+      const Text(
+        'ELECTRONIC DICTIONARY RESEARCH AND DEVELOPMENT GROUP GENERAL DICTIONARY LICENCE STATEMENT',
         style: TextStyle(fontStyle: FontStyle.italic),
       ),
     ],

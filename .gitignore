@@ -43,3 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Tools
+/tool/kanjiapi_full.json
+/tool/*.db
+/lib/assets/jpn.db

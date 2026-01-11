@@ -114,6 +114,16 @@ flutter run --dart-define=args=--no-effects
 
 ### Build / Release
 
+The app requires the dataset from [kanjiapi.dev](https://kanjiapi.dev/). Download the data and run the `tool/json_to_sqlite.dart` script.
+
+```bash
+# Convert the aata
+dart --packages=".dart_tool/package_config.json" tool/json_to_sqlite.dart tool/kanjiapi_full.json lib/assets/jpn.db   
+
+# Check the DB
+dart --packages=".dart_tool/package_config.json" tool/check_db.dart lib/assets/jpn.db
+```
+
 ```bash
 # Windows
 flutter build windows --release
@@ -134,7 +144,7 @@ The built application will be in:
 ## Credits
 
 - Flutter [flutter.dev](https://flutter.dev/)
-- The Kanji dictionary is based on [davidluzgouveia/kanji-data](https://github.com/davidluzgouveia/kanji-data). Huge prop to them for compling so much data and make it available.
+- The Kanji dictionary is based on [kanjiapi.dev](https://kanjiapi.dev/). Huge prop to them for compling so much data and make it available.
 
 ## Contributing
 

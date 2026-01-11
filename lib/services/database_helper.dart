@@ -1,14 +1,12 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'package:flutter/services.dart';
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/file_access_service.dart';
+import 'package:jpn_learning_diary/services/jpn_database_helper.dart';
 
 /// Database helper for managing diary entries in SQLite.
 ///
@@ -109,42 +107,11 @@ class DatabaseHelper {
 
     // Insert dummy data for initial setup
     await _insertDummyData(db);
-
-    // Create kanji table
-    await _createKanjiTable(db);
   }
 
   /// Upgrades the database schema when version changes.
   Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      // Add kanji table if upgrading from version 1
-      await _createKanjiTable(db);
-    }
-  }
-
-  /// Creates the kanji table and loads data from JSON.
-  Future<void> _createKanjiTable(Database db) async {
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS kanji (
-        kanji TEXT PRIMARY KEY,
-        strokes INTEGER NOT NULL,
-        grade INTEGER,
-        freq INTEGER,
-        jlpt_old INTEGER,
-        jlpt_new INTEGER,
-        meanings TEXT NOT NULL,
-        readings_on TEXT NOT NULL,
-        readings_kun TEXT NOT NULL,
-        wk_level INTEGER,
-        wk_meanings TEXT,
-        wk_readings_on TEXT,
-        wk_readings_kun TEXT,
-        wk_radicals TEXT
-      )
-    ''');
-
-    // Load kanji data from JSON
-    await _loadKanjiData(db);
+    // Reserved for future schema migrations
   }
 
   /// Inserts initial dummy data into the database.
@@ -296,123 +263,14 @@ class DatabaseHelper {
     return await db.delete('diary_entries');
   }
 
-  /// Loads kanji data from JSON asset into the database.
-  Future<void> _loadKanjiData(Database db) async {
-    try {
-      // Check if kanji data already exists
-      final count = Sqflite.firstIntValue(
-        await db.rawQuery('SELECT COUNT(*) FROM kanji'),
-      );
-
-      if (count != null && count > 0) {
-        return; // Data already loaded
-      }
-
-      // Load JSON from assets
-      final String jsonString = await rootBundle.loadString(
-        'lib/assets/kanji_data.json',
-      );
-      final Map<String, dynamic> jsonData = json.decode(jsonString);
-
-      // Insert kanji data in batches for better performance
-      var batch = db.batch();
-      int batchCount = 0;
-
-      for (var entry in jsonData.entries) {
-        final kanjiData = KanjiData.fromJson(entry.key, entry.value);
-        batch.insert('kanji', kanjiData.toMap());
-        batchCount++;
-
-        // Commit batch every 500 entries and create a new batch
-        if (batchCount >= 500) {
-          await batch.commit(noResult: true);
-          batch = db.batch(); // Create new batch
-          batchCount = 0;
-        }
-      }
-
-      // Commit remaining entries
-      if (batchCount > 0) {
-        await batch.commit(noResult: true);
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  /// Gets the count of kanji entries in the database (for debugging).
-  Future<int> getKanjiCount() async {
-    final db = await database;
-    final count = Sqflite.firstIntValue(
-      await db.rawQuery('SELECT COUNT(*) FROM kanji'),
-    );
-    return count ?? 0;
-  }
-
-  /// Searches for kanji by character, meaning, or reading.
-  /// Also extracts individual kanji characters from the query for more flexible matching.
-  Future<List<KanjiData>> searchKanji(String query) async {
-    final db = await database;
-    try {
-      final results = <String, KanjiData>{};
-
-      // First, search by meaning and readings (original behavior)
-      final textResults = await db.query(
-        'kanji',
-        where: 'meanings LIKE ? OR readings_on LIKE ? OR readings_kun LIKE ?',
-        whereArgs: ['%$query%', '%$query%', '%$query%'],
-        limit: 50,
-      );
-      for (var json in textResults) {
-        final kanji = KanjiData.fromMap(json);
-        results[kanji.kanji] = kanji;
-      }
-
-      // Extract individual kanji characters from the query
-      final kanjiPattern = RegExp(r'[\u4E00-\u9FFF\u3400-\u4DBF]');
-      final matches = kanjiPattern.allMatches(query);
-
-      for (var match in matches) {
-        final kanjiChar = match.group(0)!;
-        final charResults = await db.query(
-          'kanji',
-          where: 'kanji = ?',
-          whereArgs: [kanjiChar],
-        );
-        for (var json in charResults) {
-          final kanji = KanjiData.fromMap(json);
-          results[kanji.kanji] = kanji;
-        }
-      }
-
-      return results.values.take(50).toList();
-    } catch (e) {
-      return [];
-    }
-  }
-
-  /// Gets a specific kanji by its character.
-  Future<KanjiData?> getKanji(String kanji) async {
-    final db = await database;
-    final result = await db.query(
-      'kanji',
-      where: 'kanji = ?',
-      whereArgs: [kanji],
-    );
-    if (result.isEmpty) return null;
-    return KanjiData.fromMap(result.first);
-  }
-
   /// Gets JLPT level statistics for kanji found in diary entries.
   ///
   /// Extracts all unique kanji characters from diary entries and queries
-  /// the kanji table to get their JLPT levels. Returns a map with counts
-  /// for each JLPT level (N5-N1, using jlpt_new field).
+  /// the jpn.db database to get their JLPT levels. Returns a map with counts
+  /// for each JLPT level (N5-N1).
   ///
   /// Returns a map with keys: 5, 4, 3, 2, 1 (N5 to N1) and null for unclassified.
   Future<Map<int?, int>> getLearnedKanjiByJlptLevel() async {
-    final db = await database;
-
     // Get all diary entries
     final allEntries = await getAllEntries();
 
@@ -435,21 +293,18 @@ class DatabaseHelper {
       return {5: 0, 4: 0, 3: 0, 2: 0, 1: 0, null: 0};
     }
 
-    // Query kanji table for JLPT levels
-    final placeholders = List.filled(uniqueKanji.length, '?').join(',');
-    final results = await db.query(
-      'kanji',
-      columns: ['jlpt_new'],
-      where: 'kanji IN ($placeholders)',
-      whereArgs: uniqueKanji.toList(),
-    );
-
-    // Count kanji by JLPT level
+    // Query jpn.db for JLPT levels
+    final jpnDb = JpnDatabaseHelper.instance;
     final Map<int?, int> levelCounts = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0, null: 0};
 
-    for (var result in results) {
-      final level = result['jlpt_new'] as int?;
-      levelCounts[level] = (levelCounts[level] ?? 0) + 1;
+    for (var kanjiChar in uniqueKanji) {
+      final result = await jpnDb.getKanji(kanjiChar);
+      if (result != null) {
+        final level = result['jlpt'] as int?;
+        levelCounts[level] = (levelCounts[level] ?? 0) + 1;
+      } else {
+        levelCounts[null] = (levelCounts[null] ?? 0) + 1;
+      }
     }
 
     return levelCounts;
@@ -464,13 +319,11 @@ class DatabaseHelper {
   /// 2. Extracts unique kanji characters using Unicode ranges:
   ///    - U+4E00-U+9FFF (CJK Unified Ideographs)
   ///    - U+3400-U+4DBF (CJK Extension A)
-  /// 3. Queries the kanji table for matching characters (efficient WHERE IN)
+  /// 3. Queries the jpn.db for matching characters
   /// 4. Shuffles and returns up to [count] random kanji
   ///
   /// Returns an empty list if no diary entries exist or no kanji are found.
   Future<List<KanjiData>> getRandomKanjiFromDiary({int count = 10}) async {
-    final db = await database;
-
     // Get all diary entries to extract kanji from
     final allEntries = await getAllEntries();
 
@@ -493,25 +346,25 @@ class DatabaseHelper {
       return [];
     }
 
-    // Query kanji table for only those kanji that appear in diary entries
-    final placeholders = List.filled(uniqueKanji.length, '?').join(',');
-    final results = await db.query(
-      'kanji',
-      where: 'kanji IN ($placeholders)',
-      whereArgs: uniqueKanji.toList(),
-    );
+    // Query jpn.db for kanji data
+    final jpnDb = JpnDatabaseHelper.instance;
+    final allKanji = <KanjiData>[];
 
-    if (results.isEmpty) {
+    for (var kanjiChar in uniqueKanji) {
+      final result = await jpnDb.getKanji(kanjiChar);
+      if (result != null) {
+        allKanji.add(KanjiData.fromJpnDb(result));
+      }
+    }
+
+    if (allKanji.isEmpty) {
       return [];
     }
 
-    // Convert to KanjiData and shuffle
-    final allKanji = results.map((json) => KanjiData.fromMap(json)).toList();
-
+    // Shuffle and return up to count
     final random = Random();
     allKanji.shuffle(random);
 
-    // Take up to the requested count
     return allKanji.take(min(count, allKanji.length)).toList();
   }
 

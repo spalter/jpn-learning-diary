@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:equatable/equatable.dart';
 
 /// Kanji data model for storing kanji information from the kanji-data JSON.
@@ -104,6 +105,46 @@ class KanjiData extends Equatable {
       'wk_readings_kun': wkReadingsKun,
       'wk_radicals': wkRadicals,
     };
+  }
+
+  /// Creates a KanjiData instance from the jpn.db database schema.
+  ///
+  /// The jpn.db has columns: _key, kanji, stroke_count, grade, jlpt,
+  /// meanings (JSON), on_readings (JSON), kun_readings (JSON), etc.
+  factory KanjiData.fromJpnDb(Map<String, dynamic> map) {
+    // Parse JSON arrays for meanings and readings
+    String parseJsonArray(dynamic value) {
+      if (value == null) return '';
+      if (value is String) {
+        try {
+          final list = json.decode(value) as List;
+          return list.join(', ');
+        } catch (_) {
+          return value;
+        }
+      }
+      if (value is List) {
+        return value.join(', ');
+      }
+      return value.toString();
+    }
+
+    return KanjiData(
+      kanji: (map['_key'] as String?) ?? (map['kanji'] as String?) ?? '',
+      strokes: (map['stroke_count'] as int?) ?? 0,
+      grade: map['grade'] as int?,
+      freq: map['freq_mainichi_shinbun'] as int?,
+      jlptOld: null,
+      jlptNew: map['jlpt'] as int?,
+      meanings: parseJsonArray(map['meanings']),
+      readingsOn: parseJsonArray(map['on_readings']),
+      readingsKun: parseJsonArray(map['kun_readings']),
+      wkLevel: null,
+      wkMeanings: map['heisig_en'] as String?,
+      wkReadingsOn: null,
+      wkReadingsKun: parseJsonArray(map['name_readings']),
+      wkRadicals: null,
+    );
   }
 
   /// Helper to get the current JLPT level (prioritizes new system).

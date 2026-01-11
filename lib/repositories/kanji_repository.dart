@@ -1,19 +1,29 @@
 import 'package:jpn_learning_diary/models/kanji_data.dart';
+import 'package:jpn_learning_diary/models/word_data.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
+import 'package:jpn_learning_diary/services/jpn_database_helper.dart';
 
 /// Repository for kanji data operations.
 ///
 /// Provides a clean abstraction over kanji data access and queries.
 /// This layer separates business logic from data source implementation.
+///
+/// Uses two databases:
+/// - JpnDatabaseHelper: Read-only database shipped with app (kanji, words, readings)
+/// - DatabaseHelper: User database for diary entries and learned kanji tracking
 class KanjiRepository {
   final DatabaseHelper _databaseHelper;
+  final JpnDatabaseHelper _jpnDatabaseHelper;
 
-  /// Creates a repository with the given database helper.
+  /// Creates a repository with the given database helpers.
   ///
-  /// In production, typically uses [DatabaseHelper.instance].
-  /// For testing, can inject a mock database helper.
-  KanjiRepository({DatabaseHelper? databaseHelper})
-      : _databaseHelper = databaseHelper ?? DatabaseHelper.instance;
+  /// In production, typically uses singleton instances.
+  /// For testing, can inject mock database helpers.
+  KanjiRepository({
+    DatabaseHelper? databaseHelper,
+    JpnDatabaseHelper? jpnDatabaseHelper,
+  })  : _databaseHelper = databaseHelper ?? DatabaseHelper.instance,
+        _jpnDatabaseHelper = jpnDatabaseHelper ?? JpnDatabaseHelper.instance;
 
   /// Searches for kanji by character, meaning, or reading.
   ///
@@ -22,12 +32,13 @@ class KanjiRepository {
   /// - Direct kanji character lookup
   /// - Extracts kanji from mixed queries
   ///
-  /// Returns up to 50 results.
+  /// Returns up to 50 results from the jpn.db database.
   Future<List<KanjiData>> searchKanji(String query) async {
     if (query.trim().isEmpty) {
       return [];
     }
-    return await _databaseHelper.searchKanji(query);
+    final results = await _jpnDatabaseHelper.searchKanji(query);
+    return results.map((map) => KanjiData.fromJpnDb(map)).toList();
   }
 
   /// Gets a specific kanji by its character.
@@ -37,7 +48,9 @@ class KanjiRepository {
     if (kanji.isEmpty) {
       return null;
     }
-    return await _databaseHelper.getKanji(kanji);
+    final result = await _jpnDatabaseHelper.getKanji(kanji);
+    if (result == null) return null;
+    return KanjiData.fromJpnDb(result);
   }
 
   /// Gets random kanji for practice from those found in diary entries.
@@ -65,7 +78,7 @@ class KanjiRepository {
 
   /// Gets the total count of kanji in the database.
   Future<int> getKanjiCount() async {
-    return await _databaseHelper.getKanjiCount();
+    return await _jpnDatabaseHelper.getKanjiCount();
   }
 
   /// Gets kanji by JLPT level.
@@ -124,5 +137,34 @@ class KanjiRepository {
     final kanjiPattern = RegExp(r'[\u4E00-\u9FFF\u3400-\u4DBF]');
     final matches = kanjiPattern.allMatches(text);
     return matches.map((m) => m.group(0)!).toList();
+  }
+
+  // ==================== Word Operations ====================
+
+  /// Searches for words by kanji, reading, or meaning.
+  ///
+  /// Returns up to 50 results from the jpn.db database.
+  Future<List<WordData>> searchWords(String query) async {
+    if (query.trim().isEmpty) {
+      return [];
+    }
+    final results = await _jpnDatabaseHelper.searchWords(query);
+    return results.map((map) => WordData.fromMap(map)).toList();
+  }
+
+  /// Gets words that contain a specific kanji character.
+  ///
+  /// Returns all word entries where the kanji key matches.
+  Future<List<WordData>> getWordsForKanji(String kanji) async {
+    if (kanji.isEmpty) {
+      return [];
+    }
+    final results = await _jpnDatabaseHelper.getWordsForKanji(kanji);
+    return results.map((map) => WordData.fromMap(map)).toList();
+  }
+
+  /// Gets the total count of words in the database.
+  Future<int> getWordCount() async {
+    return await _jpnDatabaseHelper.getWordCount();
   }
 }

@@ -1,0 +1,740 @@
+{
+    "kanjis": {
+        "苑": {
+            "freq_mainichi_shinbun": 2060,
+            "grade": 9,
+            "heisig_en": "garden",
+            "jlpt": 1,
+            "kanji": "苑",
+            "kun_readings": [
+                "う.つ",
+                "その"
+            ],
+            "meanings": [
+                "farm",
+                "garden",
+                "park"
+            ],
+            "name_readings": [
+                "あや"
+            ],
+            "notes": [],
+            "on_readings": [
+                "エン",
+                "オン"
+            ],
+            "stroke_count": 8,
+            "unicode": "82D1"
+        }
+    },
+    "readings": {
+        "う.つ": {
+            "main_kanji": [
+                "伐",
+                "傠",
+                "剟",
+                "射",
+                "打",
+                "抃",
+                "抐",
+                "挌",
+                "掫",
+                "揈",
+                "揕",
+                "搉",
+                "搏",
+                "搨",
+                "摋",
+                "摽",
+                "撃",
+                "撾",
+                "擊",
+                "擣",
+                "擽",
+                "攊",
+                "桘",
+                "椎",
+                "牫",
+                "硺",
+                "磓",
+                "笪",
+                "苑",
+                "討",
+                "豗",
+                "趵"
+            ],
+            "name_kanji": [],
+            "reading": "う.つ"
+        }
+    },
+    "words": {
+        "苑": [
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "(public) park"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "こうえん",
+                        "written": "公苑"
+                    },
+                    {
+                        "priorities": [
+                            "ichi1",
+                            "news1",
+                            "nf02"
+                        ],
+                        "pronounced": "こうえん",
+                        "written": "公園"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "Jien (forerunner of the Kojien dictionary)"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "じえん",
+                        "written": "辞苑"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "Kōhiien (coffee shop)"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "コーヒーえん",
+                        "written": "珈琲苑"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "Kōjien (Japanese dictionary published by Iwanami Shoten)"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "こうじえん",
+                        "written": "広辞苑"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "artistic and literary circles"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "げいえん",
+                        "written": "芸苑"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "garden with a pond"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "えんち",
+                        "written": "園池"
+                    },
+                    {
+                        "priorities": [],
+                        "pronounced": "えんち",
+                        "written": "苑池"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "imperial garden"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [
+                            "news1",
+                            "nf19"
+                        ],
+                        "pronounced": "ぎょえん",
+                        "written": "御苑"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "light purple (similar to that of the flowers of the Tartarian aster)"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "しおんいろ",
+                        "written": "紫苑色"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "outer garden"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [
+                            "news1",
+                            "nf24"
+                        ],
+                        "pronounced": "がいえん",
+                        "written": "外苑"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "outer gardens of Meiji Shrine"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "じんぐうがいえん",
+                        "written": "神宮外苑"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "shrine gardens"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "しんえん",
+                        "written": "神苑"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "ticket to the garden"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "にゅうえんけん",
+                        "written": "入苑券"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "Magadaava (where Buddha delivered his first sermon)",
+                            "The Deer Park"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "ろくやおん",
+                        "written": "鹿野苑"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "cemetery",
+                            "graveyard"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "ぼえん",
+                        "written": "墓園"
+                    },
+                    {
+                        "priorities": [],
+                        "pronounced": "ぼえん",
+                        "written": "墓苑"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "daisy (Erigeron annuus)",
+                            "daisy fleabane"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "ひめじょおん",
+                        "written": "姫女苑"
+                    },
+                    {
+                        "priorities": [],
+                        "pronounced": "ひめじょおん",
+                        "written": "姫女菀"
+                    },
+                    {
+                        "priorities": [],
+                        "pronounced": "ヒメジョオン",
+                        "written": "姫女苑"
+                    },
+                    {
+                        "priorities": [],
+                        "pronounced": "ヒメジョオン",
+                        "written": "姫女菀"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "inner garden",
+                            "inner park"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "ないえん",
+                        "written": "内苑"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "landscape gardening",
+                            "landscape architecture"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "ぞうえん",
+                        "written": "造苑"
+                    },
+                    {
+                        "priorities": [
+                            "news2",
+                            "nf25"
+                        ],
+                        "pronounced": "ぞうえん",
+                        "written": "造園"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "park",
+                            "garden"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "えんち",
+                        "written": "園地"
+                    },
+                    {
+                        "priorities": [],
+                        "pronounced": "えんち",
+                        "written": "苑地"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "(garden) cemetery",
+                            "park-style cemetery",
+                            "memorial park"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "れいえん",
+                        "written": "霊苑"
+                    },
+                    {
+                        "priorities": [
+                            "news1",
+                            "nf19"
+                        ],
+                        "pronounced": "れいえん",
+                        "written": "霊園"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "anthology",
+                            "literary world",
+                            "collection of literary masterpieces"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "ぶんえん",
+                        "written": "文園"
+                    },
+                    {
+                        "priorities": [],
+                        "pronounced": "ぶんえん",
+                        "written": "文苑"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "aster (Aster tataricus)",
+                            "Tartarian aster",
+                            "Michaelmas daisy"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "しおん",
+                        "written": "紫苑"
+                    },
+                    {
+                        "priorities": [],
+                        "pronounced": "しおん",
+                        "written": "紫菀"
+                    },
+                    {
+                        "priorities": [],
+                        "pronounced": "シオン",
+                        "written": "紫苑"
+                    },
+                    {
+                        "priorities": [],
+                        "pronounced": "シオン",
+                        "written": "紫菀"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "closing down (of a zoo, kindergarten, etc.)"
+                        ]
+                    },
+                    {
+                        "glosses": [
+                            "neglected garden",
+                            "abandoned garden"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "はいえん",
+                        "written": "廃苑"
+                    },
+                    {
+                        "priorities": [
+                            "news2",
+                            "nf43"
+                        ],
+                        "pronounced": "はいえん",
+                        "written": "廃園"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "entering a park, garden, zoo, etc."
+                        ]
+                    },
+                    {
+                        "glosses": [
+                            "enrollment in kindergarten",
+                            "enrolment in nursery school"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "にゅうえん",
+                        "written": "入苑"
+                    },
+                    {
+                        "priorities": [
+                            "news1",
+                            "nf17"
+                        ],
+                        "pronounced": "にゅうえん",
+                        "written": "入園"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "name for female genitalia"
+                        ]
+                    },
+                    {
+                        "glosses": [
+                            "secret garden",
+                            "private garden"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "ひえん",
+                        "written": "秘苑"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "cultivated land",
+                            "fields"
+                        ]
+                    },
+                    {
+                        "glosses": [
+                            "the country",
+                            "countryside",
+                            "rural districts"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "でんえん",
+                        "written": "田苑"
+                    },
+                    {
+                        "priorities": [],
+                        "pronounced": "でんおん",
+                        "written": "田苑"
+                    },
+                    {
+                        "priorities": [
+                            "ichi1",
+                            "news1",
+                            "nf11"
+                        ],
+                        "pronounced": "でんえん",
+                        "written": "田園"
+                    },
+                    {
+                        "priorities": [
+                            "ichi1",
+                            "news1",
+                            "nf11"
+                        ],
+                        "pronounced": "でんおん",
+                        "written": "田園"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "garden",
+                            "orchard",
+                            "park"
+                        ]
+                    },
+                    {
+                        "glosses": [
+                            "place",
+                            "world",
+                            "environment"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "その",
+                        "written": "苑"
+                    },
+                    {
+                        "priorities": [],
+                        "pronounced": "その",
+                        "written": "薗"
+                    },
+                    {
+                        "priorities": [
+                            "ichi1",
+                            "news1",
+                            "nf09"
+                        ],
+                        "pronounced": "その",
+                        "written": "園"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "kindergarten",
+                            "nursery school",
+                            "preschool"
+                        ]
+                    },
+                    {
+                        "glosses": [
+                            "garden",
+                            "orchard",
+                            "park",
+                            "plantation"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "えん",
+                        "written": "苑"
+                    },
+                    {
+                        "priorities": [
+                            "ichi1"
+                        ],
+                        "pronounced": "えん",
+                        "written": "園"
+                    }
+                ]
+            },
+            {
+                "meanings": [
+                    {
+                        "glosses": [
+                            "inside the kindergarten"
+                        ]
+                    },
+                    {
+                        "glosses": [
+                            "inside the zoo"
+                        ]
+                    },
+                    {
+                        "glosses": [
+                            "inside the garden",
+                            "inside the park"
+                        ]
+                    }
+                ],
+                "variants": [
+                    {
+                        "priorities": [],
+                        "pronounced": "えんない",
+                        "written": "苑内"
+                    },
+                    {
+                        "priorities": [
+                            "news1",
+                            "nf20"
+                        ],
+                        "pronounced": "えんない",
+                        "written": "園内"
+                    }
+                ]
+            }
+        ],
+        "㐆": []
+    }
+}
