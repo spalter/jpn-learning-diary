@@ -5,7 +5,7 @@ import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
 
 /// Practice mode types for different learning scenarios.
 enum PracticeMode {
@@ -288,15 +288,7 @@ class _PracticeModePageState extends State<PracticeModePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: DragToMoveArea(
-          child: SizedBox(
-            width: double.infinity,
-            child: Text('Practice: ${widget.mode.label}'),
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
+      appBar: LearningModeAppBar(title: 'Practice: ${widget.mode.label}'),
       backgroundColor: AppTheme.scaffoldBackground(context),
       body: FutureBuilder<List<PracticeItem>>(
         future: _itemsFuture,

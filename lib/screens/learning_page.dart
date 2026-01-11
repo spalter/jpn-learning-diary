@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/controllers/learning_controller.dart';
 import 'package:jpn_learning_diary/screens/practice_mode_page.dart';
+import 'package:jpn_learning_diary/screens/study_mode_page.dart';
 import 'package:jpn_learning_diary/widgets/app_card.dart';
 import 'package:jpn_learning_diary/widgets/section_header.dart';
 import 'package:provider/provider.dart';
@@ -231,6 +232,16 @@ class _LearningPageState extends State<LearningPage> {
                 builder: (context) =>
                     const PracticeModePage(mode: PracticeMode.kanji),
               ),
+            );
+          },
+        ),
+        _buildLearningModeButton(
+          context,
+          title: 'Study',
+          icon: Icons.auto_stories,
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const StudyModePage()),
             );
           },
         ),
