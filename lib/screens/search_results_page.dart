@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
+import 'package:jpn_learning_diary/models/word_data.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
+import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 import 'package:jpn_learning_diary/widgets/kanji_card.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
 import 'package:jpn_learning_diary/widgets/section_header.dart';
+import 'package:jpn_learning_diary/widgets/word_card.dart';
 
 /// Search results page that displays results based on search query.
 ///
@@ -61,12 +64,17 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
   /// Calculates the total number of items to display in the list.
   ///
-  /// Includes section headers, spacing, diary entries, and kanji results.
+  /// Includes section headers, spacing, diary entries, words, and kanji results.
   int _calculateItemCount(_SearchResults results) {
     int count = 0;
     if (results.diaryEntries.isNotEmpty) {
       count += 2; // Header + spacing
       count += results.diaryEntries.length;
+      count += 1; // Spacing after section
+    }
+    if (results.words.isNotEmpty) {
+      count += 2; // Header + spacing
+      count += results.words.length;
       count += 1; // Spacing after section
     }
     if (results.kanji.isNotEmpty) {
@@ -109,6 +117,34 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         );
       }
       currentIndex += results.diaryEntries.length;
+
+      if (index == currentIndex) {
+        return const SizedBox(height: 32); // Section spacing
+      }
+      currentIndex++;
+    }
+
+    // Words Section
+    if (results.words.isNotEmpty) {
+      if (index == currentIndex) {
+        return SectionHeader(
+          icon: Icons.menu_book,
+          title: 'Words (${results.words.length})',
+        );
+      }
+      currentIndex++;
+
+      if (index == currentIndex) {
+        return const SizedBox(height: 0); // Spacing placeholder
+      }
+      currentIndex++;
+
+      // Word cards
+      if (index < currentIndex + results.words.length) {
+        final wordIndex = index - currentIndex;
+        return _buildWordCard(results.words[wordIndex], useBorderedStyle);
+      }
+      currentIndex += results.words.length;
 
       if (index == currentIndex) {
         return const SizedBox(height: 32); // Section spacing
@@ -162,6 +198,15 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     );
   }
 
+  /// Builds a word card.
+  Widget _buildWordCard(WordData word, bool useBorderedStyle) {
+    return WordCard(
+      word: word,
+      useBorderedStyle: useBorderedStyle,
+      navigationBarKey: widget.navigationBarKey,
+    );
+  }
+
   /// Performs a comprehensive search across diary entries and kanji.
   ///
   /// Searches through:
@@ -187,7 +232,24 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     // Search kanji database using dedicated search method.
     final kanjiResults = await kanjiRepository.searchKanji(widget.searchQuery);
 
-    return _SearchResults(diaryEntries: diaryResults, kanji: kanjiResults);
+    // Search for words containing kanji from the query
+    final List<WordData> wordResults = [];
+    final kanjiChars = JapaneseTextUtils.extractKanji(widget.searchQuery);
+    for (final kanji in kanjiChars) {
+      final words = await kanjiRepository.searchWords(kanji);
+      for (final word in words) {
+        // Avoid duplicates based on written form
+        if (!wordResults.any((w) => w.written == word.written)) {
+          wordResults.add(word);
+        }
+      }
+    }
+
+    return _SearchResults(
+      diaryEntries: diaryResults,
+      kanji: kanjiResults,
+      words: wordResults,
+    );
   }
 
   @override
@@ -213,7 +275,9 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
         final results = snapshot.data!;
         final hasResults =
-            results.diaryEntries.isNotEmpty || results.kanji.isNotEmpty;
+            results.diaryEntries.isNotEmpty ||
+            results.kanji.isNotEmpty ||
+            results.words.isNotEmpty;
 
         if (!hasResults) {
           return _buildNoResultsState();
@@ -281,6 +345,26 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             sliver: _buildDiaryEntriesGrid(results.diaryEntries),
+          ),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: 32), // Section spacing
+          ),
+        ],
+
+        // Words Section
+        if (results.words.isNotEmpty) ...[
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+              child: SectionHeader(
+                icon: Icons.menu_book,
+                title: 'Words (${results.words.length})',
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            sliver: _buildWordsGrid(results.words),
           ),
           const SliverToBoxAdapter(
             child: SizedBox(height: 32), // Section spacing
@@ -355,6 +439,30 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     );
   }
 
+  /// Builds a grid of word cards using responsive layout.
+  Widget _buildWordsGrid(List<WordData> wordsList) {
+    return SliverLayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = _calculateGridColumns(
+          constraints.crossAxisExtent,
+        );
+
+        return SliverGrid(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: 3 / 3,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => _buildWordCard(wordsList[index], true),
+            childCount: wordsList.length,
+          ),
+        );
+      },
+    );
+  }
+
   /// Calculates the number of columns based on available width.
   ///
   /// Uses the same calculation logic as ResponsiveGridView.
@@ -368,11 +476,16 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   }
 }
 
-/// Container for search results including diary entries and kanji.
+/// Container for search results including diary entries, kanji, and words.
 class _SearchResults {
   final List<DiaryEntry> diaryEntries;
   final List<KanjiData> kanji;
+  final List<WordData> words;
 
   /// Creates a new instance of [_SearchResults].
-  _SearchResults({required this.diaryEntries, required this.kanji});
+  _SearchResults({
+    required this.diaryEntries,
+    required this.kanji,
+    required this.words,
+  });
 }

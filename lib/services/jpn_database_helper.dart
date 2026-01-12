@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -150,167 +151,75 @@ class JpnDatabaseHelper {
     return count ?? 0;
   }
 
+  Future<List<Map<String, dynamic>>> getDataFromKanji(String query) async {
+    final db = await database;
+    final results = <Map<String, dynamic>>[];
+
+    final queryResults = await db.rawQuery('''
+      SELECT 
+        wm.word_id,
+        wm.glosses,
+        wv.written,
+        wv.pronounced
+      FROM word_meanings wm
+      INNER JOIN word_variants wv ON wm.word_id = wv.word_id
+      INNER JOIN words w ON w.id = wv.word_id
+      WHERE wv.written LIKE ?;
+      '''
+    , ['%$query%']);
+
+    for (var row in queryResults) {
+      debugPrint(row.toString());
+      results.add(row);
+    }
+
+    return results;
+  }
+
   /// Searches for words by kanji, reading, or meaning.
   ///
-  /// Returns word data with meanings and variants.
+  /// Returns flat word data rows with word_id, glosses, written, pronounced, priorities.
+  /// The repository layer will group these into WordData objects.
   Future<List<Map<String, dynamic>>> searchWords(String query) async {
     final db = await database;
 
-    // Get word IDs matching the kanji
-    final wordResults = await db.query(
-      'words',
-      where: 'kanji LIKE ?',
-      whereArgs: ['%$query%'],
-      limit: 100,
-    );
+    // Search by exact written form, or partial pronounced/glosses match
+    final results = await db.rawQuery('''
+      SELECT DISTINCT
+        wm.word_id,
+        wm.glosses,
+        wv.written,
+        wv.pronounced,
+        wv.priorities
+      FROM word_meanings wm
+      INNER JOIN word_variants wv ON wm.word_id = wv.word_id
+      WHERE wv.written = ?
+         OR wv.pronounced LIKE ?
+         OR wm.glosses LIKE ?
+      LIMIT 500
+    ''', [query, '%$query%', '%$query%']);
 
-    final results = <Map<String, dynamic>>[];
-
-    for (var word in wordResults) {
-      final wordId = word['id'] as int;
-      final kanji = word['kanji'] as String;
-
-      // Get meanings for this word
-      final meanings = await db.query(
-        'word_meanings',
-        where: 'word_id = ?',
-        whereArgs: [wordId],
-      );
-
-      // Get variants for this word
-      final variants = await db.query(
-        'word_variants',
-        where: 'word_id = ?',
-        whereArgs: [wordId],
-      );
-
-      results.add({
-        'id': wordId,
-        'kanji': kanji,
-        'meanings': meanings,
-        'variants': variants,
-      });
-    }
-
-    // Also search by variant written/pronounced forms
-    final variantResults = await db.rawQuery('''
-      SELECT DISTINCT w.id, w.kanji
-      FROM words w
-      JOIN word_variants v ON w.id = v.word_id
-      WHERE v.written LIKE ? OR v.pronounced LIKE ?
-      LIMIT 100
-    ''', ['%$query%', '%$query%']);
-
-    for (var word in variantResults) {
-      final wordId = word['id'] as int;
-
-      // Skip if already in results
-      if (results.any((r) => r['id'] == wordId)) continue;
-
-      final kanji = word['kanji'] as String;
-
-      // Get meanings for this word
-      final meanings = await db.query(
-        'word_meanings',
-        where: 'word_id = ?',
-        whereArgs: [wordId],
-      );
-
-      // Get variants for this word
-      final variants = await db.query(
-        'word_variants',
-        where: 'word_id = ?',
-        whereArgs: [wordId],
-      );
-
-      results.add({
-        'id': wordId,
-        'kanji': kanji,
-        'meanings': meanings,
-        'variants': variants,
-      });
-    }
-
-    // Also search by meaning/gloss
-    final glossResults = await db.rawQuery('''
-      SELECT DISTINCT w.id, w.kanji
-      FROM words w
-      JOIN word_meanings m ON w.id = m.word_id
-      WHERE m.glosses LIKE ?
-      LIMIT 100
-    ''', ['%$query%']);
-
-    for (var word in glossResults) {
-      final wordId = word['id'] as int;
-
-      // Skip if already in results
-      if (results.any((r) => r['id'] == wordId)) continue;
-
-      final kanji = word['kanji'] as String;
-
-      // Get meanings for this word
-      final meanings = await db.query(
-        'word_meanings',
-        where: 'word_id = ?',
-        whereArgs: [wordId],
-      );
-
-      // Get variants for this word
-      final variants = await db.query(
-        'word_variants',
-        where: 'word_id = ?',
-        whereArgs: [wordId],
-      );
-
-      results.add({
-        'id': wordId,
-        'kanji': kanji,
-        'meanings': meanings,
-        'variants': variants,
-      });
-    }
-
-    return results.take(50).toList();
+    return results;
   }
 
-  /// Gets words that contain a specific kanji character.
+  /// Gets words that contain a specific kanji character in the written form.
+  ///
+  /// Returns flat word data rows with word_id, glosses, written, pronounced, priorities.
+  /// The repository layer will group these into WordData objects.
   Future<List<Map<String, dynamic>>> getWordsForKanji(String kanji) async {
     final db = await database;
 
-    // Get word IDs for this kanji
-    final wordResults = await db.query(
-      'words',
-      where: 'kanji = ?',
-      whereArgs: [kanji],
-      limit: 100,
-    );
-
-    final results = <Map<String, dynamic>>[];
-
-    for (var word in wordResults) {
-      final wordId = word['id'] as int;
-
-      // Get meanings for this word
-      final meanings = await db.query(
-        'word_meanings',
-        where: 'word_id = ?',
-        whereArgs: [wordId],
-      );
-
-      // Get variants for this word
-      final variants = await db.query(
-        'word_variants',
-        where: 'word_id = ?',
-        whereArgs: [wordId],
-      );
-
-      results.add({
-        'id': wordId,
-        'kanji': kanji,
-        'meanings': meanings,
-        'variants': variants,
-      });
-    }
+    final results = await db.rawQuery('''
+      SELECT 
+        wm.word_id,
+        wm.glosses,
+        wv.written,
+        wv.pronounced,
+        wv.priorities
+      FROM word_meanings wm
+      INNER JOIN word_variants wv ON wm.word_id = wv.word_id
+      WHERE wv.written = ?
+    ''', [kanji]);
 
     return results;
   }

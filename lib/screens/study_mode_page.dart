@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
+import 'package:jpn_learning_diary/models/word_data.dart';
+import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/widgets/kanji_card.dart';
 import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
+import 'package:jpn_learning_diary/widgets/word_card.dart';
 
 /// Study mode page for analyzing text and displaying kanji information.
 ///
@@ -24,6 +27,9 @@ class _StudyModePageState extends State<StudyModePage> {
 
   /// Map of line index to list of kanji found in that line.
   final Map<int, List<KanjiData>> _kanjiByLine = {};
+
+  /// Map of line index to list of words found in that line.
+  final Map<int, List<WordData>> _wordsByLine = {};
 
   /// Current lines parsed from the input text.
   List<String> _lines = [];
@@ -74,10 +80,11 @@ class _StudyModePageState extends State<StudyModePage> {
 
     // Clean up kanji data for removed lines
     _kanjiByLine.removeWhere((key, value) => key >= newLines.length);
+    _wordsByLine.removeWhere((key, value) => key >= newLines.length);
     _loadingLines.removeWhere((key, value) => key >= newLines.length);
   }
 
-  /// Extracts kanji characters from a line and fetches their data.
+  /// Extracts kanji characters from a line and fetches their data and words.
   Future<void> _processLineForKanji(int lineIndex, String line) async {
     // Extract kanji characters using regex
     final kanjiPattern = RegExp(r'[\u4E00-\u9FFF\u3400-\u4DBF]');
@@ -87,6 +94,7 @@ class _StudyModePageState extends State<StudyModePage> {
     if (kanjiChars.isEmpty) {
       setState(() {
         _kanjiByLine[lineIndex] = [];
+        _wordsByLine[lineIndex] = [];
         _loadingLines[lineIndex] = false;
       });
       return;
@@ -116,9 +124,23 @@ class _StudyModePageState extends State<StudyModePage> {
       }
     }
 
+    // Fetch word data for each kanji character
+    final kanjis = JapaneseTextUtils.extractKanji(line);
+    final wordDataList = <WordData>[];
+    for (final word in kanjis) {
+      final words = await _kanjiRepository.searchWords(word);
+      for (final word in words) {
+        // Avoid duplicates based on written form
+        if (!wordDataList.any((w) => w.written == word.written)) {
+          wordDataList.add(word);
+        }
+      }
+    }
+
     if (mounted) {
       setState(() {
         _kanjiByLine[lineIndex] = kanjiDataList;
+        _wordsByLine[lineIndex] = wordDataList;
         _loadingLines[lineIndex] = false;
       });
     }
@@ -223,6 +245,7 @@ class _StudyModePageState extends State<StudyModePage> {
       itemBuilder: (context, index) {
         final line = _lines[index];
         final kanjiList = _kanjiByLine[index] ?? [];
+        final wordsList = _wordsByLine[index] ?? [];
         final isLoading = _loadingLines[index] ?? false;
 
         // Skip empty lines
@@ -230,19 +253,30 @@ class _StudyModePageState extends State<StudyModePage> {
           return const SizedBox.shrink();
         }
 
-        return _buildLineSection(context, index, line, kanjiList, isLoading);
+        return _buildLineSection(
+          context,
+          index,
+          line,
+          kanjiList,
+          wordsList,
+          isLoading,
+        );
       },
     );
   }
 
-  /// Builds a section for a single line with its kanji cards below.
+  /// Builds a section for a single line with its words and kanji cards below.
   Widget _buildLineSection(
     BuildContext context,
     int lineIndex,
     String line,
     List<KanjiData> kanjiList,
+    List<WordData> wordsList,
     bool isLoading,
   ) {
+    final hasResults = kanjiList.isNotEmpty || wordsList.isNotEmpty;
+    final totalCount = wordsList.length + kanjiList.length;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Column(
@@ -296,7 +330,7 @@ class _StudyModePageState extends State<StudyModePage> {
             ),
           ),
 
-          // Kanji cards section
+          // Results section (words + kanji)
           if (isLoading)
             Padding(
               padding: const EdgeInsets.only(top: 12, left: 16),
@@ -312,7 +346,7 @@ class _StudyModePageState extends State<StudyModePage> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Loading kanji...',
+                    'Loading...',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(
                         context,
@@ -322,7 +356,7 @@ class _StudyModePageState extends State<StudyModePage> {
                 ],
               ),
             )
-          else if (kanjiList.isNotEmpty)
+          else if (hasResults)
             Padding(
               padding: const EdgeInsets.only(top: 12),
               child: Column(
@@ -331,7 +365,7 @@ class _StudyModePageState extends State<StudyModePage> {
                   Padding(
                     padding: const EdgeInsets.only(left: 16, bottom: 8),
                     child: Text(
-                      '${kanjiList.length} kanji found',
+                      '$totalCount results (${wordsList.length} words, ${kanjiList.length} kanji)',
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w600,
@@ -339,8 +373,8 @@ class _StudyModePageState extends State<StudyModePage> {
                     ),
                   ),
                   _viewMode == 'grid'
-                      ? _buildKanjiGridView(kanjiList)
-                      : _buildKanjiListView(kanjiList),
+                      ? _buildCombinedGridView(wordsList, kanjiList)
+                      : _buildCombinedListView(wordsList, kanjiList),
                 ],
               ),
             )
@@ -360,23 +394,39 @@ class _StudyModePageState extends State<StudyModePage> {
     );
   }
 
-  /// Builds a list view of kanji cards (vertical stack).
-  Widget _buildKanjiListView(List<KanjiData> kanjiList) {
+  /// Builds a combined list view of word cards followed by kanji cards.
+  Widget _buildCombinedListView(
+    List<WordData> wordsList,
+    List<KanjiData> kanjiList,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: kanjiList
-          .map(
-            (kanji) => Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: KanjiCard(kanji: kanji, useBorderedStyle: false),
-            ),
-          )
-          .toList(),
+      children: [
+        // Word cards first
+        ...wordsList.map(
+          (word) => Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: WordCard(word: word, useBorderedStyle: false),
+          ),
+        ),
+        // Then kanji cards
+        ...kanjiList.map(
+          (kanji) => Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: KanjiCard(kanji: kanji, useBorderedStyle: false),
+          ),
+        ),
+      ],
     );
   }
 
-  /// Builds a grid view of kanji cards.
-  Widget _buildKanjiGridView(List<KanjiData> kanjiList) {
+  /// Builds a combined grid view of word cards followed by kanji cards.
+  Widget _buildCombinedGridView(
+    List<WordData> wordsList,
+    List<KanjiData> kanjiList,
+  ) {
+    final totalCount = wordsList.length + kanjiList.length;
+
     return Padding(
       padding: const EdgeInsets.only(left: 16),
       child: LayoutBuilder(
@@ -397,9 +447,22 @@ class _StudyModePageState extends State<StudyModePage> {
               crossAxisSpacing: 8.0,
               mainAxisSpacing: 8.0,
             ),
-            itemCount: kanjiList.length,
-            itemBuilder: (context, index) =>
-                KanjiCard(kanji: kanjiList[index], useBorderedStyle: true),
+            itemCount: totalCount,
+            itemBuilder: (context, index) {
+              // Words come first, then kanji
+              if (index < wordsList.length) {
+                return WordCard(
+                  word: wordsList[index],
+                  useBorderedStyle: true,
+                );
+              } else {
+                final kanjiIndex = index - wordsList.length;
+                return KanjiCard(
+                  kanji: kanjiList[kanjiIndex],
+                  useBorderedStyle: true,
+                );
+              }
+            },
           );
         },
       ),

@@ -1,11 +1,7 @@
 import 'dart:convert';
 import 'package:equatable/equatable.dart';
 
-/// Kanji data model for storing kanji information from the kanji-data JSON.
-///
-/// This is a pure data model with no business logic.
-/// Data source: https://github.com/davidluzgouveia/kanji-data
-/// Licensed under MIT License
+/// Data model representing a single kanji character and its attributes.
 class KanjiData extends Equatable {
   final String kanji;
   final int strokes;

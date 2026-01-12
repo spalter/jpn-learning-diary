@@ -144,23 +144,25 @@ class KanjiRepository {
   /// Searches for words by kanji, reading, or meaning.
   ///
   /// Returns up to 50 results from the jpn.db database.
+  /// Results are grouped by word_id + written + meanings, with pronunciations collected.
   Future<List<WordData>> searchWords(String query) async {
     if (query.trim().isEmpty) {
       return [];
     }
     final results = await _jpnDatabaseHelper.searchWords(query);
-    return results.map((map) => WordData.fromMap(map)).toList();
+    return WordData.fromRows(results);
   }
 
   /// Gets words that contain a specific kanji character.
   ///
-  /// Returns all word entries where the kanji key matches.
+  /// Returns all word entries where the written form contains the kanji.
+  /// Results are grouped by word_id + written + meanings, with pronunciations collected.
   Future<List<WordData>> getWordsForKanji(String kanji) async {
     if (kanji.isEmpty) {
       return [];
     }
     final results = await _jpnDatabaseHelper.getWordsForKanji(kanji);
-    return results.map((map) => WordData.fromMap(map)).toList();
+    return WordData.fromRows(results);
   }
 
   /// Gets the total count of words in the database.
