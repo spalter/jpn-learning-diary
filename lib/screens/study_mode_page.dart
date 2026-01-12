@@ -299,20 +299,23 @@ class _StudyModePageState extends State<StudyModePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Line number badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    '${lineIndex + 1}',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      fontWeight: FontWeight.bold,
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '${lineIndex + 1}',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -323,7 +326,7 @@ class _StudyModePageState extends State<StudyModePage> {
                     line,
                     style: Theme.of(
                       context,
-                    ).textTheme.titleMedium?.copyWith(height: 1.5),
+                    ).textTheme.titleLarge?.copyWith(height: 1.5),
                   ),
                 ),
               ],

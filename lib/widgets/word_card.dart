@@ -81,18 +81,6 @@ class _WordCardState extends State<WordCard> {
                     children: [
                       if (widget.word.isCommon)
                         _buildBadge(context, 'Common', Icons.star),
-                      if (widget.word.pronunciations.length > 1)
-                        _buildBadge(
-                          context,
-                          '${widget.word.pronunciations.length} readings',
-                          Icons.record_voice_over,
-                        ),
-                      if (widget.word.meanings.length > 1)
-                        _buildBadge(
-                          context,
-                          '${widget.word.meanings.length} meanings',
-                          Icons.menu_book,
-                        ),
                     ],
                   ),
                 ),
@@ -117,6 +105,7 @@ class _WordCardState extends State<WordCard> {
               'Meanings',
               widget.word.meaningsString,
               Icons.translate,
+              maxLines: 5,
             ),
 
             // Priority info if available
@@ -217,8 +206,9 @@ class _WordCardState extends State<WordCard> {
     BuildContext context,
     String title,
     String content,
-    IconData icon,
-  ) {
+    IconData icon, {
+    int? maxLines,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -240,7 +230,12 @@ class _WordCardState extends State<WordCard> {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(content, style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                content,
+                style: Theme.of(context).textTheme.bodyMedium,
+                maxLines: maxLines,
+                overflow: maxLines != null ? TextOverflow.ellipsis : null,
+              ),
             ],
           ),
         ),
