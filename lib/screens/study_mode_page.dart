@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/models/word_data.dart';
 import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
@@ -9,6 +10,7 @@ import 'package:jpn_learning_diary/widgets/kanji_card.dart';
 import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
 import 'package:jpn_learning_diary/widgets/word_card.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Study mode page for analyzing text and displaying kanji information.
 ///
@@ -25,6 +27,9 @@ class _StudyModePageState extends State<StudyModePage> {
   final TextEditingController _textController = TextEditingController();
   final KanjiRepository _kanjiRepository = KanjiRepository();
 
+  /// Static storage for session persistence of input text.
+  static String _sessionText = '';
+
   /// Map of line index to list of kanji found in that line.
   final Map<int, List<KanjiData>> _kanjiByLine = {};
 
@@ -40,10 +45,17 @@ class _StudyModePageState extends State<StudyModePage> {
   /// Current view mode ('grid' or 'list').
   String _viewMode = 'list';
 
+  /// Whether to show tokenized text with nakaguro separators.
+  bool _showTokenized = false;
+
   @override
   void initState() {
     super.initState();
     _textController.addListener(_onTextChanged);
+    // Restore text from session storage
+    if (_sessionText.isNotEmpty) {
+      _textController.text = _sessionText;
+    }
     _loadViewMode();
   }
 
@@ -59,6 +71,8 @@ class _StudyModePageState extends State<StudyModePage> {
 
   @override
   void dispose() {
+    // Save text to session storage before disposing
+    _sessionText = _textController.text;
     _textController.removeListener(_onTextChanged);
     _textController.dispose();
     super.dispose();
@@ -82,6 +96,92 @@ class _StudyModePageState extends State<StudyModePage> {
     _kanjiByLine.removeWhere((key, value) => key >= newLines.length);
     _wordsByLine.removeWhere((key, value) => key >= newLines.length);
     _loadingLines.removeWhere((key, value) => key >= newLines.length);
+  }
+
+  /// Punctuation characters that should not have nakaguro around them.
+  static final RegExp _punctuationPattern = RegExp(
+    r'^[、。！？「」『』（）〈〉《》【】〔〕・…―ー～，．：；]+$',
+  );
+
+  /// Opens Takoboto dictionary for the given word.
+  Future<void> _openTakoboto(String word) async {
+    final url = Uri.parse(
+      'https://takoboto.jp/?q=${Uri.encodeComponent(word)}',
+    );
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  /// Copies the word to clipboard and shows a snackbar.
+  Future<void> _copyWord(BuildContext context, String word) async {
+    await Clipboard.setData(ClipboardData(text: word));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Copied: $word'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  /// Builds clickable tokenized text where each word can be tapped.
+  Widget _buildClickableTokenizedText(BuildContext context, String line) {
+    final tokens = JapaneseTextUtils.tokenize(
+      line,
+    ).where((t) => t.trim().isNotEmpty).toList();
+
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        for (int i = 0; i < tokens.length; i++) ...[
+          _buildClickableToken(context, tokens[i], i, tokens.length),
+        ],
+      ],
+    );
+  }
+
+  /// Builds a single clickable token widget.
+  Widget _buildClickableToken(
+    BuildContext context,
+    String token,
+    int index,
+    int totalTokens,
+  ) {
+    final isPunctuation = _punctuationPattern.hasMatch(token);
+    final showSeparator = _showTokenized && !isPunctuation && index > 0;
+
+    // Check if previous token was punctuation (for separator logic)
+    // We'll handle this in the parent widget instead
+
+    if (isPunctuation) {
+      // Punctuation is not clickable
+      return Text(
+        token,
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(height: 1.5),
+      );
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (showSeparator)
+          Text(
+            '・',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              height: 1.5,
+              color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
+            ),
+          ),
+        _ClickableWord(
+          word: token,
+          onTap: () => _copyWord(context, token),
+          onLongPress: () => _openTakoboto(token),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(height: 1.5),
+        ),
+      ],
+    );
   }
 
   /// Extracts kanji characters from a line and fetches their data and words.
@@ -158,13 +258,49 @@ class _StudyModePageState extends State<StudyModePage> {
           children: [
             // Text input area
             _buildTextInputArea(context),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
+
+            // Tokenize toggle
+            _buildTokenizeToggle(context),
+            const SizedBox(height: 12),
 
             // Lines and kanji cards list
             Expanded(child: _buildLinesAndKanjiList(context)),
           ],
         ),
       ),
+    );
+  }
+
+  /// Builds the tokenize toggle button.
+  Widget _buildTokenizeToggle(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          Icons.auto_awesome,
+          size: 18,
+          color: Theme.of(context).colorScheme.primary.withAlpha(150),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          'Word separation',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface.withAlpha(180),
+          ),
+        ),
+        const Spacer(),
+        Transform.scale(
+          scale: 0.85,
+          child: Switch(
+            value: _showTokenized,
+            onChanged: (value) {
+              setState(() {
+                _showTokenized = value;
+              });
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -320,15 +456,8 @@ class _StudyModePageState extends State<StudyModePage> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Line text
-                Expanded(
-                  child: Text(
-                    line,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleLarge?.copyWith(height: 1.5),
-                  ),
-                ),
+                // Line text with clickable words
+                Expanded(child: _buildClickableTokenizedText(context, line)),
               ],
             ),
           ),
@@ -454,10 +583,7 @@ class _StudyModePageState extends State<StudyModePage> {
             itemBuilder: (context, index) {
               // Words come first, then kanji
               if (index < wordsList.length) {
-                return WordCard(
-                  word: wordsList[index],
-                  useBorderedStyle: true,
-                );
+                return WordCard(word: wordsList[index], useBorderedStyle: true);
               } else {
                 final kanjiIndex = index - wordsList.length;
                 return KanjiCard(
@@ -468,6 +594,53 @@ class _StudyModePageState extends State<StudyModePage> {
             },
           );
         },
+      ),
+    );
+  }
+}
+
+/// A clickable word widget that copies on tap and opens dictionary on long press.
+class _ClickableWord extends StatefulWidget {
+  final String word;
+  final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+  final TextStyle? style;
+
+  const _ClickableWord({
+    required this.word,
+    required this.onTap,
+    this.onLongPress,
+    this.style,
+  });
+
+  @override
+  State<_ClickableWord> createState() => _ClickableWordState();
+}
+
+class _ClickableWordState extends State<_ClickableWord> {
+  bool _isHovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final baseColor =
+        widget.style?.color ?? Theme.of(context).colorScheme.onSurface;
+    final hoverColor = Theme.of(context).colorScheme.primary;
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        onLongPress: widget.onLongPress,
+        child: Text(
+          widget.word,
+          style:
+              widget.style?.copyWith(
+                color: _isHovering ? hoverColor : baseColor,
+              ) ??
+              TextStyle(color: _isHovering ? hoverColor : baseColor),
+        ),
       ),
     );
   }

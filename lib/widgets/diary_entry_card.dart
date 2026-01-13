@@ -58,7 +58,9 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
           onEnter: (_) => setState(() => _isHovering = true),
           onExit: (_) => setState(() => _isHovering = false),
           child: AppCard(
-            style: widget.useBorderedStyle ? AppCardStyle.bordered : AppCardStyle.minimal,
+            style: widget.useBorderedStyle
+                ? AppCardStyle.bordered
+                : AppCardStyle.minimal,
             margin: const EdgeInsets.only(bottom: 12, right: 16),
             padding: const EdgeInsets.all(16),
             onTap: () => _handleCopyToClipboard(context),
@@ -68,10 +70,16 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeaderRow(context, showFurigana: showFurigana),
-                if (showRomaji) ...[const SizedBox(height: 8), _buildRomaji(context)],
+                if (showRomaji) ...[
+                  const SizedBox(height: 8),
+                  _buildRomaji(context),
+                ],
                 const SizedBox(height: 8),
                 _buildMeaning(context),
-                if (_hasNotes) ...[const SizedBox(height: 8), _buildNotes(context)],
+                if (_hasNotes) ...[
+                  const SizedBox(height: 8),
+                  _buildNotes(context),
+                ],
               ],
             ),
           ),
@@ -84,15 +92,24 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
   Widget _buildHeaderRow(BuildContext context, {required bool showFurigana}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [Expanded(child: _buildJapaneseText(context, showFurigana: showFurigana))],
+      children: [
+        Expanded(
+          child: _buildJapaneseText(context, showFurigana: showFurigana),
+        ),
+      ],
     );
   }
 
   /// Builds the Japanese text with optional furigana
-  Widget _buildJapaneseText(BuildContext context, {required bool showFurigana}) {
+  Widget _buildJapaneseText(
+    BuildContext context, {
+    required bool showFurigana,
+  }) {
     // Apply hover color effect only in list mode (minimal style)
     final useHoverColor = !widget.useBorderedStyle && _isHovering;
-    final textColor = useHoverColor ? Theme.of(context).colorScheme.primary : null;
+    final textColor = useHoverColor
+        ? Theme.of(context).colorScheme.primary
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,6 +117,8 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
         if (showFurigana && _hasFurigana) _buildFurigana(context),
         Text(
           widget.entry.japanese,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
             color: textColor,
@@ -113,6 +132,8 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
   Widget _buildFurigana(BuildContext context) {
     return Text(
       widget.entry.furigana!,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
       style: TextStyle(
         fontSize: 11,
         color: Theme.of(context).colorScheme.primary,
@@ -124,6 +145,8 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
   Widget _buildRomaji(BuildContext context) {
     return Text(
       widget.entry.romaji,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
       style: TextStyle(
         fontSize: 14,
         fontStyle: FontStyle.italic,
@@ -136,6 +159,8 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
   Widget _buildMeaning(BuildContext context) {
     return Text(
       widget.entry.meaning,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
       style: Theme.of(
         context,
       ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
@@ -146,6 +171,8 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
   Widget _buildNotes(BuildContext context) {
     return Text(
       widget.entry.notes!,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
       style: TextStyle(
         fontSize: 13,
         color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -155,10 +182,12 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
 
   /// Checks if the entry has furigana that differs from the Japanese text
   bool get _hasFurigana =>
-      widget.entry.furigana != null && widget.entry.furigana != widget.entry.japanese;
+      widget.entry.furigana != null &&
+      widget.entry.furigana != widget.entry.japanese;
 
   /// Checks if the entry has notes
-  bool get _hasNotes => widget.entry.notes != null && widget.entry.notes!.isNotEmpty;
+  bool get _hasNotes =>
+      widget.entry.notes != null && widget.entry.notes!.isNotEmpty;
 
   /// Handles copying the Japanese text to clipboard
   Future<void> _handleCopyToClipboard(BuildContext context) async {

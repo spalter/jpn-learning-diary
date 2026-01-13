@@ -46,6 +46,7 @@ dependencies:
   shared_preferences: ^2.5.4
   file_picker: ^10.3.8
   url_launcher: ^6.3.1
+  tiny_segmenter_dart: ^1.0.1
 
 dev_dependencies:
   flutter_test:

@@ -1,8 +1,12 @@
+import 'package:tiny_segmenter_dart/tiny_segmenter_dart.dart';
+
 /// Utility class for Japanese text processing and analysis.
 ///
 /// Provides regex patterns and helper methods for identifying and extracting
 /// different types of Japanese characters (kanji, hiragana, katakana).
 class JapaneseTextUtils {
+  // Singleton instance of TinySegmenter for word tokenization
+  static final TinySegmenter _segmenter = TinySegmenter();
   // Private constructor to prevent instantiation
   JapaneseTextUtils._();
 
@@ -173,6 +177,69 @@ class JapaneseTextUtils {
       }
     }
     return count;
+  }
+
+  // ============================================================
+  // Word Tokenization (using TinySegmenter)
+  // ============================================================
+
+  /// Tokenizes Japanese text into individual words/tokens.
+  ///
+  /// Uses TinySegmenter for word boundary detection.
+  /// Example: "私は日本語を勉強しています" → ["私", "は", "日本語", "を", "勉強", "し", "て", "い", "ます"]
+  static List<String> tokenize(String text) {
+    if (text.isEmpty) return [];
+    return _segmenter.segment(text);
+  }
+
+  /// Tokenizes text and returns only meaningful words (filters particles and punctuation).
+  ///
+  /// Removes common particles (は, が, を, に, で, etc.) and punctuation.
+  /// Useful for vocabulary extraction.
+  static List<String> tokenizeWords(String text) {
+    if (text.isEmpty) return [];
+
+    final particles = {
+      'は',
+      'が',
+      'を',
+      'に',
+      'で',
+      'と',
+      'も',
+      'の',
+      'へ',
+      'から',
+      'まで',
+      'より',
+      'など',
+      'か',
+      'よ',
+      'ね',
+      'な',
+      'わ',
+      'さ',
+    };
+
+    return _segmenter
+        .segment(text)
+        .where(
+          (token) =>
+              token.trim().isNotEmpty &&
+              !particles.contains(token) &&
+              containsJapanese(token),
+        )
+        .toList();
+  }
+
+  /// Tokenizes text and returns unique words only.
+  static Set<String> tokenizeUnique(String text) {
+    return tokenize(text).toSet();
+  }
+
+  /// Tokenizes text and returns unique meaningful words only.
+  static Set<String> tokenizeUniqueWords(String text) {
+    return tokenizeWords(text).toSet();
   }
 
   /// Splits text into segments by character type.
