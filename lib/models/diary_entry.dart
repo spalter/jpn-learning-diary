@@ -49,19 +49,6 @@ class DiaryEntry extends Equatable {
     );
   }
 
-  /// Converts the DiaryEntry to a database map.
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'japanese': japanese,
-      'furigana': furigana,
-      'romaji': romaji,
-      'meaning': meaning,
-      'notes': notes,
-      'date_added': dateAdded.millisecondsSinceEpoch,
-    };
-  }
-
   /// Creates a copy of this entry with the given fields replaced.
   DiaryEntry copyWith({
     int? id,

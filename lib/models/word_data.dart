@@ -19,24 +19,6 @@ class WordData extends Equatable {
     this.priorities = const [],
   });
 
-  /// Creates a WordData from a single database row.
-  ///
-  /// The map should contain:
-  /// - word_id: The word ID
-  /// - written: The written form (kanji)
-  /// - glosses: JSON array of meanings
-  /// - pronounced: The pronunciation
-  /// - priorities: JSON array of priority indicators
-  factory WordData.fromRow(Map<String, dynamic> map) {
-    return WordData(
-      id: map['word_id'] as int,
-      written: map['written'] as String? ?? '',
-      meanings: _parseJsonList(map['glosses']),
-      pronunciations: [if (map['pronounced'] != null) map['pronounced'] as String],
-      priorities: _parseJsonList(map['priorities']),
-    );
-  }
-
   /// Creates a list of WordData from query results, grouping by written form.
   ///
   /// This collects all unique pronunciations and meanings into a single WordData

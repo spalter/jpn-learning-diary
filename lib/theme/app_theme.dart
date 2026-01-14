@@ -25,6 +25,7 @@ class AppTheme {
   /// Returns a Color with the configured alpha transparency applied.
   static Color scaffoldBackground(BuildContext context) {
     final brightness = Theme.of(context).brightness;
+    /// Semi-transparent in dark mode for darker background, opaque in light mode for lighter background
     final alpha = brightness == Brightness.dark ? 150 : 255;
     return Theme.of(context).colorScheme.surface.withAlpha(alpha);
   }

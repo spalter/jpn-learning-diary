@@ -76,69 +76,6 @@ class KanjiRepository {
     return await _databaseHelper.getLearnedKanjiByJlptLevel();
   }
 
-  /// Gets the total count of kanji in the database.
-  Future<int> getKanjiCount() async {
-    return await _jpnDatabaseHelper.getKanjiCount();
-  }
-
-  /// Gets kanji by JLPT level.
-  ///
-  /// Note: This is a convenience method. For better performance on large
-  /// datasets, consider adding a direct database query method to DatabaseHelper.
-  Future<List<KanjiData>> getKanjiByJlptLevel(int level) async {
-    if (level < 1 || level > 5) {
-      throw ArgumentError('JLPT level must be between 1 (N1) and 5 (N5)');
-    }
-    
-    // This is a placeholder for future implementation
-    // For now, we'd need to add this method to DatabaseHelper
-    // or implement it using search functionality
-    throw UnimplementedError(
-      'getKanjiByJlptLevel needs to be implemented in DatabaseHelper',
-    );
-  }
-
-  /// Gets random kanji from a specific JLPT level.
-  ///
-  /// This is useful for targeted practice.
-  Future<List<KanjiData>> getRandomKanjiByLevel({
-    required int jlptLevel,
-    int count = 10,
-  }) async {
-    if (jlptLevel < 1 || jlptLevel > 5) {
-      throw ArgumentError('JLPT level must be between 1 (N1) and 5 (N5)');
-    }
-    if (count <= 0) {
-      return [];
-    }
-
-    // This is a placeholder for future implementation
-    // Would require DatabaseHelper method to query by JLPT level
-    throw UnimplementedError(
-      'getRandomKanjiByLevel needs to be implemented in DatabaseHelper',
-    );
-  }
-
-  /// Gets the total count of unique kanji found in diary entries.
-  Future<int> getLearnedKanjiCount() async {
-    final stats = await getLearnedKanjiByJlptLevel();
-    return stats.values.fold<int>(0, (sum, count) => sum + count);
-  }
-
-  /// Checks if a character is a kanji.
-  bool isKanji(String char) {
-    if (char.isEmpty) return false;
-    final kanjiPattern = RegExp(r'[\u4E00-\u9FFF\u3400-\u4DBF]');
-    return kanjiPattern.hasMatch(char);
-  }
-
-  /// Extracts all kanji characters from a text string.
-  List<String> extractKanji(String text) {
-    final kanjiPattern = RegExp(r'[\u4E00-\u9FFF\u3400-\u4DBF]');
-    final matches = kanjiPattern.allMatches(text);
-    return matches.map((m) => m.group(0)!).toList();
-  }
-
   // ==================== Word Operations ====================
 
   /// Searches for words by kanji, reading, or meaning.
@@ -151,22 +88,5 @@ class KanjiRepository {
     }
     final results = await _jpnDatabaseHelper.searchWords(query);
     return WordData.fromRows(results);
-  }
-
-  /// Gets words that contain a specific kanji character.
-  ///
-  /// Returns all word entries where the written form contains the kanji.
-  /// Results are grouped by word_id + written + meanings, with pronunciations collected.
-  Future<List<WordData>> getWordsForKanji(String kanji) async {
-    if (kanji.isEmpty) {
-      return [];
-    }
-    final results = await _jpnDatabaseHelper.getWordsForKanji(kanji);
-    return WordData.fromRows(results);
-  }
-
-  /// Gets the total count of words in the database.
-  Future<int> getWordCount() async {
-    return await _jpnDatabaseHelper.getWordCount();
   }
 }

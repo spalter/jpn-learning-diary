@@ -386,29 +386,6 @@ class DatabaseHelper {
     return join(dbPath, 'diary.db');
   }
 
-  /// Deletes the entire database file and resets the instance.
-  /// This will remove all data including diary entries and kanji.
-  Future<void> deleteDatabase() async {
-    try {
-      final path = await getDatabasePath();
-      await close();
-      _database = null;
-
-      final file = File(path);
-      if (await file.exists()) {
-        await file.delete();
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  /// Closes the database connection.
-  Future<void> close() async {
-    final db = await database;
-    db.close();
-  }
-
   /// Resets the database connection.
   /// Call this after changing the database path to force a reconnection.
   Future<void> resetConnection() async {

@@ -45,8 +45,13 @@ class LearningController extends ChangeNotifier {
   final DiaryRepository _diaryRepository;
   final KanjiRepository _kanjiRepository;
 
+  /// Current dashboard data.
   DashboardData? _data;
+
+  /// Loading state.
   bool _isLoading = false;
+
+  /// Error message if loading failed.
   String? _errorMessage;
 
   LearningController({
@@ -99,18 +104,4 @@ class LearningController extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  /// Refreshes the dashboard data.
-  Future<void> refresh() => loadData();
-
-  /// Gets the count of kanji for a specific JLPT level.
-  int getKanjiCountForLevel(int level) {
-    return _data?.kanjiByJlptLevel[level] ?? 0;
-  }
-
-  /// Gets the total count of all kanji.
-  int get totalKanjiCount => _data?.totalKanji ?? 0;
-
-  /// Gets the total count of diary entries.
-  int get totalEntriesCount => _data?.totalEntries ?? 0;
 }

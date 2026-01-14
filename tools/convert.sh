@@ -12,6 +12,9 @@ unzip -j tools/kanjiapi_full.zip kanjiapi_full.json -d tools
 # Execute the Dart command
 dart --packages=".dart_tool/package_config.json" tools/json_to_sqlite.dart tools/kanjiapi_full.json lib/assets/jpn.db
 
-# Optional: Clean up the zip file
+# Check the database
+dart --packages=".dart_tool/package_config.json" tools/check_db.dart lib/assets/jpn.db
+
+# Clean up the zip file
 rm tools/kanjiapi_full.zip
 

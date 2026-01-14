@@ -1,9 +1,7 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// Database helper for the read-only Japanese language database.
@@ -142,40 +140,6 @@ class JpnDatabaseHelper {
     return result.first;
   }
 
-  /// Gets the count of kanji entries in the database.
-  Future<int> getKanjiCount() async {
-    final db = await database;
-    final count = Sqflite.firstIntValue(
-      await db.rawQuery('SELECT COUNT(*) FROM kanjis'),
-    );
-    return count ?? 0;
-  }
-
-  Future<List<Map<String, dynamic>>> getDataFromKanji(String query) async {
-    final db = await database;
-    final results = <Map<String, dynamic>>[];
-
-    final queryResults = await db.rawQuery('''
-      SELECT 
-        wm.word_id,
-        wm.glosses,
-        wv.written,
-        wv.pronounced
-      FROM word_meanings wm
-      INNER JOIN word_variants wv ON wm.word_id = wv.word_id
-      INNER JOIN words w ON w.id = wv.word_id
-      WHERE wv.written LIKE ?;
-      '''
-    , ['%$query%']);
-
-    for (var row in queryResults) {
-      debugPrint(row.toString());
-      results.add(row);
-    }
-
-    return results;
-  }
-
   /// Searches for words by kanji, reading, or meaning.
   ///
   /// Returns flat word data rows with word_id, glosses, written, pronounced, priorities.
@@ -202,83 +166,11 @@ class JpnDatabaseHelper {
     return results;
   }
 
-  /// Gets words that contain a specific kanji character in the written form.
-  ///
-  /// Returns flat word data rows with word_id, glosses, written, pronounced, priorities.
-  /// The repository layer will group these into WordData objects.
-  Future<List<Map<String, dynamic>>> getWordsForKanji(String kanji) async {
-    final db = await database;
-
-    final results = await db.rawQuery('''
-      SELECT 
-        wm.word_id,
-        wm.glosses,
-        wv.written,
-        wv.pronounced,
-        wv.priorities
-      FROM word_meanings wm
-      INNER JOIN word_variants wv ON wm.word_id = wv.word_id
-      WHERE wv.written = ?
-    ''', [kanji]);
-
-    return results;
-  }
-
-  /// Gets the count of word entries in the database.
-  Future<int> getWordCount() async {
-    final db = await database;
-    final count = Sqflite.firstIntValue(
-      await db.rawQuery('SELECT COUNT(*) FROM words'),
-    );
-    return count ?? 0;
-  }
-
-  /// Gets reading data for a specific reading string.
-  Future<Map<String, dynamic>?> getReading(String reading) async {
-    final db = await database;
-    final result = await db.query(
-      'readings',
-      where: '_key = ?',
-      whereArgs: [reading],
-    );
-    if (result.isEmpty) return null;
-    return result.first;
-  }
-
-  /// Searches for readings.
-  Future<List<Map<String, dynamic>>> searchReadings(String query) async {
-    final db = await database;
-    final results = await db.query(
-      'readings',
-      where: '_key LIKE ? OR reading LIKE ?',
-      whereArgs: ['%$query%', '%$query%'],
-      limit: 50,
-    );
-    return results;
-  }
-
   /// Closes the database connection.
   Future<void> close() async {
     if (_database != null) {
       await _database!.close();
       _database = null;
     }
-  }
-
-  /// Resets the database by deleting the local copy and re-copying from assets.
-  ///
-  /// This is useful if the asset database has been updated.
-  Future<void> resetDatabase() async {
-    await close();
-
-    final documentsDirectory = await getApplicationDocumentsDirectory();
-    final path = join(documentsDirectory.path, _dbName);
-
-    final file = File(path);
-    if (await file.exists()) {
-      await file.delete();
-    }
-
-    // Database will be re-copied on next access
   }
 }

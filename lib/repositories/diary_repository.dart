@@ -58,40 +58,4 @@ class DiaryRepository {
   Future<int> deleteAllEntries() async {
     return await _databaseHelper.deleteAllEntries();
   }
-
-  /// Gets the total count of diary entries.
-  Future<int> getEntryCount() async {
-    final entries = await getAllEntries();
-    return entries.length;
-  }
-
-  /// Gets diary entries added within the last [days] days.
-  Future<List<DiaryEntry>> getRecentEntries({int days = 7}) async {
-    final allEntries = await getAllEntries();
-    final cutoffDate = DateTime.now().subtract(Duration(days: days));
-    
-    return allEntries
-        .where((entry) => entry.dateAdded.isAfter(cutoffDate))
-        .toList();
-  }
-
-  /// Extracts unique kanji characters from all diary entries.
-  ///
-  /// Uses Unicode ranges:
-  /// - U+4E00-U+9FFF (CJK Unified Ideographs)
-  /// - U+3400-U+4DBF (CJK Extension A)
-  Future<Set<String>> getUniqueKanjiFromEntries() async {
-    final entries = await getAllEntries();
-    final kanjiPattern = RegExp(r'[\u4E00-\u9FFF\u3400-\u4DBF]');
-    final uniqueKanji = <String>{};
-
-    for (var entry in entries) {
-      final matches = kanjiPattern.allMatches(entry.japanese);
-      for (var match in matches) {
-        uniqueKanji.add(match.group(0)!);
-      }
-    }
-
-    return uniqueKanji;
-  }
 }
