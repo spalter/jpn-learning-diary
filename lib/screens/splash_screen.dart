@@ -37,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Image.asset(
           'lib/assets/bird.png',
           fit: BoxFit.contain,
-          color: Theme.of(context).colorScheme.onSurface,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
     );
