@@ -119,7 +119,7 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Show Romaji'),
             subtitle: const Text('Display romanization in diary entry cards'),
             value: showRomaji,
-            activeColor: Theme.of(context).colorScheme.onSurface,
+            activeThumbColor: Theme.of(context).colorScheme.onSurface,
             onChanged: (value) async {
               await AppPreferences.setShowRomaji(value);
               setState(() {}); // Refresh to show updated value
@@ -142,7 +142,7 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Show Furigana'),
             subtitle: const Text('Display reading guides above Japanese text'),
             value: showFurigana,
-            activeColor: Theme.of(context).colorScheme.onSurface,
+            activeThumbColor: Theme.of(context).colorScheme.onSurface,
             onChanged: (value) async {
               await AppPreferences.setShowFurigana(value);
               setState(() {}); // Refresh to show updated value
