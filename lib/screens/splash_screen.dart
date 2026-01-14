@@ -1,4 +1,3 @@
-/// Splash screen with bird image shown while app initializes.
 library;
 
 import 'package:flutter/material.dart';
@@ -22,7 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _navigateToHome() async {
     // Wait for a short duration to show the splash screen
     await Future.delayed(const Duration(milliseconds: 1500));
-    
+
     if (mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const AppShell()),
