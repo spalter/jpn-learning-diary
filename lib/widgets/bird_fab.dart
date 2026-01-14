@@ -88,7 +88,7 @@ class _BirdFabState extends State<BirdFab> with SingleTickerProviderStateMixin {
               width: 80,
               height: 80,
               fit: BoxFit.contain,
-              color: Theme.of(context).colorScheme.onSurface,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
         ),

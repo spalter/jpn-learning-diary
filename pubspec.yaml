@@ -47,6 +47,8 @@ dependencies:
   file_picker: ^10.3.8
   url_launcher: ^6.3.1
   tiny_segmenter_dart: ^1.0.1
+  flutter_widget_from_html: ^0.17.1
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

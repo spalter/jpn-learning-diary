@@ -11,7 +11,7 @@ import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
 import 'package:jpn_learning_diary/widgets/bird_fab.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
 import 'package:jpn_learning_diary/widgets/word_card.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:jpn_learning_diary/widgets/takoboto_viewer.dart';
 
 /// Study mode page for analyzing text and displaying kanji information.
 ///
@@ -104,14 +104,10 @@ class _StudyModePageState extends State<StudyModePage> {
     r'^[、。！？「」『』（）〈〉《》【】〔〕・…―ー～，．：；]+$',
   );
 
-  /// Opens Takoboto dictionary for the given word.
-  Future<void> _openTakoboto(String word) async {
-    final url = Uri.parse(
-      'https://takoboto.jp/?q=${Uri.encodeComponent(word)}',
-    );
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    }
+  /// Opens Takoboto dictionary for the given word in a popup dialog.
+  void _openTakoboto(String word) {
+    if (!mounted) return;
+    TakobotoViewer.showPopup(context, word);
   }
 
   /// Copies the word to clipboard and shows a snackbar.
