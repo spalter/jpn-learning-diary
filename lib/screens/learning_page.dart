@@ -127,7 +127,7 @@ class _LearningPageState extends State<LearningPage> {
           Icon(
             Icons.school,
             size: 32,
-            color: Theme.of(context).colorScheme.primary,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           const SizedBox(height: 14),
           // Horizontal layout of JLPT levels
@@ -141,14 +141,16 @@ class _LearningPageState extends State<LearningPage> {
                     levelNames[level]!,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: Colors.grey[700],
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withAlpha(180),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$count',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -186,12 +188,12 @@ class _LearningPageState extends State<LearningPage> {
       ),
       child: Column(
         children: [
-          Icon(icon, size: 32, color: Theme.of(context).colorScheme.primary),
+          Icon(icon, size: 32, color: Theme.of(context).colorScheme.onSurface),
           const SizedBox(height: 16),
           Text(
             value,
             style: Theme.of(context).textTheme.displayMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -268,7 +270,7 @@ class _LearningPageState extends State<LearningPage> {
             Icon(
               icon,
               size: 40,
-              color: Theme.of(context).colorScheme.primary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
             const SizedBox(height: 12),
             Text(

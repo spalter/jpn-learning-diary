@@ -18,12 +18,15 @@ class AppTheme {
   /// Returns the scaffold background color with semi-transparency applied.
   ///
   /// This creates a modern, translucent effect allowing content behind
-  /// the scaffold to show through subtly.
+  /// the scaffold to show through subtly in dark mode, while keeping
+  /// the light mode fully opaque.
   ///
   /// [context] The build context to access the current theme.
   /// Returns a Color with the configured alpha transparency applied.
   static Color scaffoldBackground(BuildContext context) {
-    return Theme.of(context).colorScheme.surface.withAlpha(150);
+    final brightness = Theme.of(context).brightness;
+    final alpha = brightness == Brightness.dark ? 150 : 255;
+    return Theme.of(context).colorScheme.surface.withAlpha(alpha);
   }
 
   /// Returns the light theme configuration using Tokyo Day colors.
@@ -35,6 +38,7 @@ class AppTheme {
       colorScheme: ColorScheme.light(
         surface: const Color(0xFFe1e2e7),
         primary: const Color(0xFF2e7de9),
+        surfaceTint: const Color(0xFF6172b0),
         secondary: const Color(0xFF9854f1),
         tertiary: const Color(0xFF007197),
         error: const Color(0xFFf52a65),

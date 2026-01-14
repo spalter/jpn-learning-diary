@@ -8,6 +8,7 @@ import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/widgets/kanji_card.dart';
 import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
+import 'package:jpn_learning_diary/widgets/bird_fab.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
 import 'package:jpn_learning_diary/widgets/word_card.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -251,6 +252,7 @@ class _StudyModePageState extends State<StudyModePage> {
     return Scaffold(
       backgroundColor: AppTheme.scaffoldBackground(context),
       appBar: const LearningModeAppBar(title: 'Study Mode'),
+      floatingActionButton: const BirdFab(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

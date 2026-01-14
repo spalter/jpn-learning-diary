@@ -5,7 +5,6 @@ import 'package:window_manager/window_manager.dart';
 ///
 /// Provides a navigation bar with:
 /// - Navigation buttons for diary, hiragana (あ), and katakana (ア) pages
-/// - Add entry button for creating new diary entries
 /// - Search field with submit functionality (searches when text present, navigates to diary when empty)
 /// - Clear button (X) that appears when search has text
 /// - Learning dashboard and settings buttons
@@ -42,9 +41,6 @@ class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
   /// Callback when search should be cleared and navigate to phrases/words.
   final VoidCallback onClearSearch;
 
-  /// Callback when add entry button is pressed.
-  final VoidCallback onAddEntry;
-
   /// Callback when exit button is pressed.
   final VoidCallback onExit;
 
@@ -59,7 +55,6 @@ class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
     required this.onNavigateToSettings,
     required this.onSearch,
     required this.onClearSearch,
-    required this.onAddEntry,
     required this.onExit,
   });
 
@@ -101,8 +96,6 @@ class AppNavigationBarState extends State<AppNavigationBar> {
           children: [
             ..._buildNavigationButtons(context),
             const Spacer(),
-            _buildAddButton(context),
-            const SizedBox(width: 8),
             _buildSearchField(context),
             const Spacer(),
           ],
@@ -150,17 +143,6 @@ class AppNavigationBarState extends State<AppNavigationBar> {
         ),
       ),
     ];
-  }
-
-  /// Builds the add entry button.
-  Widget _buildAddButton(BuildContext context) {
-    return ExcludeFocus(
-      child: IconButton(
-        icon: const Icon(Icons.add_circle_outline),
-        tooltip: 'Add new diary entry',
-        onPressed: widget.onAddEntry,
-      ),
-    );
   }
 
   /// Builds the search text field.

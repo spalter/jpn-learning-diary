@@ -64,12 +64,12 @@ class _SettingsPageState extends State<SettingsPage> {
             final currentMode = snapshot.data ?? 'list';
             return SegmentedButton<String>(
               style: SegmentedButton.styleFrom(
-                selectedBackgroundColor: Theme.of(context).colorScheme.primary,
-                selectedForegroundColor: Theme.of(
+                selectedBackgroundColor: Theme.of(
                   context,
-                ).colorScheme.onPrimary,
+                ).colorScheme.onSurface,
+                selectedForegroundColor: Theme.of(context).colorScheme.surface,
                 side: BorderSide(
-                  color: Theme.of(context).colorScheme.primary.withAlpha(100),
+                  color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
                 ),
               ),
               segments: const [
@@ -119,6 +119,7 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Show Romaji'),
             subtitle: const Text('Display romanization in diary entry cards'),
             value: showRomaji,
+            activeColor: Theme.of(context).colorScheme.onSurface,
             onChanged: (value) async {
               await AppPreferences.setShowRomaji(value);
               setState(() {}); // Refresh to show updated value
@@ -141,6 +142,7 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Show Furigana'),
             subtitle: const Text('Display reading guides above Japanese text'),
             value: showFurigana,
+            activeColor: Theme.of(context).colorScheme.onSurface,
             onChanged: (value) async {
               await AppPreferences.setShowFurigana(value);
               setState(() {}); // Refresh to show updated value
@@ -159,6 +161,9 @@ class _SettingsPageState extends State<SettingsPage> {
         title: const Text('About'),
         subtitle: const Text('App information and licenses'),
         trailing: FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.onSurface,
+          ),
           onPressed: () => showAppAboutDialog(context),
           child: const Text('View'),
         ),
@@ -192,6 +197,9 @@ class _SettingsPageState extends State<SettingsPage> {
         title: const Text('Database File'),
         subtitle: _buildDatabasePathSubtitle(context),
         trailing: FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.onSurface,
+          ),
           onPressed: () => _handleChangeDatabasePath(context),
           child: const Text('Select'),
         ),
@@ -291,7 +299,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     // Persist the selected path to preferences
     await AppPreferences.setCustomDatabasePath(selectedPath);
-    
+
     // macOS: Create security-scoped bookmark for persistent file access
     // This allows the app to access the file across restarts without re-selection
     if (Platform.isMacOS) {
@@ -308,21 +316,19 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       }
     }
-    
+
     // Close existing database connection and force reconnection with new path
     await DatabaseHelper.instance.resetConnection();
-    
+
     if (mounted) {
       // Notify user of success
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Database file updated successfully. Reloading...',
-          ),
+          content: Text('Database file updated successfully. Reloading...'),
           duration: Duration(seconds: 2),
         ),
       );
-      
+
       // Trigger UI rebuild to show updated database path
       setState(() {});
     }

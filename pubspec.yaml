@@ -76,6 +76,7 @@ flutter:
   assets:
     - lib/assets/jpn.db
     - lib/assets/bird.png
+    - lib/assets/bird_cropped.png
     - assets/icon/app_icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see

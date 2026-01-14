@@ -9,7 +9,7 @@ import 'package:jpn_learning_diary/screens/search_results_page.dart';
 import 'package:jpn_learning_diary/screens/settings_page.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
-import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart';
+import 'package:jpn_learning_diary/widgets/bird_fab.dart';
 
 /// Main application shell that manages navigation and persistent UI elements.
 ///
@@ -132,19 +132,11 @@ class _AppShellState extends State<AppShell> {
     _navigateToPage(AppPage.phrasesWords);
   }
 
-  /// Handles the add entry button press.
-  Future<void> _handleAddEntry() async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => const EditDiaryEntryDialog(),
-    );
-
-    if (result == true) {
-      // Refresh current page by generating a new key
-      setState(() {
-        _pageKey = UniqueKey();
-      });
-    }
+  /// Refreshes the current page by generating a new key.
+  void _refreshCurrentPage() {
+    setState(() {
+      _pageKey = UniqueKey();
+    });
   }
 
   /// Focus the search field (for keyboard shortcuts).
@@ -202,7 +194,6 @@ class _AppShellState extends State<AppShell> {
               onNavigateToSettings: () => _navigateToPage(AppPage.settings),
               onSearch: _handleSearch,
               onClearSearch: _clearSearchAndNavigate,
-              onAddEntry: _handleAddEntry,
               onExit: () => exit(0),
             ),
             backgroundColor: AppTheme.scaffoldBackground(context),
@@ -215,6 +206,7 @@ class _AppShellState extends State<AppShell> {
               ),
               child: _buildCurrentPage(),
             ),
+            floatingActionButton: BirdFab(onEntryCreated: _refreshCurrentPage),
           ),
         ),
       ),

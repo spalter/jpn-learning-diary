@@ -5,6 +5,7 @@ import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
+import 'package:jpn_learning_diary/widgets/bird_fab.dart';
 import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
 
 /// Practice mode types for different learning scenarios.
@@ -290,6 +291,7 @@ class _PracticeModePageState extends State<PracticeModePage> {
     return Scaffold(
       appBar: LearningModeAppBar(title: 'Practice: ${widget.mode.label}'),
       backgroundColor: AppTheme.scaffoldBackground(context),
+      floatingActionButton: const BirdFab(),
       body: FutureBuilder<List<PracticeItem>>(
         future: _itemsFuture,
         builder: (context, snapshot) {

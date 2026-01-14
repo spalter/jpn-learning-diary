@@ -50,7 +50,7 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
   Widget build(BuildContext context) {
     final isEditing = widget.entry != null;
     return AlertDialog(
-      title: Text(isEditing ? 'Edit Entry' : 'Add Entry'),
+      title: Text(isEditing ? 'Edit a Diary Entry' : 'Add a new Diary Entry'),
       content: SingleChildScrollView(
         child: SizedBox(
           width: 500,
