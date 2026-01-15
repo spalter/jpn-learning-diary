@@ -81,6 +81,7 @@ flutter:
     - lib/assets/jpn.db
     - lib/assets/bird.png
     - lib/assets/bird_cropped.png
+    - lib/assets/bird_plus.png
     - assets/icon/app_icon.png
 
 flutter_launcher_icons:

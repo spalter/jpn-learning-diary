@@ -1,5 +1,8 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart';
+import 'package:jpn_learning_diary/widgets/styled_tooltip.dart';
 
 /// A floating action button featuring the bird mascot.
 ///
@@ -21,6 +24,20 @@ class _BirdFabState extends State<BirdFab> with SingleTickerProviderStateMixin {
   late final Animation<double> _scaleAnimation;
   bool _isHovering = false;
 
+  static const _tooltipMessages = [
+    "Let's add a new diary entry!",
+    "Time to write in your diary!",
+    "What did you learn today?",
+    "Let's document your progress!",
+    "Add a new entry to your journey!",
+    "Capture today's learning moments!",
+    "Share what's on your mind!",
+    "メモを取ろう！",
+    "今日は何を学んだ？",
+  ];
+
+  String _tooltipMessage = _tooltipMessages[0];
+
   @override
   void initState() {
     super.initState();
@@ -34,13 +51,13 @@ class _BirdFabState extends State<BirdFab> with SingleTickerProviderStateMixin {
       TweenSequenceItem(
         tween: Tween(
           begin: 1.0,
-          end: 1.15,
+          end: 1.20,
         ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 50,
       ),
       TweenSequenceItem(
         tween: Tween(
-          begin: 1.15,
+          begin: 1.20,
           end: 1.0,
         ).chain(CurveTween(curve: Curves.easeIn)),
         weight: 50,
@@ -57,6 +74,9 @@ class _BirdFabState extends State<BirdFab> with SingleTickerProviderStateMixin {
   void _onHoverStart() {
     if (!_isHovering) {
       _isHovering = true;
+      setState(() {
+        _tooltipMessage = _tooltipMessages[Random().nextInt(_tooltipMessages.length)];
+      });
       _controller.forward(from: 0);
     }
   }
@@ -73,8 +93,8 @@ class _BirdFabState extends State<BirdFab> with SingleTickerProviderStateMixin {
       onExit: (_) => _onHoverEnd(),
       child: GestureDetector(
         onTap: () => _handleAddEntry(context),
-        child: Tooltip(
-          message: 'Let\'s add a new diary entry!',
+        child: StyledTooltip(
+          message: _tooltipMessage,
           child: AnimatedBuilder(
             animation: _scaleAnimation,
             builder: (context, child) {
@@ -84,9 +104,9 @@ class _BirdFabState extends State<BirdFab> with SingleTickerProviderStateMixin {
               );
             },
             child: Image.asset(
-              'lib/assets/bird_cropped.png',
-              width: 80,
-              height: 80,
+              'lib/assets/bird_plus.png',
+              width: 100,
+              height: 100,
               fit: BoxFit.contain,
               color: Theme.of(context).colorScheme.primary,
             ),

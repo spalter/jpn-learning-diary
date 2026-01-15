@@ -1,6 +1,7 @@
 import 'dart:io' show Platform, exit;
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:jpn_learning_diary/widgets/styled_tooltip.dart';
 
 /// Custom app bar for learning mode pages (practice, study, etc.).
 ///
@@ -65,10 +66,12 @@ class LearningModeAppBar extends StatelessWidget
   /// Builds the back button.
   Widget _buildBackButton(BuildContext context) {
     return ExcludeFocus(
-      child: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        tooltip: 'Back',
-        onPressed: onBack ?? () => Navigator.of(context).pop(),
+      child: StyledTooltip(
+        message: 'Back',
+        child: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: onBack ?? () => Navigator.of(context).pop(),
+        ),
       ),
     );
   }
@@ -77,39 +80,45 @@ class LearningModeAppBar extends StatelessWidget
   List<Widget> _buildWindowControls(BuildContext context) {
     return [
       ExcludeFocus(
-        child: IconButton(
-          icon: const Icon(Icons.remove),
-          tooltip: 'Minimize',
-          onPressed: () async {
-            await windowManager.minimize();
-          },
+        child: StyledTooltip(
+          message: 'Minimize',
+          child: IconButton(
+            icon: const Icon(Icons.remove),
+            onPressed: () async {
+              await windowManager.minimize();
+            },
+          ),
         ),
       ),
       ExcludeFocus(
-        child: IconButton(
-          icon: const Icon(Icons.crop_square),
-          tooltip: 'Maximize',
-          onPressed: () async {
-            final isMaximized = await windowManager.isMaximized();
-            if (isMaximized) {
-              await windowManager.unmaximize();
-            } else {
-              await windowManager.maximize();
-            }
-          },
+        child: StyledTooltip(
+          message: 'Maximize',
+          child: IconButton(
+            icon: const Icon(Icons.crop_square),
+            onPressed: () async {
+              final isMaximized = await windowManager.isMaximized();
+              if (isMaximized) {
+                await windowManager.unmaximize();
+              } else {
+                await windowManager.maximize();
+              }
+            },
+          ),
         ),
       ),
       ExcludeFocus(
-        child: IconButton(
-          icon: const Icon(Icons.close),
-          tooltip: 'Close',
-          onPressed: () {
-            if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-              windowManager.close();
-            } else {
-              exit(0);
-            }
-          },
+        child: StyledTooltip(
+          message: 'Close',
+          child: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+                windowManager.close();
+              } else {
+                exit(0);
+              }
+            },
+          ),
         ),
       ),
     ];

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:jpn_learning_diary/widgets/styled_tooltip.dart';
 
 /// Custom app bar with integrated search functionality.
 ///
@@ -109,37 +110,45 @@ class AppNavigationBarState extends State<AppNavigationBar> {
   List<Widget> _buildNavigationButtons(BuildContext context) {
     return [
       ExcludeFocus(
-        child: IconButton(
-          icon: const Icon(Icons.menu_book),
-          tooltip: 'Diary (Phrases & Words)',
-          onPressed: widget.onNavigateToPhrasesWords,
-        ),
-      ),
-      ExcludeFocus(
-        child: IconButton(
-          icon: const Text(
-            'あ',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        child: StyledTooltip(
+          message: 'Diary (Phrases & Words)',
+          child: IconButton(
+            icon: const Icon(Icons.menu_book),
+            onPressed: widget.onNavigateToPhrasesWords,
           ),
-          tooltip: 'Hiragana',
-          onPressed: widget.onNavigateToHiragana,
         ),
       ),
       ExcludeFocus(
-        child: IconButton(
-          icon: const Text(
-            'ア',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        child: StyledTooltip(
+          message: 'Hiragana',
+          child: IconButton(
+            icon: const Text(
+              'あ',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            onPressed: widget.onNavigateToHiragana,
           ),
-          tooltip: 'Katakana',
-          onPressed: widget.onNavigateToKatakana,
         ),
       ),
       ExcludeFocus(
-        child: IconButton(
-          icon: const Icon(Icons.school),
-          tooltip: 'Learning',
-          onPressed: widget.onNavigateToDashboard,
+        child: StyledTooltip(
+          message: 'Katakana',
+          child: IconButton(
+            icon: const Text(
+              'ア',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            onPressed: widget.onNavigateToKatakana,
+          ),
+        ),
+      ),
+      ExcludeFocus(
+        child: StyledTooltip(
+          message: 'Learning',
+          child: IconButton(
+            icon: const Icon(Icons.school),
+            onPressed: widget.onNavigateToDashboard,
+          ),
         ),
       ),
     ];
@@ -173,10 +182,12 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     return InputDecoration(
       prefixIcon: const Icon(Icons.search),
       suffixIcon: widget.textController.text.isNotEmpty
-          ? IconButton(
-              icon: const Icon(Icons.close, size: 20),
-              tooltip: 'Clear',
-              onPressed: widget.onClearSearch,
+          ? StyledTooltip(
+              message: 'Clear',
+              child: IconButton(
+                icon: const Icon(Icons.close, size: 20),
+                onPressed: widget.onClearSearch,
+              ),
             )
           : null,
       border: OutlineInputBorder(
@@ -207,40 +218,48 @@ class AppNavigationBarState extends State<AppNavigationBar> {
   List<Widget> _buildActionButtons(BuildContext context) {
     return [
       ExcludeFocus(
-        child: IconButton(
-          icon: const Icon(Icons.settings),
-          tooltip: 'Settings',
-          onPressed: widget.onNavigateToSettings,
+        child: StyledTooltip(
+          message: 'Settings',
+          child: IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: widget.onNavigateToSettings,
+          ),
         ),
       ),
       ExcludeFocus(
-        child: IconButton(
-          icon: const Icon(Icons.remove),
-          tooltip: 'Minimize',
-          onPressed: () async {
-            await windowManager.minimize();
-          },
+        child: StyledTooltip(
+          message: 'Minimize',
+          child: IconButton(
+            icon: const Icon(Icons.remove),
+            onPressed: () async {
+              await windowManager.minimize();
+            },
+          ),
         ),
       ),
       ExcludeFocus(
-        child: IconButton(
-          icon: const Icon(Icons.crop_square),
-          tooltip: 'Maximize',
-          onPressed: () async {
-            final isMaximized = await windowManager.isMaximized();
-            if (isMaximized) {
-              await windowManager.unmaximize();
-            } else {
-              await windowManager.maximize();
-            }
-          },
+        child: StyledTooltip(
+          message: 'Maximize',
+          child: IconButton(
+            icon: const Icon(Icons.crop_square),
+            onPressed: () async {
+              final isMaximized = await windowManager.isMaximized();
+              if (isMaximized) {
+                await windowManager.unmaximize();
+              } else {
+                await windowManager.maximize();
+              }
+            },
+          ),
         ),
       ),
       ExcludeFocus(
-        child: IconButton(
-          onPressed: widget.onExit,
-          icon: const Icon(Icons.close),
-          tooltip: 'Exit',
+        child: StyledTooltip(
+          message: 'Exit',
+          child: IconButton(
+            onPressed: widget.onExit,
+            icon: const Icon(Icons.close),
+          ),
         ),
       ),
     ];

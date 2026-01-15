@@ -45,8 +45,6 @@ Download the latest release for your platform from the [Releases](https://github
 
 ## Development
 
-### Pre
-
 ### Debugging
 
 ```bash
