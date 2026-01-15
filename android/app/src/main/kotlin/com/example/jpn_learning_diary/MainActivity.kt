@@ -1,4 +1,4 @@
-package com.example.jpn_learning_diary
+package dev.jpnlearningdiary
 
 import android.app.Activity
 import android.content.ContentResolver
