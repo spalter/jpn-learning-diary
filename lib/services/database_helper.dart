@@ -5,6 +5,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
+import 'package:jpn_learning_diary/services/cloud_sync_service.dart';
 import 'package:jpn_learning_diary/services/file_access_service.dart';
 import 'package:jpn_learning_diary/services/jpn_database_helper.dart';
 
@@ -41,8 +42,13 @@ class DatabaseHelper {
   /// Initializes the database file and creates tables.
   ///
   /// Determines the database path based on user preferences and platform:
-  /// - If custom path exists: Uses it (with security-scoped bookmark on macOS)
-  /// - Otherwise: Uses default application documents directory
+  /// - **Android with cloud sync**: Uses the local synced copy (sync should happen before this)
+  /// - **macOS with custom path**: Uses security-scoped bookmark for persistent access
+  /// - **Other platforms with custom path**: Uses the stored path directly
+  /// - **Default**: Uses application documents directory
+  ///
+  /// **Note:** On Android with cloud sync, call `CloudSyncService.syncFromCloud()`
+  /// before accessing the database to ensure you have the latest version.
   ///
   /// **macOS Security-Scoped Bookmarks:**
   /// On macOS, attempts to resolve a saved bookmark first to regain access
@@ -56,31 +62,41 @@ class DatabaseHelper {
   ///
   /// **Throws:** May throw database exceptions if file cannot be opened
   Future<Database> _initDB(String filePath) async {
-    // Retrieve custom database path from user preferences (if set)
-    final customPath = await AppPreferences.getCustomDatabasePath();
-
     final String path;
-    if (customPath != null && customPath.isNotEmpty) {
-      // Custom path exists - handle platform-specific access requirements
-      if (Platform.isMacOS) {
-        // On macOS, try to resolve security-scoped bookmark for persistent access
-        final resolvedPath = await FileAccessService.resolveBookmark();
-        if (resolvedPath != null) {
-          // Bookmark successfully resolved - use the resolved path
-          path = resolvedPath;
+
+    // Android with cloud sync: use the local synced copy path
+    if (Platform.isAndroid && await CloudSyncService.isCloudSyncEnabled()) {
+      path = await CloudSyncService.getLocalSyncedDbPath();
+    } else {
+      // Desktop and iOS: Use existing custom path logic
+      final customPath = await AppPreferences.getCustomDatabasePath();
+
+      if (customPath != null && customPath.isNotEmpty) {
+        // Custom path exists - handle platform-specific access requirements
+        if (Platform.isMacOS) {
+          // On macOS, try to resolve security-scoped bookmark for persistent access
+          final resolvedPath = await FileAccessService.resolveBookmark();
+          if (resolvedPath != null) {
+            // Bookmark successfully resolved - use the resolved path
+            path = resolvedPath;
+          } else {
+            // No bookmark or resolution failed - use stored path directly
+            // Note: This may fail with SQLITE error 14 (CANTOPEN) due to sandbox restrictions
+            path = customPath.endsWith('.db')
+                ? customPath
+                : join(customPath, filePath);
+          }
         } else {
-          // No bookmark or resolution failed - use stored path directly
-          // Note: This may fail with SQLITE error 14 (CANTOPEN) due to sandbox restrictions
-          path = customPath.endsWith('.db') ? customPath : join(customPath, filePath);
+          // Other platforms don't need security-scoped bookmarks
+          path = customPath.endsWith('.db')
+              ? customPath
+              : join(customPath, filePath);
         }
       } else {
-        // Other platforms don't need security-scoped bookmarks
-        path = customPath.endsWith('.db') ? customPath : join(customPath, filePath);
+        // No custom path set - use default application database directory
+        final dbPath = await getDatabasesPath();
+        path = join(dbPath, filePath);
       }
-    } else {
-      // No custom path set - use default application database directory
-      final dbPath = await getDatabasesPath();
-      path = join(dbPath, filePath);
     }
 
     return await openDatabase(
@@ -207,6 +223,21 @@ class DatabaseHelper {
     }
   }
 
+  /// Triggers a cloud sync after a write operation (Android only).
+  /// 
+  /// This is called after create/update/delete to ensure changes are
+  /// synced to cloud storage promptly rather than waiting for app close.
+  Future<void> _syncAfterWrite() async {
+    if (Platform.isAndroid && await CloudSyncService.isCloudSyncEnabled()) {
+      // Close the database to flush writes, then sync
+      if (_database != null) {
+        await _database!.close();
+        _database = null;
+      }
+      await CloudSyncService.syncToCloud();
+    }
+  }
+
   /// Creates a new diary entry in the database.
   ///
   /// Returns a copy of the entry with the auto-generated ID populated.
@@ -220,7 +251,9 @@ class DatabaseHelper {
       'notes': entry.notes,
       'date_added': entry.dateAdded.millisecondsSinceEpoch,
     });
-    return entry.copyWith(id: id);
+    final result = entry.copyWith(id: id);
+    await _syncAfterWrite();
+    return result;
   }
 
   /// Retrieves all diary entries from the database.
@@ -236,7 +269,7 @@ class DatabaseHelper {
   /// Updates an existing diary entry.
   Future<int> updateEntry(DiaryEntry entry) async {
     final db = await database;
-    return db.update(
+    final rowsAffected = await db.update(
       'diary_entries',
       {
         'japanese': entry.japanese,
@@ -249,18 +282,28 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [entry.id],
     );
+    await _syncAfterWrite();
+    return rowsAffected;
   }
 
   /// Deletes a diary entry from the database.
   Future<int> deleteEntry(int id) async {
     final db = await database;
-    return await db.delete('diary_entries', where: 'id = ?', whereArgs: [id]);
+    final rowsAffected = await db.delete(
+      'diary_entries',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    await _syncAfterWrite();
+    return rowsAffected;
   }
 
   /// Deletes all diary entries from the database.
   Future<int> deleteAllEntries() async {
     final db = await database;
-    return await db.delete('diary_entries');
+    final rowsAffected = await db.delete('diary_entries');
+    await _syncAfterWrite();
+    return rowsAffected;
   }
 
   /// Gets JLPT level statistics for kanji found in diary entries.
@@ -370,8 +413,16 @@ class DatabaseHelper {
 
   /// Gets the full path to the database file.
   ///
-  /// Returns the custom path if set, otherwise returns the default path.
+  /// Returns the path based on platform and configuration:
+  /// - Android with cloud sync: Returns the local synced path
+  /// - Custom path set: Returns the custom path
+  /// - Default: Returns the default database path
   Future<String> getDatabasePath() async {
+    // Android with cloud sync
+    if (Platform.isAndroid && await CloudSyncService.isCloudSyncEnabled()) {
+      return await CloudSyncService.getLocalSyncedDbPath();
+    }
+
     final customPath = await AppPreferences.getCustomDatabasePath();
 
     if (customPath != null && customPath.isNotEmpty) {
@@ -393,5 +444,29 @@ class DatabaseHelper {
       await _database!.close();
       _database = null;
     }
+  }
+
+  /// Syncs the database to cloud storage (Android only).
+  ///
+  /// Call this when the app goes to background or closes to upload
+  /// local changes back to cloud storage.
+  ///
+  /// **Returns:** `true` if sync was successful or not needed, `false` if failed
+  Future<bool> syncToCloud() async {
+    if (!Platform.isAndroid) {
+      return true; // Not needed on other platforms
+    }
+
+    if (!await CloudSyncService.isCloudSyncEnabled()) {
+      return true; // Cloud sync not configured
+    }
+
+    // Close the database connection before syncing
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+    }
+
+    return await CloudSyncService.syncToCloud();
   }
 }

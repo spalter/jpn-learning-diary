@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
+import 'package:jpn_learning_diary/services/cloud_sync_service.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/services/file_access_service.dart';
 import 'package:jpn_learning_diary/widgets/app_about_dialog.dart';
@@ -30,6 +31,7 @@ class _SettingsPageState extends State<SettingsPage> {
         _buildViewModeSetting(context),
         _buildDisplaySettingsSection(context),
         _buildDatabaseFileSetting(context),
+        _buildCloudSyncSetting(context),
         _buildClearDataSetting(context),
       ],
     );
@@ -194,7 +196,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  /// Builds the Database File setting row.
+  /// Builds the Database File setting row (desktop only).
   Widget _buildDatabaseFileSetting(BuildContext context) {
     if (_isMobile) {
       return const SizedBox.shrink();
@@ -213,6 +215,145 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
     );
+  }
+
+  /// Builds the Cloud Sync setting row (Android only).
+  Widget _buildCloudSyncSetting(BuildContext context) {
+    if (!Platform.isAndroid) {
+      return const SizedBox.shrink();
+    }
+    return _buildSettingRow(
+      context: context,
+      child: ListTile(
+        title: const Text('Cloud Sync'),
+        subtitle: _buildCloudSyncSubtitle(context),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FutureBuilder<bool>(
+              future: CloudSyncService.isCloudSyncEnabled(),
+              builder: (context, snapshot) {
+                if (snapshot.data == true) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                      onPressed: () => _handleDisableCloudSync(context),
+                      child: const Text('Disable'),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.onSurface,
+              ),
+              onPressed: () => _handleSetupCloudSync(context),
+              child: const Text('Select'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Builds the cloud sync status display as a subtitle.
+  Widget _buildCloudSyncSubtitle(BuildContext context) {
+    return FutureBuilder<String?>(
+      future: CloudSyncService.getCloudDisplayName(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData && snapshot.data != null) {
+          return Text(
+            'Syncing: ${snapshot.data}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          );
+        }
+        return const Text('Sync database with cloud storage (e.g., Dropbox)');
+      },
+    );
+  }
+
+  /// Handles setting up cloud sync.
+  Future<void> _handleSetupCloudSync(BuildContext context) async {
+    final result = await CloudSyncService.pickCloudFile();
+    if (result == null) return; // User cancelled
+
+    if (!mounted) return;
+
+    // Save the cloud URI
+    final saved = await CloudSyncService.saveCloudUri(
+      result['uri']!,
+      result['displayName']!,
+    );
+
+    if (!saved && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to set up cloud sync'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    // Reset database connection, sync from cloud, and reinitialize
+    await DatabaseHelper.instance.resetConnection();
+    await CloudSyncService.syncFromCloud();
+    await DatabaseHelper.instance.database; // Reinitialize with synced file
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cloud sync enabled. Database loaded.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      setState(() {}); // Refresh UI
+    }
+  }
+
+  /// Handles disabling cloud sync.
+  Future<void> _handleDisableCloudSync(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Disable Cloud Sync'),
+        content: const Text(
+          'This will stop syncing with cloud storage. Your local data will be preserved, but changes will no longer sync.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Disable'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    await CloudSyncService.clearCloudUri();
+    await DatabaseHelper.instance.resetConnection();
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cloud sync disabled'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      setState(() {}); // Refresh UI
+    }
   }
 
   /// Builds the database path display as a subtitle.

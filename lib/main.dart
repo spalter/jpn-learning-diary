@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/screens/splash_screen.dart';
 
@@ -69,8 +70,41 @@ void main(List<String> args) async {
 /// - Tokyo Day theme for light mode
 /// - Material 3 design language
 /// - System-based theme switching
-class JapaneseLearningDiary extends StatelessWidget {
+/// - App lifecycle observer for cloud sync on Android
+class JapaneseLearningDiary extends StatefulWidget {
   const JapaneseLearningDiary({super.key});
+
+  @override
+  State<JapaneseLearningDiary> createState() => _JapaneseLearningDiaryState();
+}
+
+class _JapaneseLearningDiaryState extends State<JapaneseLearningDiary>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // On Android, sync to cloud when app goes to background (as a backup)
+    // Primary sync happens after each write operation in DatabaseHelper
+    if (Platform.isAndroid) {
+      if (state == AppLifecycleState.paused) {
+        // Fire and forget - best effort sync when going to background
+        DatabaseHelper.instance.syncToCloud();
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,4 +117,3 @@ class JapaneseLearningDiary extends StatelessWidget {
     );
   }
 }
-
