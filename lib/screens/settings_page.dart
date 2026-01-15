@@ -19,6 +19,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  bool get _isMobile => Platform.isAndroid || Platform.isIOS;
+
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -53,6 +55,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   /// Builds the view mode setting row.
   Widget _buildViewModeSetting(BuildContext context) {
+    if (_isMobile) {
+      return const SizedBox.shrink();
+    }
     return _buildSettingRow(
       context: context,
       child: ListTile(
@@ -191,6 +196,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   /// Builds the Database File setting row.
   Widget _buildDatabaseFileSetting(BuildContext context) {
+    if (_isMobile) {
+      return const SizedBox.shrink();
+    }
     return _buildSettingRow(
       context: context,
       child: ListTile(

@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/controllers/learning_controller.dart';
 import 'package:jpn_learning_diary/screens/practice_mode_page.dart';
@@ -78,21 +79,40 @@ class _LearningPageState extends State<LearningPage> {
   }
 
   /// Builds the statistics cards row showing key metrics.
+  /// Shows items horizontally on desktop, vertically on mobile.
   Widget _buildStatisticsRow(BuildContext context, DashboardData data) {
+    final isMobile = Platform.isAndroid || Platform.isIOS;
+
+    final children = [
+      _buildStatCard(
+        context,
+        title: 'Diary Entries',
+        value: '${data.totalEntries}',
+        icon: Icons.menu_book,
+      ),
+      _buildKanjiStatCard(context, data),
+      _buildJlptLevelsCard(context, data),
+    ];
+
+    if (isMobile) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children
+            .map((child) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: child,
+                ))
+            .toList(),
+      );
+    }
+
     return Row(
       children: [
-        Expanded(
-          child: _buildStatCard(
-            context,
-            title: 'Diary Entries',
-            value: '${data.totalEntries}',
-            icon: Icons.menu_book,
-          ),
-        ),
+        Expanded(child: children[0]),
         const SizedBox(width: 16),
-        Expanded(child: _buildKanjiStatCard(context, data)),
+        Expanded(child: children[1]),
         const SizedBox(width: 16),
-        Expanded(child: _buildJlptLevelsCard(context, data)),
+        Expanded(child: children[2]),
       ],
     );
   }

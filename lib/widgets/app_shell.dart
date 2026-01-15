@@ -11,6 +11,9 @@ import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 import 'package:jpn_learning_diary/widgets/bird_fab.dart';
 
+/// Whether we're on a mobile platform (Android/iOS).
+bool get _isMobile => Platform.isAndroid || Platform.isIOS;
+
 /// Main application shell that manages navigation and persistent UI elements.
 ///
 /// This widget provides:
@@ -196,6 +199,21 @@ class _AppShellState extends State<AppShell> {
               onClearSearch: _clearSearchAndNavigate,
               onExit: () => exit(0),
             ),
+            // Show drawer on mobile platforms
+            drawer: _isMobile
+                ? AppNavigationDrawer(
+                    onNavigateToPhrasesWords: () =>
+                        _navigateToPage(AppPage.phrasesWords),
+                    onNavigateToHiragana: () =>
+                        _navigateToPage(AppPage.hiragana),
+                    onNavigateToKatakana: () =>
+                        _navigateToPage(AppPage.katakana),
+                    onNavigateToDashboard: () =>
+                        _navigateToPage(AppPage.dashboard),
+                    onNavigateToSettings: () =>
+                        _navigateToPage(AppPage.settings),
+                  )
+                : null,
             backgroundColor: AppTheme.scaffoldBackground(context),
             body: Padding(
               padding: const EdgeInsets.only(

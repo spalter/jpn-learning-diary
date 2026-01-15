@@ -29,6 +29,8 @@ class LearningModeAppBar extends StatelessWidget
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  
+  bool get _isMobile => Platform.isAndroid || Platform.isIOS;
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +80,9 @@ class LearningModeAppBar extends StatelessWidget
 
   /// Builds the window control buttons (minimize, maximize, close).
   List<Widget> _buildWindowControls(BuildContext context) {
+    if (_isMobile) {
+      return [];
+    }
     return [
       ExcludeFocus(
         child: StyledTooltip(

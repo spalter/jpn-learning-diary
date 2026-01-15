@@ -22,6 +22,11 @@ import 'package:jpn_learning_diary/screens/splash_screen.dart';
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  if (Platform.isAndroid || Platform.isIOS) {
+    runApp(const JapaneseLearningDiary());
+    return;
+  }
+
   // Clear shared preferences if requested
   if (args.contains('--reset-prefs')) {
     final prefs = await SharedPreferences.getInstance();
