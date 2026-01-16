@@ -1,16 +1,24 @@
+// ============================================================================
+//
+// Japanese Learning Diary
+// Copyright (c) 2025-2026 spalter
+//
+// This source file is part of the jpn-learning-diary project.
+//
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/models/character_data.dart';
 import 'package:jpn_learning_diary/widgets/character_card.dart';
 
-/// A reusable character section widget with responsive grid layout.
+/// A reusable section widget that displays Japanese characters in a responsive grid.
 ///
-/// Displays a grid of character cards with:
-/// - Responsive card sizing (70-84px width, maintaining 0.7 aspect ratio)
-/// - Tap to copy character to clipboard
-/// - Automatic layout adjustment based on available width
-///
-/// Used for displaying hiragana, katakana, and similar character sets.
+/// This widget renders a collection of character cards that automatically adjust
+/// their size based on available width, ranging from 70-84px while maintaining
+/// a 0.7 aspect ratio for proper proportions. Tapping any card copies the
+/// character to the clipboard. Used for displaying hiragana, katakana, and
+/// similar character sets throughout the app.
 class CharacterSection extends StatelessWidget {
   /// The title of the section.
   final String title;
@@ -28,6 +36,11 @@ class CharacterSection extends StatelessWidget {
     required this.characterTypeName,
   });
 
+  /// Builds the section with a title and responsive character grid.
+  ///
+  /// Uses LayoutBuilder to calculate optimal card dimensions based on the
+  /// available width, ensuring cards fill the space while staying within
+  /// readable size bounds.
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -83,13 +96,7 @@ class CharacterSection extends StatelessWidget {
     );
   }
 
-  /// Copies the character to the system clipboard.
-  ///
-  /// When a character card is tapped, this function copies the Japanese character
-  /// to the clipboard and shows a brief snackbar notification confirming the action.
-  ///
-  /// [context] The build context for showing the snackbar.
-  /// [character] The character data containing the character to copy.
+  /// Copies the tapped character to the clipboard and shows a confirmation snackbar.
   void _copyToClipboard(BuildContext context, CharacterData character) {
     Clipboard.setData(ClipboardData(text: character.character));
     ScaffoldMessenger.of(context).showSnackBar(

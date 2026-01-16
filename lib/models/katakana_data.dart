@@ -1,8 +1,15 @@
+// ============================================================================
+//
+// Japanese Learning Diary
+// Copyright (c) 2025-2026 spalter
+//
+// This source file is part of the jpn-learning-diary project.
+//
+// ============================================================================
+
 import 'package:jpn_learning_diary/models/character_data.dart';
 
 /// Katakana character data organized by type.
-///
-/// Pure static data collection with no business logic.
 class KatakanaData {
   /// Base katakana characters (gojūon).
   static const List<CharacterData> baseCharacters = [

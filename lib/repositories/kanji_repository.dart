@@ -1,16 +1,18 @@
+// ============================================================================
+//
+// Japanese Learning Diary
+// Copyright (c) 2025-2026 spalter
+//
+// This source file is part of the jpn-learning-diary project.
+//
+// ============================================================================
+
 import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/models/word_data.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/services/jpn_database_helper.dart';
 
 /// Repository for kanji data operations.
-///
-/// Provides a clean abstraction over kanji data access and queries.
-/// This layer separates business logic from data source implementation.
-///
-/// Uses two databases:
-/// - JpnDatabaseHelper: Read-only database shipped with app (kanji, words, readings)
-/// - DatabaseHelper: User database for diary entries and learned kanji tracking
 class KanjiRepository {
   final DatabaseHelper _databaseHelper;
   final JpnDatabaseHelper _jpnDatabaseHelper;

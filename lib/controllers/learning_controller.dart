@@ -1,3 +1,12 @@
+// ============================================================================
+//
+// Japanese Learning Diary
+// Copyright (c) 2025-2026 spalter
+//
+// This source file is part of the jpn-learning-diary project.
+//
+// ============================================================================
+
 import 'package:flutter/foundation.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
@@ -34,13 +43,6 @@ class DashboardData {
 }
 
 /// Controller for the learning dashboard/overview page.
-///
-/// Manages business logic for:
-/// - Loading dashboard statistics
-/// - Calculating kanji counts
-/// - Refreshing data
-///
-/// Keeps the LearningPage widget focused purely on presentation.
 class LearningController extends ChangeNotifier {
   final DiaryRepository _diaryRepository;
   final KanjiRepository _kanjiRepository;

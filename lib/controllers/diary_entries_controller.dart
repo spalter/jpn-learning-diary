@@ -1,17 +1,17 @@
+// ============================================================================
+//
+// Japanese Learning Diary
+// Copyright (c) 2025-2026 spalter
+//
+// This source file is part of the jpn-learning-diary project.
+//
+// ============================================================================
+
 import 'package:flutter/foundation.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 
 /// Controller for the diary entries list page.
-///
-/// Manages business logic for:
-/// - Loading diary entries
-/// - Creating new entries
-/// - Updating existing entries
-/// - Deleting entries
-/// - Refreshing the list
-///
-/// Keeps the PhrasesWordsPage widget focused purely on presentation.
 class DiaryEntriesController extends ChangeNotifier {
   final DiaryRepository _repository;
 

@@ -1,13 +1,26 @@
+// ============================================================================
+//
+// Japanese Learning Diary
+// Copyright (c) 2025-2026 spalter
+//
+// This source file is part of the jpn-learning-diary project.
+//
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 
 /// Dialog for creating or editing a diary entry.
 ///
-/// Displays input fields for all diary entry properties with
-/// save and cancel actions.
+/// This modal dialog presents input fields for all diary entry properties
+/// including Japanese text, furigana, romaji, meaning, and notes. When editing
+/// an existing entry, a delete button is also available with confirmation.
 class EditDiaryEntryDialog extends StatefulWidget {
-  /// The diary entry to edit. If null, creates a new entry.
+  /// The diary entry to edit, or null to create a new entry.
+  ///
+  /// When provided, the dialog pre-fills all fields with the entry's current
+  /// values and shows a delete option.
   final DiaryEntry? entry;
 
   const EditDiaryEntryDialog({
@@ -19,13 +32,27 @@ class EditDiaryEntryDialog extends StatefulWidget {
   State<EditDiaryEntryDialog> createState() => _EditDiaryEntryDialogState();
 }
 
+/// Internal state for [EditDiaryEntryDialog] managing form input.
+///
+/// Maintains text editing controllers for each field and handles the save,
+/// cancel, and delete actions with appropriate database operations.
 class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
+  /// Controller for the Japanese text input field.
   late final TextEditingController _japaneseController;
+
+  /// Controller for the furigana reading input field.
   late final TextEditingController _furiganaController;
+
+  /// Controller for the romaji transliteration input field.
   late final TextEditingController _romajiController;
+
+  /// Controller for the meaning/translation input field.
   late final TextEditingController _meaningController;
+
+  /// Controller for the optional notes input field.
   late final TextEditingController _notesController;
 
+  /// Initializes controllers with existing entry values or empty strings.
   @override
   void initState() {
     super.initState();
@@ -36,6 +63,7 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
     _notesController = TextEditingController(text: widget.entry?.notes ?? '');
   }
 
+  /// Disposes all text editing controllers to prevent memory leaks.
   @override
   void dispose() {
     _japaneseController.dispose();
@@ -46,6 +74,10 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
     super.dispose();
   }
 
+  /// Builds the dialog with form fields and action buttons.
+  ///
+  /// The title and available actions adapt based on whether an existing entry
+  /// is being edited or a new one is being created.
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.entry != null;

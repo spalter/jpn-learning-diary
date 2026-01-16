@@ -1,3 +1,12 @@
+// ============================================================================
+//
+// Japanese Learning Diary
+// Copyright (c) 2025-2026 spalter
+//
+// This source file is part of the jpn-learning-diary project.
+//
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/models/word_data.dart';
@@ -5,11 +14,13 @@ import 'package:jpn_learning_diary/widgets/app_card.dart';
 import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Card widget for displaying a single word entry.
+/// Card widget for displaying a single Japanese word entry.
 ///
-/// Shows the written form (kanji), meanings, pronunciations,
-/// and priority indicators in a flat design matching the
-/// kanji card style.
+/// This widget presents vocabulary data in a clean, flat design that matches
+/// the kanji card style throughout the app. The card displays the written form
+/// prominently, along with readings, meanings, and frequency indicators. Users
+/// can tap to copy the word, double-tap to search, or long-press to open an
+/// external dictionary.
 class WordCard extends StatefulWidget {
   /// The word data to display.
   final WordData word;
@@ -36,9 +47,19 @@ class WordCard extends StatefulWidget {
   State<WordCard> createState() => _WordCardState();
 }
 
+/// Internal state for [WordCard] that manages hover interactions.
+///
+/// Tracks the mouse hover state to provide visual feedback when the user
+/// hovers over the card in minimal (list) mode.
 class _WordCardState extends State<WordCard> {
+  /// Whether the mouse is currently hovering over this card.
   bool _isHovering = false;
 
+  /// Builds the word card with hover effects and interaction handlers.
+  ///
+  /// The card adapts its appearance based on the style setting, applying a
+  /// subtle color change on hover when in minimal mode. Gesture handlers
+  /// enable tap-to-copy, double-tap-to-search, and long-press-to-lookup.
   @override
   Widget build(BuildContext context) {
     // Apply hover color effect only in list mode (minimal style)
@@ -137,7 +158,7 @@ class _WordCardState extends State<WordCard> {
     );
   }
 
-  /// Handles copying the written form to clipboard
+  /// Copies the word's written form to the system clipboard and shows a snackbar.
   Future<void> _handleCopyToClipboard(BuildContext context) async {
     await Clipboard.setData(ClipboardData(text: widget.word.written));
     if (context.mounted) {
@@ -150,7 +171,9 @@ class _WordCardState extends State<WordCard> {
     }
   }
 
-  /// Handles inserting the written form into the navigation bar search field
+  /// Inserts the word into the navigation bar's search field for quick lookup.
+  ///
+  /// Falls back to showing a message if the navigation bar reference is unavailable.
   void _handleInsertIntoSearch(BuildContext context) {
     if (widget.navigationBarKey?.currentState != null) {
       widget.navigationBarKey!.currentState!.insertSearchText(widget.word.written);
@@ -165,7 +188,9 @@ class _WordCardState extends State<WordCard> {
     }
   }
 
-  /// Handles opening the word in Takoboto dictionary
+  /// Opens the word in the Takoboto online dictionary for detailed information.
+  ///
+  /// Launches the default browser with a pre-filled search query for this word.
   Future<void> _handleOpenDictionary(BuildContext context) async {
     final encodedWord = Uri.encodeComponent(widget.word.written);
     final url = Uri.parse('https://takoboto.jp/?q=$encodedWord');
@@ -181,6 +206,9 @@ class _WordCardState extends State<WordCard> {
     }
   }
 
+  /// Builds a small badge with an icon and label to indicate word properties.
+  ///
+  /// Used to display metadata like "Common" to highlight frequently used words.
   Widget _buildBadge(BuildContext context, String label, IconData icon) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -202,6 +230,10 @@ class _WordCardState extends State<WordCard> {
     );
   }
 
+  /// Builds a labeled section with an icon, title, and content text.
+  ///
+  /// Creates a consistent layout for displaying readings and meanings, with
+  /// optional line clamping via [maxLines] to prevent overflow in dense lists.
   Widget _buildSection(
     BuildContext context,
     String title,

@@ -1,15 +1,16 @@
+// ============================================================================
+//
+// Japanese Learning Diary
+// Copyright (c) 2025-2026 spalter
+//
+// This source file is part of the jpn-learning-diary project.
+//
+// ============================================================================
+
 import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
 
 /// Repository for diary entry operations.
-///
-/// Provides a clean abstraction over data access for diary entries.
-/// This layer separates business logic from data source implementation,
-/// making it easier to:
-/// - Test business logic by mocking repositories
-/// - Switch data sources (e.g., from local database to API)
-/// - Apply caching strategies
-/// - Handle data transformation consistently
 class DiaryRepository {
   final DatabaseHelper _databaseHelper;
 

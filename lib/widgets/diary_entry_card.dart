@@ -1,3 +1,12 @@
+// ============================================================================
+//
+// Japanese Learning Diary
+// Copyright (c) 2025-2026 spalter
+//
+// This source file is part of the jpn-learning-diary project.
+//
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
@@ -7,9 +16,10 @@ import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart';
 
 /// Card widget for displaying a single diary entry.
 ///
-/// Shows the Japanese text, furigana reading, romaji, English meaning,
-/// and optional notes for a learned phrase or word. Cards are interactive
-/// and display the date when the entry was added.
+/// This widget presents a learned phrase or word with its Japanese text,
+/// furigana reading, romaji transliteration, English meaning, and optional
+/// notes. Users can tap to copy the text, double-tap for custom actions, or
+/// long-press to edit the entry.
 class DiaryEntryCard extends StatefulWidget {
   /// The diary entry to display.
   final DiaryEntry entry;
@@ -20,8 +30,10 @@ class DiaryEntryCard extends StatefulWidget {
   /// Callback when the card is tapped.
   final VoidCallback? onTap;
 
-  /// Whether to use a bordered card style with hover effects.
-  /// Defaults to false for a minimal appearance.
+  /// Controls whether the card uses a bordered style with visible edges.
+  ///
+  /// When false (the default), the card uses a minimal flat appearance that
+  /// works well in list views. When true, adds borders and hover effects.
   final bool useBorderedStyle;
 
   /// Creates a diary entry card.
@@ -40,9 +52,18 @@ class DiaryEntryCard extends StatefulWidget {
   State<DiaryEntryCard> createState() => _DiaryEntryCardState();
 }
 
+/// Internal state for [DiaryEntryCard] that manages hover and preferences.
+///
+/// Tracks the mouse hover state for visual feedback and loads user preferences
+/// for showing or hiding romaji and furigana.
 class _DiaryEntryCardState extends State<DiaryEntryCard> {
+  /// Whether the mouse is currently hovering over this card.
   bool _isHovering = false;
 
+  /// Builds the card with content adapted to user display preferences.
+  ///
+  /// Loads romaji and furigana visibility settings asynchronously and renders
+  /// the card content accordingly, with gesture handlers for interactions.
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<bool>>(
@@ -88,7 +109,7 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
     );
   }
 
-  /// Builds the header row with Japanese text, furigana, and date badge
+  /// Builds the header row containing the Japanese text with optional furigana.
   Widget _buildHeaderRow(BuildContext context, {required bool showFurigana}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,7 +121,10 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
     );
   }
 
-  /// Builds the Japanese text with optional furigana
+  /// Builds the Japanese text display with optional furigana above it.
+  ///
+  /// Applies a hover color effect when in minimal style mode to provide
+  /// visual feedback on mouse interaction.
   Widget _buildJapaneseText(
     BuildContext context, {
     required bool showFurigana,
@@ -128,7 +152,7 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
     );
   }
 
-  /// Builds the furigana text above the Japanese text
+  /// Builds the small furigana reading text positioned above the Japanese.
   Widget _buildFurigana(BuildContext context) {
     return Text(
       widget.entry.furigana!,
@@ -141,7 +165,7 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
     );
   }
 
-  /// Builds the romaji text
+  /// Builds the italicized romaji transliteration text.
   Widget _buildRomaji(BuildContext context) {
     return Text(
       widget.entry.romaji,
@@ -155,7 +179,7 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
     );
   }
 
-  /// Builds the English meaning text
+  /// Builds the English meaning text with medium font weight.
   Widget _buildMeaning(BuildContext context) {
     return Text(
       widget.entry.meaning,
@@ -167,7 +191,7 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
     );
   }
 
-  /// Builds the notes section if available
+  /// Builds the optional notes section with subdued styling.
   Widget _buildNotes(BuildContext context) {
     return Text(
       widget.entry.notes!,
@@ -180,16 +204,16 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
     );
   }
 
-  /// Checks if the entry has furigana that differs from the Japanese text
+  /// Returns true if the entry has furigana that differs from the Japanese text.
   bool get _hasFurigana =>
       widget.entry.furigana != null &&
       widget.entry.furigana != widget.entry.japanese;
 
-  /// Checks if the entry has notes
+  /// Returns true if the entry has non-empty notes.
   bool get _hasNotes =>
       widget.entry.notes != null && widget.entry.notes!.isNotEmpty;
 
-  /// Handles copying the Japanese text to clipboard
+  /// Copies the Japanese text to the system clipboard and shows a snackbar.
   Future<void> _handleCopyToClipboard(BuildContext context) async {
     await Clipboard.setData(ClipboardData(text: widget.entry.japanese));
     if (context.mounted) {
@@ -202,7 +226,7 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
     }
   }
 
-  /// Handles opening the edit dialog for the entry
+  /// Opens the edit dialog and refreshes the parent list if changes were saved.
   Future<void> _handleEditEntry(BuildContext context) async {
     final updated = await showDialog<bool>(
       context: context,

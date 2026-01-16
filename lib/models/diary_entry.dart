@@ -1,8 +1,17 @@
+// ============================================================================
+//
+// Japanese Learning Diary
+// Copyright (c) 2025-2026 spalter
+//
+// This source file is part of the jpn-learning-diary project.
+//
+// ============================================================================
+
 import 'package:equatable/equatable.dart';
 
 /// Model for a learned word or phrase entry in the diary.
 ///
-/// This is a pure data model representing a vocabulary entry with no business logic.
+/// This is a data model representing a vocabulary entry with no business logic.
 /// Immutable and value-comparable for use in state management.
 class DiaryEntry extends Equatable {
   /// Unique identifier for the entry.

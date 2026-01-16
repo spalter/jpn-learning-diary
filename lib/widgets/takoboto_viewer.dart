@@ -1,3 +1,12 @@
+// ============================================================================
+//
+// Japanese Learning Diary
+// Copyright (c) 2025-2026 spalter
+//
+// This source file is part of the jpn-learning-diary project.
+//
+// ============================================================================
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -5,11 +14,12 @@ import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
-/// A widget that displays Takoboto dictionary content for a Japanese word.
+/// A widget that displays dictionary content from Takoboto for Japanese words.
 ///
-/// Shows a popup dialog with the word's definition fetched from Takoboto.
-/// Handles links within the content by opening new popups for Takoboto links
-/// or launching external URLs in the browser.
+/// This viewer fetches definitions from the Takoboto online dictionary and
+/// renders them in a styled popup dialog. The content is displayed as HTML
+/// with the app's theme colors applied, and tapping any link opens the full
+/// Takoboto page in the system browser for additional details.
 class TakobotoViewer extends StatefulWidget {
   /// The Japanese text to look up.
   final String text;
@@ -17,7 +27,10 @@ class TakobotoViewer extends StatefulWidget {
   /// Creates a Takoboto viewer widget.
   const TakobotoViewer({super.key, required this.text});
 
-  /// Shows a Takoboto popup dialog for the given word.
+  /// Displays a modal dialog containing the Takoboto definition for [word].
+  ///
+  /// This is a convenience method for showing the viewer as a popup without
+  /// manually constructing the dialog and constraints.
   static void showPopup(BuildContext context, String word) {
     showDialog(
       context: context,
@@ -34,9 +47,16 @@ class TakobotoViewer extends StatefulWidget {
   State<TakobotoViewer> createState() => _TakobotoViewerState();
 }
 
+/// Internal state for [TakobotoViewer] managing content fetching and animations.
+///
+/// Handles the async HTTP request to Takoboto's AJAX endpoint and manages a
+/// loading animation while content is being retrieved.
 class _TakobotoViewerState extends State<TakobotoViewer>
     with SingleTickerProviderStateMixin {
+  /// Future that resolves to the HTML content from Takoboto.
   late Future<String> _htmlFuture;
+
+  /// Animation controller for the rotating loading indicator.
   late AnimationController _loadingController;
 
   /// Base URL for fetching HTML content via AJAX.
@@ -45,6 +65,7 @@ class _TakobotoViewerState extends State<TakobotoViewer>
   /// Base URL for Takoboto word pages.
   static const String _pageBaseUrl = 'https://takoboto.jp/?q=';
 
+  /// Initializes the loading animation and triggers the initial content fetch.
   @override
   void initState() {
     super.initState();
@@ -55,6 +76,7 @@ class _TakobotoViewerState extends State<TakobotoViewer>
     _fetchHtml();
   }
 
+  /// Refetches content when the search text changes.
   @override
   void didUpdateWidget(TakobotoViewer oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -63,16 +85,22 @@ class _TakobotoViewerState extends State<TakobotoViewer>
     }
   }
 
+  /// Cleans up the animation controller to prevent memory leaks.
   @override
   void dispose() {
     _loadingController.dispose();
     super.dispose();
   }
 
+  /// Triggers a new fetch request and updates the future.
   void _fetchHtml() {
     _htmlFuture = _fetchHtmlContent();
   }
 
+  /// Fetches HTML content from Takoboto's AJAX endpoint.
+  ///
+  /// Returns the decoded UTF-8 response body, which contains Japanese text
+  /// and HTML markup for the word definition.
   Future<String> _fetchHtmlContent() async {
     final url = '$_ajaxBaseUrl${Uri.encodeComponent(widget.text)}';
     final response = await http.get(Uri.parse(url));
@@ -88,6 +116,10 @@ class _TakobotoViewerState extends State<TakobotoViewer>
     }
   }
 
+  /// Builds the viewer UI based on the current fetch state.
+  ///
+  /// Shows a loading spinner while fetching, an error message with retry
+  /// button on failure, or the styled HTML content on success.
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<String>(
@@ -110,6 +142,7 @@ class _TakobotoViewerState extends State<TakobotoViewer>
     );
   }
 
+  /// Builds a centered loading indicator with a rotating gradient spinner.
   Widget _buildLoading(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -152,6 +185,7 @@ class _TakobotoViewerState extends State<TakobotoViewer>
     );
   }
 
+  /// Builds an error display with the error message and a retry button.
   Widget _buildError(BuildContext context, Object error) {
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -184,6 +218,10 @@ class _TakobotoViewerState extends State<TakobotoViewer>
     );
   }
 
+  /// Builds the HTML content view with themed styling applied.
+  ///
+  /// Replaces Takoboto's default orange accent color with the app's primary
+  /// color and removes underlines from links for a cleaner appearance.
   Widget _buildHtmlContent(BuildContext context, String html) {
     final colorScheme = Theme.of(context).colorScheme;
     final primaryHex = '#${colorScheme.primary.value.toRadixString(16).substring(2)}';
@@ -231,12 +269,15 @@ class _TakobotoViewerState extends State<TakobotoViewer>
   }
 }
 
-/// A simple HTTP exception class.
+/// A simple exception class for HTTP request failures.
+///
+/// Captures both the error message and HTTP status code to provide meaningful
+/// feedback when dictionary lookups fail.
 class HttpException implements Exception {
-  /// The error message.
+  /// The human-readable error message describing what went wrong.
   final String message;
 
-  /// The HTTP status code.
+  /// The HTTP status code returned by the server.
   final int statusCode;
 
   /// Creates an HTTP exception.

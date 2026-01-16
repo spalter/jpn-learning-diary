@@ -1,3 +1,12 @@
+// ============================================================================
+//
+// Japanese Learning Diary
+// Copyright (c) 2025-2026 spalter
+//
+// This source file is part of the jpn-learning-diary project.
+//
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/controllers/diary_entries_controller.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';

@@ -1,24 +1,26 @@
+// ============================================================================
+//
+// Japanese Learning Diary
+// Copyright (c) 2025-2026 spalter
+//
+// This source file is part of the jpn-learning-diary project.
+//
+// ============================================================================
+
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:jpn_learning_diary/widgets/styled_tooltip.dart';
 
-/// Custom app bar with integrated search functionality.
+/// Custom app bar with integrated search and navigation functionality.
 ///
-/// Provides a navigation bar with:
-/// - Navigation buttons for diary, hiragana (あ), and katakana (ア) pages
-/// - Search field with submit functionality (searches when text present, navigates to diary when empty)
-/// - Clear button (X) that appears when search has text
-/// - Learning dashboard and settings buttons
-/// - Exit button to close the application
-/// - Custom styling matching the app theme
-///
-/// On mobile platforms (Android/iOS), the navigation buttons are moved to a
-/// sidebar/drawer accessed via a menu button, and the search bar uses the
-/// full available width.
-///
-/// Instead of managing navigation internally, this widget uses callbacks
-/// to notify the parent widget of navigation and action events.
+/// This widget provides the main navigation interface with buttons for diary,
+/// hiragana, katakana, learning dashboard, and settings pages. The search field
+/// supports live searching with a clear button that appears when text is present.
+/// On mobile platforms, navigation buttons move to a drawer accessed via a menu
+/// button, allowing the search bar to use the full width. Navigation events are
+/// communicated to the parent widget through callbacks rather than being managed
+/// internally.
 class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
   /// Controller for the search text field.
   final TextEditingController textController;
@@ -71,11 +73,15 @@ class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
-/// State for the navigation bar.
+/// State for [AppNavigationBar] managing search field interactions.
+///
+/// Listens to text controller changes to dynamically show or hide the clear
+/// button, and provides methods for programmatically inserting search text.
 class AppNavigationBarState extends State<AppNavigationBar> {
-  /// Whether we're on a mobile platform (Android/iOS).
+  /// Returns true when running on Android or iOS for mobile-specific layout.
   bool get _isMobile => Platform.isAndroid || Platform.isIOS;
 
+  /// Sets up the text controller listener for clear button visibility.
   @override
   void initState() {
     super.initState();
@@ -86,7 +92,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     });
   }
 
-  /// Inserts or replaces text in the search field and focuses it.
+  /// Replaces the search field text and focuses it with cursor at the end.
   void insertSearchText(String text) {
     widget.textController.text = text;
     widget.searchFocusNode.requestFocus();
@@ -96,6 +102,10 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     );
   }
 
+  /// Builds the app bar with platform-specific layout.
+  ///
+  /// On mobile, shows a menu button and full-width search. On desktop, displays
+  /// navigation buttons, centered search, and action buttons in a draggable area.
   @override
   Widget build(BuildContext context) {
     return AppBar(
@@ -118,12 +128,14 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     );
   }
 
-  /// Builds the title section for mobile layout (search bar only, uses full width).
+  /// Builds the mobile layout with a full-width search field.
   Widget _buildMobileTitle(BuildContext context) {
     return _buildSearchField(context, centered: false);
   }
 
-  /// Builds the title section for desktop layout (nav buttons + centered search).
+  /// Builds the desktop layout with navigation buttons and centered search.
+  ///
+  /// Wraps content in DragToMoveArea to enable window dragging on desktop.
   Widget _buildDesktopTitle(BuildContext context) {
     return DragToMoveArea(
       child: Row(
@@ -137,7 +149,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     );
   }
 
-  /// Builds the navigation buttons (Diary, Hiragana, Katakana).
+  /// Creates the main navigation buttons for diary, hiragana, katakana, and learning.
   List<Widget> _buildNavigationButtons(BuildContext context) {
     return [
       ExcludeFocus(
@@ -185,7 +197,10 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     ];
   }
 
-  /// Builds the search text field.
+  /// Builds the search text field with double-tap to select all.
+  ///
+  /// When [centered] is true, wraps the field in an Expanded widget for
+  /// flexible sizing in the desktop layout.
   Widget _buildSearchField(BuildContext context, {required bool centered}) {
     final searchField = GestureDetector(
       onDoubleTap: () {
@@ -210,7 +225,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     return searchField;
   }
 
-  /// Builds the decoration for the search field.
+  /// Creates the input decoration with search icon, conditional clear button, and themed borders.
   InputDecoration _buildSearchDecoration(BuildContext context) {
     return InputDecoration(
       prefixIcon: const Icon(Icons.search),
@@ -247,7 +262,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     );
   }
 
-  /// Builds the action buttons (Learning, Settings, Exit).
+  /// Creates the right-side action buttons for settings, window controls, and exit.
   List<Widget> _buildActionButtons(BuildContext context) {
     return [
       ExcludeFocus(
@@ -295,13 +310,15 @@ class AppNavigationBarState extends State<AppNavigationBar> {
           ),
         ),
       ),
-    ];
+  ]
+  ;
   }
 }
 
-/// Navigation drawer for mobile platforms.
+/// Navigation drawer for mobile platforms containing all navigation items.
 ///
-/// Contains all navigation items that are shown in the app bar on desktop.
+/// Provides the same navigation options as the desktop app bar in a
+/// mobile-friendly slide-out drawer format with a branded header.
 class AppNavigationDrawer extends StatelessWidget {
   /// Callback for navigating to phrases/words page.
   final VoidCallback onNavigateToPhrasesWords;
@@ -327,6 +344,7 @@ class AppNavigationDrawer extends StatelessWidget {
     required this.onNavigateToSettings,
   });
 
+  /// Builds the drawer with a branded header and navigation list items.
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -413,6 +431,7 @@ class AppNavigationDrawer extends StatelessWidget {
     );
   }
 
+  /// Creates a drawer list item with an icon (or custom widget) and title.
   Widget _buildDrawerItem(
     BuildContext context, {
     IconData? icon,
