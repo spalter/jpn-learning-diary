@@ -19,6 +19,7 @@ import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
+import 'package:jpn_learning_diary/services/theme_notifier.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/screens/splash_screen.dart';
 
@@ -31,6 +32,9 @@ import 'package:jpn_learning_diary/screens/splash_screen.dart';
 /// launch directly.
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize theme notifier
+  await ThemeNotifier.instance.initialize();
 
   // Mobile platforms: run app directly
   if (Platform.isAndroid || Platform.isIOS) {
@@ -131,15 +135,21 @@ class _JapaneseLearningDiaryState extends State<JapaneseLearningDiary>
   /// Builds the MaterialApp with Tokyo-themed light and dark modes.
   ///
   /// The app starts with [SplashScreen] which handles initial loading and
-  /// navigation to the main content.
+  /// navigation to the main content. Uses [ListenableBuilder] to rebuild
+  /// when theme changes via [ThemeNotifier].
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: AppTheme.appTitle,
-      theme: AppTheme.getTokyoDayTheme(),
-      darkTheme: AppTheme.getTokyoNightTheme(),
-      themeMode: ThemeMode.system,
-      home: const SplashScreen(),
+    return ListenableBuilder(
+      listenable: ThemeNotifier.instance,
+      builder: (context, child) {
+        return MaterialApp(
+          title: AppTheme.appTitle,
+          theme: ThemeNotifier.instance.getLightTheme(),
+          darkTheme: ThemeNotifier.instance.getDarkTheme(),
+          themeMode: ThemeMode.system,
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }

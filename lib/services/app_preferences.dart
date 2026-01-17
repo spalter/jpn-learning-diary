@@ -95,4 +95,22 @@ class AppPreferences {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyShowFurigana, show);
   }
+
+  /// Gets the current theme style index.
+  ///
+  /// Returns 0 for Tokyo, 1 for Mono, 2 for Pink, 3 for Orange, 4 for Green.
+  static Future<int> getThemeStyle() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('theme_mode_index') ?? 0;
+  }
+
+  /// Sets the current theme style index.
+  ///
+  /// [index] 0 for Tokyo, 1 for Mono, 2 for Pink, 3 for Orange, 4 for Green.
+  static Future<void> setThemeStyle(int index) async {
+    if (index < 0) return;
+    if (index > 4) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('theme_mode_index', index);
+  }
 }

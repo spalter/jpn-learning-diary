@@ -15,6 +15,7 @@ import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/cloud_sync_service.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/services/file_access_service.dart';
+import 'package:jpn_learning_diary/services/theme_notifier.dart';
 import 'package:jpn_learning_diary/widgets/app_about_dialog.dart';
 
 /// Application settings and configuration page.
@@ -37,6 +38,7 @@ class _SettingsPageState extends State<SettingsPage> {
       padding: const EdgeInsets.all(16),
       children: [
         _buildAboutSetting(context),
+        _buildThemeStyleSetting(context),
         _buildViewModeSetting(context),
         _buildDisplaySettingsSection(context),
         _buildDatabaseFileSetting(context),
@@ -285,6 +287,65 @@ class _SettingsPageState extends State<SettingsPage> {
         }
         return const Text('Sync database with cloud storage (e.g., Dropbox)');
       },
+    );
+  }
+
+  /// Builds the theme style setting row.
+  Widget _buildThemeStyleSetting(BuildContext context) {
+    return _buildSettingRow(
+      context: context,
+      child: ListTile(
+        title: const Text('Theme Style'),
+        subtitle: const Text('Choose the app color scheme'),
+        trailing: ListenableBuilder(
+          listenable: ThemeNotifier.instance,
+          builder: (context, child) {
+            final currentStyle = ThemeNotifier.instance.themeStyleIndex;
+            return SegmentedButton<int>(
+              style: SegmentedButton.styleFrom(
+                selectedBackgroundColor: Theme.of(
+                  context,
+                ).colorScheme.onSurface,
+                selectedForegroundColor: Theme.of(context).colorScheme.surface,
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
+                ),
+              ),
+              segments: const [
+                ButtonSegment<int>(
+                  value: 0,
+                  icon: Icon(Icons.nightlight_round),
+                  label: Text('Blue')
+                ),
+                ButtonSegment<int>(
+                  value: 1,
+                  icon: Icon(Icons.contrast),
+                  label: Text('Grey'),
+                ),
+                ButtonSegment<int>(
+                  value: 2,
+                  icon: Icon(Icons.favorite),
+                  label: Text('Pink'),
+                ),
+                ButtonSegment<int>(
+                  value: 3,
+                  icon: Icon(Icons.local_fire_department),
+                  label: Text('Orange'),
+                ),
+                ButtonSegment<int>(
+                  value: 4,
+                  icon: Icon(Icons.eco),
+                  label: Text('Green'),
+                ),
+              ],
+              selected: {currentStyle},
+              onSelectionChanged: (Set<int> selection) async {
+                await ThemeNotifier.instance.setThemeStyle(selection.first);
+              },
+            );
+          },
+        ),
+      ),
     );
   }
 
