@@ -294,57 +294,125 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _buildThemeStyleSetting(BuildContext context) {
     return _buildSettingRow(
       context: context,
-      child: ListTile(
-        title: const Text('Theme Style'),
-        subtitle: const Text('Choose the app color scheme'),
-        trailing: ListenableBuilder(
-          listenable: ThemeNotifier.instance,
-          builder: (context, child) {
-            final currentStyle = ThemeNotifier.instance.themeStyleIndex;
-            return SegmentedButton<int>(
-              style: SegmentedButton.styleFrom(
-                selectedBackgroundColor: Theme.of(
-                  context,
-                ).colorScheme.onSurface,
-                selectedForegroundColor: Theme.of(context).colorScheme.surface,
-                side: BorderSide(
-                  color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
+      child: _isMobile
+          ? _buildThemeStyleMobile(context)
+          : _buildThemeStyleDesktop(context),
+    );
+  }
+
+  /// Builds the theme style setting for mobile (vertical layout).
+  Widget _buildThemeStyleMobile(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Theme Style', style: Theme.of(context).textTheme.bodyLarge),
+          const SizedBox(height: 4),
+          Text(
+            'Choose the app color scheme',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withAlpha(180),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ListenableBuilder(
+            listenable: ThemeNotifier.instance,
+            builder: (context, child) {
+              final currentStyle = ThemeNotifier.instance.themeStyleIndex;
+              return SizedBox(
+                width: double.infinity,
+                child: SegmentedButton<int>(
+                  style: SegmentedButton.styleFrom(
+                    selectedBackgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.onSurface,
+                    selectedForegroundColor: Theme.of(
+                      context,
+                    ).colorScheme.surface,
+                    side: BorderSide(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withAlpha(100),
+                    ),
+                  ),
+                  segments: const [
+                    ButtonSegment<int>(
+                      value: 0,
+                      icon: Icon(Icons.nightlight_round),
+                    ),
+                    ButtonSegment<int>(value: 1, icon: Icon(Icons.contrast)),
+                    ButtonSegment<int>(value: 2, icon: Icon(Icons.favorite)),
+                    ButtonSegment<int>(
+                      value: 3,
+                      icon: Icon(Icons.local_fire_department),
+                    ),
+                    ButtonSegment<int>(value: 4, icon: Icon(Icons.eco)),
+                  ],
+                  showSelectedIcon: false,
+                  selected: {currentStyle},
+                  onSelectionChanged: (Set<int> selection) async {
+                    await ThemeNotifier.instance.setThemeStyle(selection.first);
+                  },
                 ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Builds the theme style setting for desktop (horizontal layout).
+  Widget _buildThemeStyleDesktop(BuildContext context) {
+    return ListTile(
+      title: const Text('Theme Style'),
+      subtitle: const Text('Choose the app color scheme'),
+      trailing: ListenableBuilder(
+        listenable: ThemeNotifier.instance,
+        builder: (context, child) {
+          final currentStyle = ThemeNotifier.instance.themeStyleIndex;
+          return SegmentedButton<int>(
+            style: SegmentedButton.styleFrom(
+              selectedBackgroundColor: Theme.of(context).colorScheme.onSurface,
+              selectedForegroundColor: Theme.of(context).colorScheme.surface,
+              side: BorderSide(
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
               ),
-              segments: const [
-                ButtonSegment<int>(
-                  value: 0,
-                  icon: Icon(Icons.nightlight_round),
-                  label: Text('Blue')
-                ),
-                ButtonSegment<int>(
-                  value: 1,
-                  icon: Icon(Icons.contrast),
-                  label: Text('Grey'),
-                ),
-                ButtonSegment<int>(
-                  value: 2,
-                  icon: Icon(Icons.favorite),
-                  label: Text('Pink'),
-                ),
-                ButtonSegment<int>(
-                  value: 3,
-                  icon: Icon(Icons.local_fire_department),
-                  label: Text('Orange'),
-                ),
-                ButtonSegment<int>(
-                  value: 4,
-                  icon: Icon(Icons.eco),
-                  label: Text('Green'),
-                ),
-              ],
-              selected: {currentStyle},
-              onSelectionChanged: (Set<int> selection) async {
-                await ThemeNotifier.instance.setThemeStyle(selection.first);
-              },
-            );
-          },
-        ),
+            ),
+            segments: const [
+              ButtonSegment<int>(
+                value: 0,
+                icon: Icon(Icons.nightlight_round),
+                label: Text('Blue'),
+              ),
+              ButtonSegment<int>(
+                value: 1,
+                icon: Icon(Icons.contrast),
+                label: Text('Grey'),
+              ),
+              ButtonSegment<int>(
+                value: 2,
+                icon: Icon(Icons.favorite),
+                label: Text('Pink'),
+              ),
+              ButtonSegment<int>(
+                value: 3,
+                icon: Icon(Icons.local_fire_department),
+                label: Text('Orange'),
+              ),
+              ButtonSegment<int>(
+                value: 4,
+                icon: Icon(Icons.eco),
+                label: Text('Green'),
+              ),
+            ],
+            selected: {currentStyle},
+            onSelectionChanged: (Set<int> selection) async {
+              await ThemeNotifier.instance.setThemeStyle(selection.first);
+            },
+          );
+        },
       ),
     );
   }
