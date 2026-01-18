@@ -24,8 +24,8 @@ class KanjiRepository {
   KanjiRepository({
     DatabaseHelper? databaseHelper,
     JpnDatabaseHelper? jpnDatabaseHelper,
-  })  : _databaseHelper = databaseHelper ?? DatabaseHelper.instance,
-        _jpnDatabaseHelper = jpnDatabaseHelper ?? JpnDatabaseHelper.instance;
+  }) : _databaseHelper = databaseHelper ?? DatabaseHelper.instance,
+       _jpnDatabaseHelper = jpnDatabaseHelper ?? JpnDatabaseHelper.instance;
 
   /// Searches for kanji by character, meaning, or reading.
   ///
@@ -77,8 +77,6 @@ class KanjiRepository {
   Future<Map<int?, int>> getLearnedKanjiByJlptLevel() async {
     return await _databaseHelper.getLearnedKanjiByJlptLevel();
   }
-
-  // ==================== Word Operations ====================
 
   /// Searches for words by kanji, reading, or meaning.
   ///

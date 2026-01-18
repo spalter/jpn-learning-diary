@@ -107,10 +107,12 @@ class _LearningPageState extends State<LearningPage> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: children
-            .map((child) => Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: child,
-                ))
+            .map(
+              (child) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: child,
+              ),
+            )
             .toList(),
       );
     }

@@ -233,7 +233,7 @@ class DatabaseHelper {
   }
 
   /// Triggers a cloud sync after a write operation (Android only).
-  /// 
+  ///
   /// This is called after create/update/delete to ensure changes are
   /// synced to cloud storage promptly rather than waiting for app close.
   Future<void> _syncAfterWrite() async {
