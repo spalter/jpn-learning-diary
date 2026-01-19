@@ -454,28 +454,4 @@ class DatabaseHelper {
       _database = null;
     }
   }
-
-  /// Syncs the database to cloud storage (Android only).
-  ///
-  /// Call this when the app goes to background or closes to upload
-  /// local changes back to cloud storage.
-  ///
-  /// **Returns:** `true` if sync was successful or not needed, `false` if failed
-  Future<bool> syncToCloud() async {
-    if (!Platform.isAndroid) {
-      return true; // Not needed on other platforms
-    }
-
-    if (!await CloudSyncService.isCloudSyncEnabled()) {
-      return true; // Cloud sync not configured
-    }
-
-    // Close the database connection before syncing
-    if (_database != null) {
-      await _database!.close();
-      _database = null;
-    }
-
-    return await CloudSyncService.syncToCloud();
-  }
 }

@@ -8,14 +8,20 @@
 // ============================================================================
 
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// Database helper for the read-only Japanese language database.
 ///
 /// This database contains kanji, readings, words, and JMdict data that is
-/// shipped with the app as an asset. On desktop platforms, it is opened
-/// directly from the assets folder without copying.
+/// shipped with the app as an asset.
+///
+/// - On desktop platforms (Windows, Linux, macOS), the database is opened
+///   directly from the assets folder.
+/// - On mobile platforms (Android, iOS), the database is copied from assets
+///   to the app's documents directory on first launch.
 ///
 /// Uses a singleton pattern to ensure only one database connection exists.
 class JpnDatabaseHelper {
@@ -27,6 +33,10 @@ class JpnDatabaseHelper {
 
   /// Database filename in assets.
   static const String _dbName = 'jpn.db';
+
+  /// Database version for tracking updates.
+  /// Increment this when shipping a new database with an app update.
+  static const int _dbVersion = 1;
 
   /// Private constructor to enforce singleton pattern.
   JpnDatabaseHelper._init() {
@@ -44,27 +54,69 @@ class JpnDatabaseHelper {
     return _database!;
   }
 
-  /// Initializes the database by opening directly from assets.
+  /// Initializes the database.
   ///
-  /// On desktop platforms, assets are stored as files in the
-  /// `data/flutter_assets/` folder next to the executable.
+  /// On desktop platforms, opens directly from the assets folder.
+  /// On mobile platforms, copies from assets to documents directory first.
   Future<Database> _initDB() async {
-    final dbPath = _getAssetPath();
+    if (Platform.isAndroid || Platform.isIOS) {
+      return await _initMobileDB();
+    } else {
+      return await _initDesktopDB();
+    }
+  }
 
-    // Open in read-only mode directly from assets
+  /// Initializes the database for desktop platforms.
+  ///
+  /// Opens directly from the `data/flutter_assets/` folder next to the executable.
+  Future<Database> _initDesktopDB() async {
+    final dbPath = _getDesktopAssetPath();
     return await openDatabase(dbPath, readOnly: true);
   }
 
-  /// Gets the path to the database file in the assets folder.
+  /// Initializes the database for mobile platforms.
+  ///
+  /// Copies the database from assets to the documents directory on first launch
+  /// or when the database version changes.
+  Future<Database> _initMobileDB() async {
+    final documentsDir = await getApplicationDocumentsDirectory();
+    final dbPath = join(documentsDir.path, _dbName);
+    final versionFile = File(join(documentsDir.path, '.jpn_db_version'));
+
+    // Check if we need to copy the database
+    bool needsCopy = !await File(dbPath).exists();
+
+    // Check version to handle app updates with new database
+    if (!needsCopy && await versionFile.exists()) {
+      final storedVersion = int.tryParse(await versionFile.readAsString()) ?? 0;
+      if (storedVersion < _dbVersion) {
+        needsCopy = true;
+      }
+    } else if (!needsCopy) {
+      // No version file exists, assume we need to update
+      needsCopy = true;
+    }
+
+    if (needsCopy) {
+      // Copy database from assets
+      final data = await rootBundle.load('lib/assets/$_dbName');
+      final bytes = data.buffer.asUint8List();
+      await File(dbPath).writeAsBytes(bytes, flush: true);
+
+      // Write version file
+      await versionFile.writeAsString(_dbVersion.toString());
+    }
+
+    return await openDatabase(dbPath, readOnly: true);
+  }
+
+  /// Gets the path to the database file in the assets folder (desktop only).
   ///
   /// On desktop, assets are in `data/flutter_assets/lib/assets/` relative
   /// to the executable directory.
-  String _getAssetPath() {
-    // Get the directory containing the executable
+  String _getDesktopAssetPath() {
     final exePath = Platform.resolvedExecutable;
     final exeDir = dirname(exePath);
-
-    // Assets are in data/flutter_assets/ relative to executable
     return join(exeDir, 'data', 'flutter_assets', 'lib', 'assets', _dbName);
   }
 

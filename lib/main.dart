@@ -18,7 +18,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/services/theme_notifier.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/screens/splash_screen.dart';
@@ -93,45 +92,8 @@ class JapaneseLearningDiary extends StatefulWidget {
   State<JapaneseLearningDiary> createState() => _JapaneseLearningDiaryState();
 }
 
-/// Internal state for [JapaneseLearningDiary] that manages the app lifecycle.
-///
-/// This state class registers itself as a [WidgetsBindingObserver] to monitor
-/// app lifecycle changes, enabling background sync functionality on Android.
-class _JapaneseLearningDiaryState extends State<JapaneseLearningDiary>
-    with WidgetsBindingObserver {
-  /// Registers this state as an observer to receive app lifecycle callbacks.
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  /// Removes this state from the observer list to prevent memory leaks.
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  /// Handles app lifecycle transitions to trigger cloud sync on Android.
-  ///
-  /// When the app enters the paused state (going to background), a cloud sync
-  /// is initiated as a safety net. The primary sync still occurs after each
-  /// database write, but this ensures data is saved even if the app is killed.
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-
-    // On Android, sync to cloud when app goes to background (as a backup)
-    // Primary sync happens after each write operation in DatabaseHelper
-    if (Platform.isAndroid) {
-      if (state == AppLifecycleState.paused) {
-        // Fire and forget - best effort sync when going to background
-        DatabaseHelper.instance.syncToCloud();
-      }
-    }
-  }
-
+/// Internal state for [JapaneseLearningDiary].
+class _JapaneseLearningDiaryState extends State<JapaneseLearningDiary> {
   /// Builds the MaterialApp with Tokyo-themed light and dark modes.
   ///
   /// The app starts with [SplashScreen] which handles initial loading and
