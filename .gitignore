@@ -47,4 +47,6 @@ app.*.map.json
 # Tools
 /tools/kanjiapi_full.json
 /tools/*.db
+/tools/JMdict_e
 /lib/assets/jpn.db
+/tools/JMdict_e.gz

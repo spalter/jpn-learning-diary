@@ -270,6 +270,19 @@ class _LearningPageState extends State<LearningPage> {
         ),
         _buildLearningModeButton(
           context,
+          title: 'Vocabulary Quiz',
+          icon: Icons.menu_book,
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) =>
+                    const PracticeModePage(mode: PracticeMode.jmdict),
+              ),
+            );
+          },
+        ),
+        _buildLearningModeButton(
+          context,
           title: 'Study',
           icon: Icons.auto_stories,
           onTap: () {

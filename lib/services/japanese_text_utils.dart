@@ -19,6 +19,33 @@ class JapaneseTextUtils {
   // Private constructor to prevent instantiation
   JapaneseTextUtils._();
 
+  /// Set of common Japanese particles (助詞).
+  ///
+  /// Includes case particles, binding particles, adverbial particles,
+  /// conjunctive particles, and sentence-ending particles.
+  static const Set<String> japaneseParticles = {
+    // Case particles (格助詞)
+    'が', 'を', 'に', 'へ', 'で', 'と', 'から', 'より', 'まで',
+    // Binding/topic particles (係助詞)
+    'は', 'も', 'こそ', 'さえ', 'しか', 'でも',
+    // Adverbial particles (副助詞)
+    'ばかり', 'だけ', 'ほど', 'くらい', 'ぐらい', 'など', 'なんか', 'なんて', 'のみ',
+    // Conjunctive particles (接続助詞)
+    'て', 'ば', 'ても', 'けど', 'けれど', 'けれども', 'のに', 'ので', 'し', 'たり', 'ながら',
+    // Sentence-ending particles (終助詞)
+    'か', 'な', 'ね', 'よ', 'わ', 'ぞ', 'ぜ', 'さ', 'かな', 'っけ',
+    // Other particles
+    'の', 'や', 'とか', 'って',
+  };
+
+  /// Checks if a text segment is a Japanese particle.
+  ///
+  /// Returns true if the segment matches a known particle.
+  /// Note: This is a simple lookup and may have false positives
+  /// (e.g., 'が' as particle vs. moth kanji is rare but possible).
+  /// Example: isParticle('は') → true, isParticle('日本') → false
+  static bool isParticle(String segment) => japaneseParticles.contains(segment);
+
   /// Pattern for matching one or more kanji characters (common kanji only).
   ///
   /// Use this for typical Japanese text processing.

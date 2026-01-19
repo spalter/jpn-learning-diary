@@ -9,18 +9,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
+import 'package:jpn_learning_diary/models/jmdict_entry.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
-import 'package:jpn_learning_diary/models/word_data.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
+import 'package:jpn_learning_diary/repositories/jmdict_repository.dart';
 import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
+import 'package:jpn_learning_diary/widgets/jmdict_card.dart';
 import 'package:jpn_learning_diary/widgets/kanji_card.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
 import 'package:jpn_learning_diary/widgets/section_header.dart';
-import 'package:jpn_learning_diary/widgets/word_card.dart';
 
 /// Search results page that displays results based on search query.
 ///
@@ -81,9 +82,9 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
       count += results.diaryEntries.length;
       count += 1; // Spacing after section
     }
-    if (results.words.isNotEmpty) {
+    if (results.jmdictEntries.isNotEmpty) {
       count += 2; // Header + spacing
-      count += results.words.length;
+      count += results.jmdictEntries.length;
       count += 1; // Spacing after section
     }
     if (results.kanji.isNotEmpty) {
@@ -133,12 +134,12 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
       currentIndex++;
     }
 
-    // Words Section
-    if (results.words.isNotEmpty) {
+    // JMdict Entries Section
+    if (results.jmdictEntries.isNotEmpty) {
       if (index == currentIndex) {
         return SectionHeader(
           icon: Icons.menu_book,
-          title: 'Words (${results.words.length})',
+          title: 'Dictionary (${results.jmdictEntries.length})',
         );
       }
       currentIndex++;
@@ -148,12 +149,12 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
       }
       currentIndex++;
 
-      // Word cards
-      if (index < currentIndex + results.words.length) {
-        final wordIndex = index - currentIndex;
-        return _buildWordCard(results.words[wordIndex], useBorderedStyle);
+      // JMdict cards
+      if (index < currentIndex + results.jmdictEntries.length) {
+        final entryIndex = index - currentIndex;
+        return _buildJmdictCard(results.jmdictEntries[entryIndex], useBorderedStyle);
       }
-      currentIndex += results.words.length;
+      currentIndex += results.jmdictEntries.length;
 
       if (index == currentIndex) {
         return const SizedBox(height: 32); // Section spacing
@@ -207,12 +208,11 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     );
   }
 
-  /// Builds a word card.
-  Widget _buildWordCard(WordData word, bool useBorderedStyle) {
-    return WordCard(
-      word: word,
+  /// Builds a JMdict card.
+  Widget _buildJmdictCard(JMdictEntry entry, bool useBorderedStyle) {
+    return JMdictCard(
+      entry: entry,
       useBorderedStyle: useBorderedStyle,
-      navigationBarKey: widget.navigationBarKey,
     );
   }
 
@@ -226,6 +226,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   Future<_SearchResults> _search() async {
     final diaryRepository = DiaryRepository();
     final kanjiRepository = KanjiRepository();
+    final jmdictRepository = JMdictRepository();
 
     // Search diary entries across all text fields.
     final allEntries = await diaryRepository.getAllEntries();
@@ -241,15 +242,19 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     // Search kanji database using dedicated search method.
     final kanjiResults = await kanjiRepository.searchKanji(widget.searchQuery);
 
-    // Search for words containing kanji from the query
-    final List<WordData> wordResults = [];
-    final kanjiChars = JapaneseTextUtils.extractKanji(widget.searchQuery);
-    for (final kanji in kanjiChars) {
-      final words = await kanjiRepository.searchWords(kanji);
-      for (final word in words) {
-        // Avoid duplicates based on written form
-        if (!wordResults.any((w) => w.written == word.written)) {
-          wordResults.add(word);
+    // Search JMdict using tokenized search
+    final tokens = JapaneseTextUtils.tokenize(widget.searchQuery)
+        .where((t) => t.trim().isNotEmpty)
+        .toSet()
+        .toList();
+    final jmdictResults = <JMdictEntry>[];
+    final seenEntSeqs = <int>{};
+    for (final token in tokens) {
+      final entries = await jmdictRepository.searchByToken(token, limit: 5);
+      for (final entry in entries) {
+        if (!seenEntSeqs.contains(entry.entSeq)) {
+          seenEntSeqs.add(entry.entSeq);
+          jmdictResults.add(entry);
         }
       }
     }
@@ -257,7 +262,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     return _SearchResults(
       diaryEntries: diaryResults,
       kanji: kanjiResults,
-      words: wordResults,
+      jmdictEntries: jmdictResults,
     );
   }
 
@@ -286,7 +291,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         final hasResults =
             results.diaryEntries.isNotEmpty ||
             results.kanji.isNotEmpty ||
-            results.words.isNotEmpty;
+            results.jmdictEntries.isNotEmpty;
 
         if (!hasResults) {
           return _buildNoResultsState();
@@ -360,20 +365,20 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
           ),
         ],
 
-        // Words Section
-        if (results.words.isNotEmpty) ...[
+        // JMdict Entries Section
+        if (results.jmdictEntries.isNotEmpty) ...[
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
               child: SectionHeader(
                 icon: Icons.menu_book,
-                title: 'Words (${results.words.length})',
+                title: 'Dictionary (${results.jmdictEntries.length})',
               ),
             ),
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            sliver: _buildWordsGrid(results.words),
+            sliver: _buildJmdictGrid(results.jmdictEntries),
           ),
           const SliverToBoxAdapter(
             child: SizedBox(height: 32), // Section spacing
@@ -448,8 +453,8 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     );
   }
 
-  /// Builds a grid of word cards using responsive layout.
-  Widget _buildWordsGrid(List<WordData> wordsList) {
+  /// Builds a grid of JMdict cards using responsive layout.
+  Widget _buildJmdictGrid(List<JMdictEntry> entries) {
     return SliverLayoutBuilder(
       builder: (context, constraints) {
         final crossAxisCount = _calculateGridColumns(
@@ -464,8 +469,8 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             mainAxisSpacing: 8,
           ),
           delegate: SliverChildBuilderDelegate(
-            (context, index) => _buildWordCard(wordsList[index], true),
-            childCount: wordsList.length,
+            (context, index) => _buildJmdictCard(entries[index], true),
+            childCount: entries.length,
           ),
         );
       },
@@ -485,16 +490,16 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   }
 }
 
-/// Container for search results including diary entries, kanji, and words.
+/// Container for search results including diary entries, kanji, and JMdict entries.
 class _SearchResults {
   final List<DiaryEntry> diaryEntries;
   final List<KanjiData> kanji;
-  final List<WordData> words;
+  final List<JMdictEntry> jmdictEntries;
 
   /// Creates a new instance of [_SearchResults].
   _SearchResults({
     required this.diaryEntries,
     required this.kanji,
-    required this.words,
+    required this.jmdictEntries,
   });
 }

@@ -90,3 +90,4 @@ The built application will be in:
 - Flutter [flutter.dev](https://flutter.dev/).
 - Takoboto [takoboto.jp](https://takoboto.jp/).
 - The Kanji dictionary is based on [kanjiapi.dev](https://kanjiapi.dev/). Huge prop to them for compling so much data and make it available.
+- The Word dictionary is based on [JMdict](https://www.edrdg.org/jmdict/j_jmdict.html).

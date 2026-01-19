@@ -10,14 +10,17 @@
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
+import 'package:jpn_learning_diary/models/jmdict_entry.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
+import 'package:jpn_learning_diary/repositories/jmdict_repository.dart';
 import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
 
 /// Practice mode types for different learning scenarios.
 enum PracticeMode {
   diaryEntries('Diary Quiz', 'Practice words and phrases from your diary'),
-  kanji('Kanji Quiz', 'Practice kanji characters and their meanings');
+  kanji('Kanji Quiz', 'Practice kanji characters and their meanings'),
+  jmdict('Vocabulary Quiz', 'Practice common Japanese vocabulary');
 
   const PracticeMode(this.label, this.description);
   final String label;
@@ -155,6 +158,57 @@ class QuizQuestion {
       practiceMode: PracticeMode.kanji,
     );
   }
+
+  /// Creates a quiz question from a JMdict entry with distractor entries.
+  ///
+  /// [entry] - The JMdict entry for the correct answer
+  /// [distractors] - Three other entries to use as wrong answers
+  /// [questionMode] - Whether to ask meaning->japanese or japanese->meaning
+  factory QuizQuestion.fromJMdictEntry({
+    required JMdictEntry entry,
+    required List<JMdictEntry> distractors,
+    required QuizQuestionMode questionMode,
+  }) {
+    final random = Random();
+
+    // Get primary form (kanji if available, otherwise reading)
+    final japaneseForm = entry.primaryForm;
+    // Get first gloss as meaning
+    final meaning = entry.allGlosses.isNotEmpty
+        ? entry.allGlosses.first
+        : 'No meaning available';
+
+    String prompt;
+    String correctAnswer;
+    List<String> wrongAnswers;
+
+    if (questionMode == QuizQuestionMode.meaningToJapanese) {
+      prompt = meaning;
+      correctAnswer = japaneseForm;
+      wrongAnswers = distractors.map((d) => d.primaryForm).toList();
+    } else {
+      prompt = japaneseForm;
+      correctAnswer = meaning;
+      wrongAnswers = distractors
+          .map((d) => d.allGlosses.isNotEmpty ? d.allGlosses.first : '')
+          .where((m) => m.isNotEmpty)
+          .toList();
+    }
+
+    // Combine and shuffle answers
+    final allAnswers = [correctAnswer, ...wrongAnswers];
+    allAnswers.shuffle(random);
+
+    return QuizQuestion(
+      prompt: prompt,
+      correctAnswer: correctAnswer,
+      answerOptions: allAnswers,
+      correctAnswerIndex: allAnswers.indexOf(correctAnswer),
+      furigana: entry.primaryReading,
+      questionMode: questionMode,
+      practiceMode: PracticeMode.jmdict,
+    );
+  }
 }
 
 /// Controller for the practice/quiz mode.
@@ -164,6 +218,7 @@ class QuizQuestion {
 class PracticeController extends ChangeNotifier {
   final DiaryRepository _diaryRepository;
   final KanjiRepository _kanjiRepository;
+  final JMdictRepository _jmdictRepository;
   final PracticeMode mode;
 
   /// The list of quiz questions for the current session.
@@ -194,8 +249,10 @@ class PracticeController extends ChangeNotifier {
     required this.mode,
     DiaryRepository? diaryRepository,
     KanjiRepository? kanjiRepository,
+    JMdictRepository? jmdictRepository,
   }) : _diaryRepository = diaryRepository ?? DiaryRepository(),
-       _kanjiRepository = kanjiRepository ?? KanjiRepository();
+       _kanjiRepository = kanjiRepository ?? KanjiRepository(),
+       _jmdictRepository = jmdictRepository ?? JMdictRepository();
 
   // Getters
   List<QuizQuestion> get questions => _questions;
@@ -298,6 +355,40 @@ class PracticeController extends ChangeNotifier {
               questions.add(
                 QuizQuestion.fromKanji(
                   kanji: kanji,
+                  distractors: selectedDistractors,
+                  questionMode: questionMode,
+                ),
+              );
+            }
+          }
+          break;
+
+        case PracticeMode.jmdict:
+          final jmdictEntries = await _jmdictRepository.getRandomCommonEntries(
+            count: 40, // Get more to have enough distractors
+          );
+
+          if (jmdictEntries.length >= 4) {
+            final shuffled = List<JMdictEntry>.from(jmdictEntries)
+              ..shuffle(random);
+            final questionCount = min(10, jmdictEntries.length);
+
+            for (int i = 0; i < questionCount; i++) {
+              final entry = shuffled[i];
+              // Get 3 distractors (different from current entry)
+              final distractors =
+                  jmdictEntries.where((e) => e.entSeq != entry.entSeq).toList()
+                    ..shuffle(random);
+              final selectedDistractors = distractors.take(3).toList();
+
+              // Randomly choose question mode
+              final questionMode = random.nextBool()
+                  ? QuizQuestionMode.meaningToJapanese
+                  : QuizQuestionMode.japaneseToMeaning;
+
+              questions.add(
+                QuizQuestion.fromJMdictEntry(
+                  entry: entry,
                   distractors: selectedDistractors,
                   questionMode: questionMode,
                 ),

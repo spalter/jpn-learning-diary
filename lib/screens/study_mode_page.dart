@@ -9,12 +9,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:jpn_learning_diary/models/jmdict_entry.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/models/word_data.dart';
+import 'package:jpn_learning_diary/repositories/jmdict_repository.dart';
 import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
+import 'package:jpn_learning_diary/widgets/jmdict_card.dart';
 import 'package:jpn_learning_diary/widgets/kanji_card.dart';
 import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
 import 'package:jpn_learning_diary/widgets/bird_fab.dart';
@@ -36,6 +39,7 @@ class StudyModePage extends StatefulWidget {
 class _StudyModePageState extends State<StudyModePage> {
   final TextEditingController _textController = TextEditingController();
   final KanjiRepository _kanjiRepository = KanjiRepository();
+  final JMdictRepository _jmdictRepository = JMdictRepository();
 
   /// Static storage for session persistence of input text.
   static String _sessionText = '';
@@ -45,6 +49,9 @@ class _StudyModePageState extends State<StudyModePage> {
 
   /// Map of line index to list of words found in that line.
   final Map<int, List<WordData>> _wordsByLine = {};
+
+  /// Map of line index to list of JMdict entries found in that line.
+  final Map<int, List<JMdictEntry>> _jmdictByLine = {};
 
   /// Current lines parsed from the input text.
   List<String> _lines = [];
@@ -105,6 +112,7 @@ class _StudyModePageState extends State<StudyModePage> {
     // Clean up kanji data for removed lines
     _kanjiByLine.removeWhere((key, value) => key >= newLines.length);
     _wordsByLine.removeWhere((key, value) => key >= newLines.length);
+    _jmdictByLine.removeWhere((key, value) => key >= newLines.length);
     _loadingLines.removeWhere((key, value) => key >= newLines.length);
   }
 
@@ -191,16 +199,25 @@ class _StudyModePageState extends State<StudyModePage> {
   }
 
   /// Extracts kanji characters from a line and fetches their data and words.
+  /// Also tokenizes the line and searches JMdict for each token.
   Future<void> _processLineForKanji(int lineIndex, String line) async {
     // Extract kanji characters using regex
     final kanjiPattern = RegExp(r'[\u4E00-\u9FFF\u3400-\u4DBF]');
     final matches = kanjiPattern.allMatches(line);
     final kanjiChars = matches.map((m) => m.group(0)!).toSet().toList();
 
-    if (kanjiChars.isEmpty) {
+    // Tokenize the line for JMdict search
+    final tokens = JapaneseTextUtils.tokenize(line)
+        .where((t) => t.trim().isNotEmpty)
+        .where((t) => !_punctuationPattern.hasMatch(t))
+        .toSet()
+        .toList();
+
+    if (kanjiChars.isEmpty && tokens.isEmpty) {
       setState(() {
         _kanjiByLine[lineIndex] = [];
         _wordsByLine[lineIndex] = [];
+        _jmdictByLine[lineIndex] = [];
         _loadingLines[lineIndex] = false;
       });
       return;
@@ -210,10 +227,13 @@ class _StudyModePageState extends State<StudyModePage> {
     final existingKanji =
         _kanjiByLine[lineIndex]?.map((k) => k.kanji).toSet() ?? {};
     final newKanjiSet = kanjiChars.toSet();
+    final existingJmdict =
+        _jmdictByLine[lineIndex]?.map((e) => e.entSeq).toSet() ?? {};
 
+    // Skip if no changes (simple check - kanji same and we already have jmdict data)
     if (existingKanji.containsAll(newKanjiSet) &&
-        newKanjiSet.containsAll(existingKanji)) {
-      // No change in kanji characters
+        newKanjiSet.containsAll(existingKanji) &&
+        existingJmdict.isNotEmpty) {
       return;
     }
 
@@ -230,15 +250,15 @@ class _StudyModePageState extends State<StudyModePage> {
       }
     }
 
-    // Fetch word data for each kanji character
-    final kanjis = JapaneseTextUtils.extractKanji(line);
-    final wordDataList = <WordData>[];
-    for (final word in kanjis) {
-      final words = await _kanjiRepository.searchWords(word);
-      for (final word in words) {
-        // Avoid duplicates based on written form
-        if (!wordDataList.any((w) => w.written == word.written)) {
-          wordDataList.add(word);
+    // Fetch JMdict entries for each token
+    final jmdictEntries = <JMdictEntry>[];
+    final seenEntSeqs = <int>{};
+    for (final token in tokens) {
+      final entries = await _jmdictRepository.searchByToken(token, limit: 5);
+      for (final entry in entries) {
+        if (!seenEntSeqs.contains(entry.entSeq)) {
+          seenEntSeqs.add(entry.entSeq);
+          jmdictEntries.add(entry);
         }
       }
     }
@@ -246,7 +266,7 @@ class _StudyModePageState extends State<StudyModePage> {
     if (mounted) {
       setState(() {
         _kanjiByLine[lineIndex] = kanjiDataList;
-        _wordsByLine[lineIndex] = wordDataList;
+        _jmdictByLine[lineIndex] = jmdictEntries;
         _loadingLines[lineIndex] = false;
       });
     }
@@ -389,6 +409,7 @@ class _StudyModePageState extends State<StudyModePage> {
         final line = _lines[index];
         final kanjiList = _kanjiByLine[index] ?? [];
         final wordsList = _wordsByLine[index] ?? [];
+        final jmdictList = _jmdictByLine[index] ?? [];
         final isLoading = _loadingLines[index] ?? false;
 
         // Skip empty lines
@@ -402,6 +423,7 @@ class _StudyModePageState extends State<StudyModePage> {
           line,
           kanjiList,
           wordsList,
+          jmdictList,
           isLoading,
         );
       },
@@ -415,10 +437,12 @@ class _StudyModePageState extends State<StudyModePage> {
     String line,
     List<KanjiData> kanjiList,
     List<WordData> wordsList,
+    List<JMdictEntry> jmdictList,
     bool isLoading,
   ) {
-    final hasResults = kanjiList.isNotEmpty || wordsList.isNotEmpty;
-    final totalCount = wordsList.length + kanjiList.length;
+    final hasResults =
+        kanjiList.isNotEmpty || wordsList.isNotEmpty || jmdictList.isNotEmpty;
+    final totalCount = jmdictList.length + wordsList.length + kanjiList.length;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
@@ -504,7 +528,7 @@ class _StudyModePageState extends State<StudyModePage> {
                   Padding(
                     padding: const EdgeInsets.only(left: 16, bottom: 8),
                     child: Text(
-                      '$totalCount results (${wordsList.length} words, ${kanjiList.length} kanji)',
+                      '$totalCount results (${jmdictList.length} dictionary, ${wordsList.length} words, ${kanjiList.length} kanji)',
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w600,
@@ -512,8 +536,8 @@ class _StudyModePageState extends State<StudyModePage> {
                     ),
                   ),
                   _viewMode == 'grid'
-                      ? _buildCombinedGridView(wordsList, kanjiList)
-                      : _buildCombinedListView(wordsList, kanjiList),
+                      ? _buildCombinedGridView(jmdictList, wordsList, kanjiList)
+                      : _buildCombinedListView(jmdictList, wordsList, kanjiList),
                 ],
               ),
             )
@@ -533,15 +557,23 @@ class _StudyModePageState extends State<StudyModePage> {
     );
   }
 
-  /// Builds a combined list view of word cards followed by kanji cards.
+  /// Builds a combined list view of JMdict cards, word cards, then kanji cards.
   Widget _buildCombinedListView(
+    List<JMdictEntry> jmdictList,
     List<WordData> wordsList,
     List<KanjiData> kanjiList,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Word cards first
+        // JMdict cards first (dictionary entries from tokens)
+        ...jmdictList.map(
+          (entry) => Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: JMdictCard(entry: entry, useBorderedStyle: false),
+          ),
+        ),
+        // Word cards second
         ...wordsList.map(
           (word) => Padding(
             padding: const EdgeInsets.only(left: 16),
@@ -559,12 +591,13 @@ class _StudyModePageState extends State<StudyModePage> {
     );
   }
 
-  /// Builds a combined grid view of word cards followed by kanji cards.
+  /// Builds a combined grid view of JMdict cards, word cards, then kanji cards.
   Widget _buildCombinedGridView(
+    List<JMdictEntry> jmdictList,
     List<WordData> wordsList,
     List<KanjiData> kanjiList,
   ) {
-    final totalCount = wordsList.length + kanjiList.length;
+    final totalCount = jmdictList.length + wordsList.length + kanjiList.length;
 
     return Padding(
       padding: const EdgeInsets.only(left: 16),
@@ -588,11 +621,17 @@ class _StudyModePageState extends State<StudyModePage> {
             ),
             itemCount: totalCount,
             itemBuilder: (context, index) {
-              // Words come first, then kanji
-              if (index < wordsList.length) {
-                return WordCard(word: wordsList[index], useBorderedStyle: true);
+              // JMdict entries come first, then words, then kanji
+              if (index < jmdictList.length) {
+                return JMdictCard(
+                  entry: jmdictList[index],
+                  useBorderedStyle: true,
+                );
+              } else if (index < jmdictList.length + wordsList.length) {
+                final wordIndex = index - jmdictList.length;
+                return WordCard(word: wordsList[wordIndex], useBorderedStyle: true);
               } else {
-                final kanjiIndex = index - wordsList.length;
+                final kanjiIndex = index - jmdictList.length - wordsList.length;
                 return KanjiCard(
                   kanji: kanjiList[kanjiIndex],
                   useBorderedStyle: true,
