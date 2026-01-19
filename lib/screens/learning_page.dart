@@ -11,6 +11,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/controllers/learning_controller.dart';
 import 'package:jpn_learning_diary/screens/practice_mode_page.dart';
+import 'package:jpn_learning_diary/screens/quiz_selection_page.dart';
 import 'package:jpn_learning_diary/screens/study_mode_page.dart';
 import 'package:jpn_learning_diary/widgets/app_card.dart';
 import 'package:jpn_learning_diary/widgets/section_header.dart';
@@ -241,57 +242,101 @@ class _LearningPageState extends State<LearningPage> {
 
   /// Builds the grid of learning mode buttons.
   Widget _buildLearningModesGrid(BuildContext context) {
-    return Wrap(
-      spacing: 16,
-      runSpacing: 16,
-      children: [
-        _buildLearningModeButton(
-          context,
-          title: 'Diary Quiz',
-          icon: Icons.edit_note,
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const PracticeModePage()),
+    final buttons = [
+      _LearningModeData(
+        title: 'Diary Quiz',
+        icon: Icons.edit_note,
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const PracticeModePage()),
+          );
+        },
+      ),
+      _LearningModeData(
+        title: 'Kanji Quiz',
+        icon: Icons.history_edu,
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) =>
+                  const PracticeModePage(mode: PracticeMode.kanji),
+            ),
+          );
+        },
+      ),
+      _LearningModeData(
+        title: 'Vocabulary Quiz',
+        icon: Icons.menu_book,
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) =>
+                  const PracticeModePage(mode: PracticeMode.jmdict),
+            ),
+          );
+        },
+      ),
+      _LearningModeData(
+        title: 'Study',
+        icon: Icons.auto_stories,
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const StudyModePage()),
+          );
+        },
+      ),
+      _LearningModeData(
+        title: 'Custom Quiz',
+        icon: Icons.quiz,
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const QuizSelectionPage()),
+          );
+        },
+      ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const minButtonWidth = 250.0;
+        const maxButtonWidth = 250.0;
+        const spacing = 16.0;
+
+        // Calculate columns: as many as fit with min width, but sized up to max width
+        int crossAxisCount =
+            ((constraints.maxWidth + spacing) / (minButtonWidth + spacing))
+                .floor();
+        crossAxisCount = crossAxisCount.clamp(1, buttons.length);
+
+        // Calculate actual button width
+        final availableWidth =
+            constraints.maxWidth - (spacing * (crossAxisCount - 1));
+        final buttonWidth = (availableWidth / crossAxisCount).clamp(
+          minButtonWidth,
+          maxButtonWidth,
+        );
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: buttonWidth,
+            crossAxisSpacing: spacing,
+            mainAxisSpacing: spacing,
+            childAspectRatio: 1.6,
+          ),
+          itemCount: buttons.length,
+          itemBuilder: (context, index) {
+            final data = buttons[index];
+            return _buildLearningModeButton(
+              context,
+              title: data.title,
+              icon: data.icon,
+              onTap: data.onTap,
             );
           },
-        ),
-        _buildLearningModeButton(
-          context,
-          title: 'Kanji Quiz',
-          icon: Icons.history_edu,
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) =>
-                    const PracticeModePage(mode: PracticeMode.kanji),
-              ),
-            );
-          },
-        ),
-        _buildLearningModeButton(
-          context,
-          title: 'Vocabulary Quiz',
-          icon: Icons.menu_book,
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) =>
-                    const PracticeModePage(mode: PracticeMode.jmdict),
-              ),
-            );
-          },
-        ),
-        _buildLearningModeButton(
-          context,
-          title: 'Study',
-          icon: Icons.auto_stories,
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const StudyModePage()),
-            );
-          },
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -302,31 +347,38 @@ class _LearningPageState extends State<LearningPage> {
     required IconData icon,
     required VoidCallback onTap,
   }) {
-    return SizedBox(
-      width: 200,
-      height: 120,
-      child: AppCard.bordered(
-        onTap: onTap,
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 40,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+    return AppCard.bordered(
+      onTap: onTap,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 36, color: Theme.of(context).colorScheme.onSurface),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
+}
+
+/// Data class for learning mode button configuration.
+class _LearningModeData {
+  final String title;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _LearningModeData({
+    required this.title,
+    required this.icon,
+    required this.onTap,
+  });
 }
