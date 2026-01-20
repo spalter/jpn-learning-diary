@@ -15,17 +15,30 @@ import 'package:path_provider/path_provider.dart';
 
 /// Service for loading and managing custom quiz data from CSV files.
 ///
-/// This service handles parsing CSV files containing custom quiz questions
-/// in the format: id;question;correct answer;wrong answer 1;wrong answer 2;wrong answer 3
+/// This service handles parsing CSV files containing custom quiz questions.
+/// Supports two formats:
+/// - 5 columns: id;question;correct answer;wrong answer 1;wrong answer 2;wrong answer 3
+/// - 2 columns: id;question;correct answer (wrong answers randomly selected from other entries)
 class CustomQuizService {
   CustomQuizService._();
 
   /// CSV template header for users to create their own quiz files.
+  /// Supports both 5-column format (with predefined wrong answers) and
+  /// 2-column format (with random wrong answers from other entries).
   static const String csvTemplate =
       '''id;question;correct answer;wrong answer 1;wrong answer 2;wrong answer 3
 1;What is the capital of Japan?;Tokyo;Osaka;Kyoto;Nagoya
 2;How do you say "hello" in Japanese?;こんにちは;さようなら;ありがとう;すみません
-3;What is the Japanese word for "cat"?;猫 (neko);犬 (inu);鳥 (tori);魚 (sakana)''';
+3;What is the Japanese word for "cat"?;猫 (neko);犬 (inu);鳥 (tori);魚 (sakana)
+
+Alternatively, use 2-column format (id;question;correct answer):
+Wrong answers will be randomly selected from other entries.
+Requires at least 4 entries for random selection.
+
+1;What is the capital of Japan?;Tokyo
+2;How do you say "hello" in Japanese?;こんにちは
+3;What is the Japanese word for "cat"?;猫 (neko)
+4;What is the Japanese word for "dog"?;犬 (inu)''';
 
   /// Returns the CSV template string that users can use as a starting point.
   static String getTemplate() => csvTemplate;
@@ -84,6 +97,7 @@ class CustomQuizService {
   /// Validates CSV content and returns any errors found.
   ///
   /// Returns a list of error messages, empty if the content is valid.
+  /// Supports both 5-column format (with wrong answers) and 2-column format (question and answer only).
   static List<String> validateCSV(String csvContent) {
     final errors = <String>[];
     final lines = csvContent
@@ -106,8 +120,15 @@ class CustomQuizService {
     // Validate data rows
     for (int i = 1; i < lines.length; i++) {
       final parts = lines[i].split(';');
-      if (parts.length < 6) {
-        errors.add('Row ${i + 1}: Expected 6 fields, found ${parts.length}');
+      
+      // Must be either 3 fields (id;question;answer) or 6 fields (with 3 wrong answers)
+      if (parts.length < 3) {
+        errors.add('Row ${i + 1}: Expected at least 3 fields (id;question;answer), found ${parts.length}');
+        continue;
+      }
+      
+      if (parts.length != 3 && parts.length < 6) {
+        errors.add('Row ${i + 1}: Expected 3 fields or 6 fields, found ${parts.length}');
         continue;
       }
 

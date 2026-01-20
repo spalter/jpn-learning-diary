@@ -38,11 +38,47 @@ class CustomQuizQuestion {
   });
 
   /// Creates a quiz question from a CustomQuizEntry with shuffled answers.
-  factory CustomQuizQuestion.fromEntry(CustomQuizEntry entry) {
+  /// 
+  /// If [entry] has predefined answers, uses those.
+  /// If [entry] only has a correct answer, randomly selects 3 wrong answers
+  /// from [allEntries] (excluding the current entry).
+  factory CustomQuizQuestion.fromEntry(
+    CustomQuizEntry entry, {
+    List<CustomQuizEntry>? allEntries,
+  }) {
     final random = Random();
+    List<String> allAnswers;
 
-    // Get all answers and shuffle them
-    final allAnswers = List<String>.from(entry.allAnswers)..shuffle(random);
+    // Use predefined answers if available
+    if (entry.hasPredefinedAnswers) {
+      allAnswers = List<String>.from(entry.allAnswers!)..shuffle(random);
+    } else {
+      // Generate random wrong answers from other entries
+      if (allEntries == null || allEntries.length < 4) {
+        throw ArgumentError(
+          'Need at least 4 total entries to generate random answers',
+        );
+      }
+
+      // Get all possible answers from other entries (excluding this one)
+      final otherAnswers = allEntries
+          .where((e) => e.id != entry.id)
+          .map((e) => e.correctAnswer)
+          .toList();
+
+      if (otherAnswers.length < 3) {
+        throw ArgumentError(
+          'Need at least 3 other entries to generate random wrong answers',
+        );
+      }
+
+      // Shuffle and take 3 random wrong answers
+      otherAnswers.shuffle(random);
+      final wrongAnswers = otherAnswers.take(3).toList();
+
+      // Combine and shuffle all answers
+      allAnswers = [entry.correctAnswer, ...wrongAnswers]..shuffle(random);
+    }
 
     return CustomQuizQuestion(
       prompt: entry.question,
@@ -202,7 +238,10 @@ class CustomQuizController extends ChangeNotifier {
     final selectedEntries = shuffled.take(min(10, entries.length)).toList();
 
     _questions = selectedEntries
-        .map((entry) => CustomQuizQuestion.fromEntry(entry))
+        .map((entry) => CustomQuizQuestion.fromEntry(
+              entry,
+              allEntries: entries, // Pass all entries for random answer generation
+            ))
         .toList();
 
     _resetQuizState();
