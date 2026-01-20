@@ -83,11 +83,16 @@ class DatabaseHelper {
       if (customPath != null && customPath.isNotEmpty) {
         // Custom path exists - handle platform-specific access requirements
         if (Platform.isMacOS) {
-          // On macOS, try to resolve security-scoped bookmark for persistent access
-          final resolvedPath = await FileAccessService.resolveBookmark();
-          if (resolvedPath != null) {
-            // Bookmark successfully resolved - use the resolved path
-            path = resolvedPath;
+          // On macOS, resolve security-scoped bookmark for directory access
+          // The bookmark grants access to the parent directory, allowing SQLite
+          // to create temporary files (WAL, SHM, journal) alongside the database
+          final resolvedDirPath = await FileAccessService.resolveBookmark();
+          if (resolvedDirPath != null) {
+            // Bookmark resolved - construct full database path from directory + filename
+            final dbFileName = customPath.endsWith('.db') 
+                ? basename(customPath) 
+                : filePath;
+            path = join(resolvedDirPath, dbFileName);
           } else {
             // No bookmark or resolution failed - use stored path directly
             // Note: This may fail with SQLITE error 14 (CANTOPEN) due to sandbox restrictions

@@ -112,12 +112,21 @@ class JpnDatabaseHelper {
 
   /// Gets the path to the database file in the assets folder (desktop only).
   ///
-  /// On desktop, assets are in `data/flutter_assets/lib/assets/` relative
-  /// to the executable directory.
+  /// On desktop, asset location varies by platform:
+  /// - macOS: `../Frameworks/App.framework/Resources/flutter_assets/lib/assets/`
+  /// - Windows/Linux: `data/flutter_assets/lib/assets/`
   String _getDesktopAssetPath() {
     final exePath = Platform.resolvedExecutable;
     final exeDir = dirname(exePath);
-    return join(exeDir, 'data', 'flutter_assets', 'lib', 'assets', _dbName);
+    
+    if (Platform.isMacOS) {
+      // macOS bundles assets in App.framework
+      return join(exeDir, '..', 'Frameworks', 'App.framework', 'Resources', 
+                  'flutter_assets', 'lib', 'assets', _dbName);
+    } else {
+      // Windows and Linux use data/flutter_assets
+      return join(exeDir, 'data', 'flutter_assets', 'lib', 'assets', _dbName);
+    }
   }
 
   /// Searches for kanji by character, meaning, or reading.

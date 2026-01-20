@@ -1,4 +1,7 @@
 PODS:
+  - accessing_security_scoped_resource (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - audio_session (0.0.1):
     - FlutterMacOS
   - file_picker (0.0.1):
@@ -36,6 +39,7 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
+  - accessing_security_scoped_resource (from `Flutter/ephemeral/.symlinks/plugins/accessing_security_scoped_resource/darwin`)
   - audio_session (from `Flutter/ephemeral/.symlinks/plugins/audio_session/macos`)
   - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
@@ -53,6 +57,8 @@ DEPENDENCIES:
   - window_manager (from `Flutter/ephemeral/.symlinks/plugins/window_manager/macos`)
 
 EXTERNAL SOURCES:
+  accessing_security_scoped_resource:
+    :path: Flutter/ephemeral/.symlinks/plugins/accessing_security_scoped_resource/darwin
   audio_session:
     :path: Flutter/ephemeral/.symlinks/plugins/audio_session/macos
   file_picker:
@@ -85,6 +91,7 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
 
 SPEC CHECKSUMS:
+  accessing_security_scoped_resource: 4a87897646efbc3a4578e28ea4c08083d7bf3e67
   audio_session: eaca2512cf2b39212d724f35d11f46180ad3a33e
   file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
