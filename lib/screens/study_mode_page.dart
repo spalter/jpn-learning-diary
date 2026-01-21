@@ -22,6 +22,8 @@ import 'package:jpn_learning_diary/widgets/kanji_card.dart';
 import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
 import 'package:jpn_learning_diary/widgets/bird_fab.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
+import 'package:jpn_learning_diary/widgets/ruby_text.dart';
+import 'package:jpn_learning_diary/widgets/styled_tooltip.dart';
 import 'package:jpn_learning_diary/widgets/word_card.dart';
 import 'package:jpn_learning_diary/widgets/takoboto_viewer.dart';
 
@@ -141,11 +143,26 @@ class _StudyModePageState extends State<StudyModePage> {
   }
 
   /// Builds clickable tokenized text where each word can be tapped.
+  /// If the line contains ruby patterns like `[kanji](reading)` or `「kanji」（reading）`,
+  /// displays with furigana above the kanji while still maintaining clickability.
   Widget _buildClickableTokenizedText(BuildContext context, String line) {
+    // Check if line contains ruby patterns
+    final hasRubyPattern = RubyText.containsRubyPattern(line);
+
+    // Get clean line for tokenization (strip ruby patterns if present)
+    final cleanLine = hasRubyPattern ? RubyText.stripRubyPatterns(line) : line;
+
+    // Tokenize the clean text
     final tokens = JapaneseTextUtils.tokenize(
-      line,
+      cleanLine,
     ).where((t) => t.trim().isNotEmpty).toList();
 
+    // If we have ruby patterns, build clickable text with furigana
+    if (hasRubyPattern) {
+      return _buildClickableRubyText(context, line, tokens);
+    }
+
+    // Otherwise, use standard tokenized clickable text
     return Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
@@ -153,6 +170,100 @@ class _StudyModePageState extends State<StudyModePage> {
           _buildClickableToken(context, tokens[i], i, tokens.length),
         ],
       ],
+    );
+  }
+
+  /// Builds clickable text with furigana support.
+  /// Parses ruby patterns and makes each segment clickable.
+  Widget _buildClickableRubyText(
+    BuildContext context,
+    String line,
+    List<String> tokens,
+  ) {
+    final rubyPattern = RegExp(r'[\[［「]([^\]］」]+)[\]］」][\(（]([^\)）]+)[\)）]');
+
+    final segments = <Widget>[];
+    int lastEnd = 0;
+    int tokenIndex = 0;
+
+    final textStyle = Theme.of(
+      context,
+    ).textTheme.titleLarge?.copyWith(height: 1.5);
+
+    for (final match in rubyPattern.allMatches(line)) {
+      // Add any text before this match as clickable segments
+      if (match.start > lastEnd) {
+        final beforeText = line.substring(lastEnd, match.start);
+        final beforeTokens = JapaneseTextUtils.tokenize(
+          beforeText,
+        ).where((t) => t.trim().isNotEmpty).toList();
+
+        for (int i = 0; i < beforeTokens.length; i++) {
+          segments.add(
+            _buildClickableToken(
+              context,
+              beforeTokens[i],
+              tokenIndex++,
+              tokens.length,
+            ),
+          );
+        }
+      }
+
+      // Add the ruby segment (kanji with reading) as clickable with tooltip
+      final kanji = match.group(1)!;
+      final reading = match.group(2)!;
+
+      final showSeparator = _showTokenized && tokenIndex > 0;
+
+      segments.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showSeparator)
+              Text(
+                '・',
+                style: textStyle?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
+                ),
+              ),
+            _ClickableRubyWord(
+              base: kanji,
+              reading: reading,
+              baseStyle: textStyle,
+              onTap: () => _copyWord(context, kanji),
+              onLongPress: () => _openTakoboto(kanji),
+            ),
+          ],
+        ),
+      );
+      tokenIndex++;
+
+      lastEnd = match.end;
+    }
+
+    // Add any remaining text after the last match
+    if (lastEnd < line.length) {
+      final afterText = line.substring(lastEnd);
+      final afterTokens = JapaneseTextUtils.tokenize(
+        afterText,
+      ).where((t) => t.trim().isNotEmpty).toList();
+
+      for (int i = 0; i < afterTokens.length; i++) {
+        segments.add(
+          _buildClickableToken(
+            context,
+            afterTokens[i],
+            tokenIndex++,
+            tokens.length,
+          ),
+        );
+      }
+    }
+
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: segments,
     );
   }
 
@@ -201,13 +312,18 @@ class _StudyModePageState extends State<StudyModePage> {
   /// Extracts kanji characters from a line and fetches their data and words.
   /// Also tokenizes the line and searches JMdict for each token.
   Future<void> _processLineForKanji(int lineIndex, String line) async {
+    // Strip ruby patterns before processing to get clean text
+    final cleanLine = RubyText.containsRubyPattern(line)
+        ? RubyText.stripRubyPatterns(line)
+        : line;
+
     // Extract kanji characters using regex
     final kanjiPattern = RegExp(r'[\u4E00-\u9FFF\u3400-\u4DBF]');
-    final matches = kanjiPattern.allMatches(line);
+    final matches = kanjiPattern.allMatches(cleanLine);
     final kanjiChars = matches.map((m) => m.group(0)!).toSet().toList();
 
     // Tokenize the line for JMdict search
-    final tokens = JapaneseTextUtils.tokenize(line)
+    final tokens = JapaneseTextUtils.tokenize(cleanLine)
         .where((t) => t.trim().isNotEmpty)
         .where((t) => !_punctuationPattern.hasMatch(t))
         .toSet()
@@ -537,7 +653,11 @@ class _StudyModePageState extends State<StudyModePage> {
                   ),
                   _viewMode == 'grid'
                       ? _buildCombinedGridView(jmdictList, wordsList, kanjiList)
-                      : _buildCombinedListView(jmdictList, wordsList, kanjiList),
+                      : _buildCombinedListView(
+                          jmdictList,
+                          wordsList,
+                          kanjiList,
+                        ),
                 ],
               ),
             )
@@ -629,7 +749,10 @@ class _StudyModePageState extends State<StudyModePage> {
                 );
               } else if (index < jmdictList.length + wordsList.length) {
                 final wordIndex = index - jmdictList.length;
-                return WordCard(word: wordsList[wordIndex], useBorderedStyle: true);
+                return WordCard(
+                  word: wordsList[wordIndex],
+                  useBorderedStyle: true,
+                );
               } else {
                 final kanjiIndex = index - jmdictList.length - wordsList.length;
                 return KanjiCard(
@@ -686,6 +809,61 @@ class _ClickableWordState extends State<_ClickableWord> {
                 color: _isHovering ? hoverColor : baseColor,
               ) ??
               TextStyle(color: _isHovering ? hoverColor : baseColor),
+        ),
+      ),
+    );
+  }
+}
+
+/// A clickable ruby text widget with furigana above the base text.
+/// Copies on tap and opens dictionary on long press.
+class _ClickableRubyWord extends StatefulWidget {
+  final String base;
+  final String reading;
+  final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+  final TextStyle? baseStyle;
+
+  const _ClickableRubyWord({
+    required this.base,
+    required this.reading,
+    required this.onTap,
+    this.onLongPress,
+    this.baseStyle,
+  });
+
+  @override
+  State<_ClickableRubyWord> createState() => _ClickableRubyWordState();
+}
+
+class _ClickableRubyWordState extends State<_ClickableRubyWord> {
+  bool _isHovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final baseColor =
+        widget.baseStyle?.color ?? Theme.of(context).colorScheme.onSurface;
+    final hoverColor = Theme.of(context).colorScheme.primary;
+
+    return StyledTooltip(
+      message: widget.reading,
+      verticalOffset: 20,
+      preferBelow: false,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovering = true),
+        onExit: (_) => setState(() => _isHovering = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          onLongPress: widget.onLongPress,
+          child: Text(
+            widget.base,
+            style:
+                widget.baseStyle?.copyWith(
+                  color: _isHovering ? hoverColor : baseColor,
+                ) ??
+                TextStyle(color: _isHovering ? hoverColor : baseColor),
+          ),
         ),
       ),
     );

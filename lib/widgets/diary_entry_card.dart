@@ -13,6 +13,7 @@ import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/widgets/app_card.dart';
 import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart';
+import 'package:jpn_learning_diary/widgets/ruby_text.dart';
 
 /// Card widget for displaying a single diary entry.
 ///
@@ -121,10 +122,14 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
     );
   }
 
-  /// Builds the Japanese text display with optional furigana above it.
+  /// Builds the Japanese text display with optional inline furigana.
   ///
-  /// Applies a hover color effect when in minimal style mode to provide
-  /// visual feedback on mouse interaction.
+  /// Priority order for furigana display:
+  /// 1. Legacy furigana field - if set and different from Japanese text, use it
+  /// 2. Inline ruby patterns - parse `[kanji](reading)` or `「kanji」（reading）`
+  /// 3. No furigana - display Japanese text as-is
+  ///
+  /// Applies a hover color effect when in minimal style mode.
   Widget _buildJapaneseText(
     BuildContext context, {
     required bool showFurigana,
@@ -135,20 +140,58 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
         ? Theme.of(context).colorScheme.primary
         : null;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (showFurigana && _hasFurigana) _buildFurigana(context),
-        Text(
-          widget.entry.japanese,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: textColor,
+    final textStyle = Theme.of(context).textTheme.headlineSmall?.copyWith(
+      fontWeight: FontWeight.bold,
+      color: textColor,
+    );
+
+    // Check if text contains ruby patterns [kanji](reading)
+    final hasRubyPattern = RubyText.containsRubyPattern(widget.entry.japanese);
+
+    // Priority 1: Use legacy furigana field if available
+    if (_hasFurigana) {
+      // Strip any ruby patterns from display text when using legacy furigana
+      final displayText = hasRubyPattern
+          ? RubyText.stripRubyPatterns(widget.entry.japanese)
+          : widget.entry.japanese;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (showFurigana) _buildFurigana(context),
+          Text(
+            displayText,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: textStyle,
           ),
+        ],
+      );
+    }
+
+    // Priority 2: Use inline ruby patterns if present
+    if (showFurigana && hasRubyPattern) {
+      return RubyText(
+        text: widget.entry.japanese,
+        textStyle: textStyle,
+        rubyStyle: TextStyle(
+          fontSize: 11,
+          color: Theme.of(context).colorScheme.primary,
+          height: 1.0,
         ),
-      ],
+      );
+    }
+
+    // Priority 3: No furigana - display text as-is (strip patterns if present)
+    final displayText = hasRubyPattern
+        ? RubyText.stripRubyPatterns(widget.entry.japanese)
+        : widget.entry.japanese;
+
+    return Text(
+      displayText,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: textStyle,
     );
   }
 

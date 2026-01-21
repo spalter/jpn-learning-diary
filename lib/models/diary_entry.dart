@@ -59,22 +59,27 @@ class DiaryEntry extends Equatable {
   }
 
   /// Creates a copy of this entry with the given fields replaced.
+  ///
+  /// For nullable fields (furigana, notes), use [clearFurigana] or [clearNotes]
+  /// to explicitly set them to null, since passing null preserves the old value.
   DiaryEntry copyWith({
     int? id,
     String? japanese,
     String? furigana,
+    bool clearFurigana = false,
     String? romaji,
     String? meaning,
     String? notes,
+    bool clearNotes = false,
     DateTime? dateAdded,
   }) {
     return DiaryEntry(
       id: id ?? this.id,
       japanese: japanese ?? this.japanese,
-      furigana: furigana ?? this.furigana,
+      furigana: clearFurigana ? null : (furigana ?? this.furigana),
       romaji: romaji ?? this.romaji,
       meaning: meaning ?? this.meaning,
-      notes: notes ?? this.notes,
+      notes: clearNotes ? null : (notes ?? this.notes),
       dateAdded: dateAdded ?? this.dateAdded,
     );
   }

@@ -26,12 +26,17 @@ class StyledTooltip extends StatelessWidget {
   /// Optional wait duration before showing the tooltip.
   final Duration? waitDuration;
 
+  /// Whether the tooltip should prefer to appear below the widget.
+  /// Defaults to true. Set to false to prefer showing above.
+  final bool preferBelow;
+
   const StyledTooltip({
     super.key,
     required this.message,
     required this.child,
     this.verticalOffset,
     this.waitDuration,
+    this.preferBelow = true,
   });
 
   @override
@@ -40,6 +45,7 @@ class StyledTooltip extends StatelessWidget {
       message: message,
       verticalOffset: verticalOffset,
       waitDuration: waitDuration,
+      preferBelow: preferBelow,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),

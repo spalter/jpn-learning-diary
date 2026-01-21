@@ -216,12 +216,17 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
             
             if (isEditing) {
               // Update existing entry in database with new values.
+              final furiganaText = _furiganaController.text.trim();
+              final notesText = _notesController.text.trim();
+              
               final updatedEntry = widget.entry!.copyWith(
                 japanese: _japaneseController.text,
-                furigana: _furiganaController.text.isEmpty ? null : _furiganaController.text,
+                furigana: furiganaText.isEmpty ? null : furiganaText,
+                clearFurigana: furiganaText.isEmpty,
                 romaji: _romajiController.text,
                 meaning: _meaningController.text,
-                notes: _notesController.text.isEmpty ? null : _notesController.text,
+                notes: notesText.isEmpty ? null : notesText,
+                clearNotes: notesText.isEmpty,
               );
               await diaryRepository.updateEntry(updatedEntry);
             } else {
