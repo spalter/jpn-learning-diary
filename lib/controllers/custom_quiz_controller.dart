@@ -206,7 +206,7 @@ class CustomQuizController extends ChangeNotifier {
   /// [sourceName] - A display name for the quiz source
   Future<void> loadFromString(
     String csvContent, {
-    String sourceName = 'Custom Quiz',
+    String sourceName = 'Quiz',
   }) async {
     _isLoading = true;
     _errorMessage = null;

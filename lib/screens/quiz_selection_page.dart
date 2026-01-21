@@ -7,7 +7,8 @@
 //
 // ============================================================================
 
-import 'dart:io' show Platform;
+import 'dart:io' show File, Platform;
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/screens/custom_quiz_page.dart';
 import 'package:jpn_learning_diary/services/custom_quiz_service.dart';
@@ -66,11 +67,63 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
     }
   }
 
+  /// Imports a quiz file from the device using the file picker.
+  ///
+  /// Opens a file picker dialog for CSV files, copies the selected file
+  /// to the app's quizzes directory (overwriting if it already exists),
+  /// and refreshes the quiz list.
+  Future<void> _importQuizFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+        withData: true,
+      );
+
+      if (result == null || result.files.isEmpty) {
+        return; // User cancelled
+      }
+
+      final pickedFile = result.files.first;
+      final bytes = pickedFile.bytes;
+      final fileName = pickedFile.name;
+
+      if (bytes == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to read file')),
+          );
+        }
+        return;
+      }
+
+      // Get the quizzes directory and save the file
+      final quizzesDir = await CustomQuizService.getQuizzesDirectory();
+      final targetFile = File('${quizzesDir.path}/$fileName');
+      await targetFile.writeAsBytes(bytes);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Imported: $fileName')),
+        );
+      }
+
+      // Refresh the list
+      await _loadQuizzes();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to import: $e')),
+        );
+      }
+    }
+  }
+
   /// Builds the main scaffold with app bar, background, and floating action button.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const LearningModeAppBar(title: 'Custom Quizzes'),
+      appBar: const LearningModeAppBar(title: 'My Quizzes'),
       backgroundColor: AppTheme.scaffoldBackground(context),
       floatingActionButton: const BirdFab(),
       body: _buildBody(context),
@@ -149,7 +202,7 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.quiz_outlined, size: 64, color: Colors.grey),
+            const Icon(Icons.collections_bookmark_outlined, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
             Text(
               'No Quizzes Found',
@@ -157,7 +210,9 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Add CSV quiz files to your quizzes folder to get started.',
+              Platform.isAndroid || Platform.isIOS
+                  ? 'Import a CSV quiz file to get started.'
+                  : 'Add CSV quiz files to your quizzes folder to get started.',
               style: Theme.of(
                 context,
               ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
@@ -230,9 +285,12 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
   ///
   /// Creates a tappable card showing the quiz name, file name, and a
   /// decorative icon. Tapping the card navigates to the quiz page.
+  /// On mobile platforms, long-pressing shows a delete confirmation dialog.
   Widget _buildQuizCard(BuildContext context, QuizFileInfo quiz) {
+    final isMobile = Platform.isAndroid || Platform.isIOS;
     return AppCard.bordered(
       onTap: () => _startQuiz(context, quiz),
+      onLongPress: isMobile ? () => _showDeleteDialog(context, quiz) : null,
       padding: const EdgeInsets.all(20),
       child: Row(
         children: [
@@ -244,7 +302,7 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
-              Icons.quiz,
+              Icons.description,
               color: Theme.of(context).colorScheme.onPrimaryContainer,
             ),
           ),
@@ -281,11 +339,57 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
     );
   }
 
-  /// Builds the folder access button row with refresh and open folder options.
+  /// Shows a confirmation dialog to delete a quiz file.
+  Future<void> _showDeleteDialog(BuildContext context, QuizFileInfo quiz) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Quiz'),
+        content: Text('Are you sure you want to delete "${quiz.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _deleteQuiz(quiz);
+    }
+  }
+
+  /// Deletes a quiz file and refreshes the list.
+  Future<void> _deleteQuiz(QuizFileInfo quiz) async {
+    final success = await CustomQuizService.deleteQuiz(quiz.path);
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Deleted: ${quiz.name}')),
+        );
+        await _loadQuizzes();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to delete quiz')),
+        );
+      }
+    }
+  }
+
+  /// Builds the folder access button row with refresh and open folder/import options.
   ///
-  /// Always displays a refresh button. On desktop platforms, also includes
-  /// an "Open Folder" button to access the quizzes directory in the file explorer.
+  /// Always displays a refresh button. On desktop platforms, includes
+  /// an "Open Folder" button. On mobile platforms, includes an "Import" button.
   Widget _buildFolderButton(BuildContext context) {
+    final isMobile = Platform.isAndroid || Platform.isIOS;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -295,8 +399,15 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
           icon: const Icon(Icons.refresh, size: 20),
           tooltip: 'Refresh',
         ),
+        // Import button - mobile only
+        if (isMobile)
+          TextButton.icon(
+            onPressed: _importQuizFile,
+            icon: const Icon(Icons.file_upload, size: 18),
+            label: const Text('Import'),
+          ),
         // Folder button - desktop only
-        if (!Platform.isAndroid && !Platform.isIOS)
+        if (!isMobile)
           TextButton.icon(
             onPressed: () async {
               await CustomQuizService.openQuizzesFolder();
@@ -311,14 +422,24 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
   /// Builds the action buttons for the empty state.
   ///
   /// On desktop platforms, includes a button to open the quizzes folder.
+  /// On mobile platforms, includes an import button.
   /// Always includes a refresh button to reload the quiz list.
   Widget _buildActionButtons(BuildContext context) {
+    final isMobile = Platform.isAndroid || Platform.isIOS;
     return Wrap(
       spacing: 12,
       runSpacing: 12,
       alignment: WrapAlignment.center,
       children: [
-        if (!Platform.isAndroid && !Platform.isIOS)
+        // Import button - mobile only
+        if (isMobile)
+          ElevatedButton.icon(
+            onPressed: _importQuizFile,
+            icon: const Icon(Icons.file_upload),
+            label: const Text('Import Quiz'),
+          ),
+        // Open folder button - desktop only
+        if (!isMobile)
           ElevatedButton.icon(
             onPressed: () async {
               await CustomQuizService.openQuizzesFolder();

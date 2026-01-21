@@ -244,6 +244,15 @@ class _LearningPageState extends State<LearningPage> {
   Widget _buildLearningModesGrid(BuildContext context) {
     final buttons = [
       _LearningModeData(
+        title: 'Study',
+        icon: Icons.auto_stories,
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const StudyModePage()),
+          );
+        },
+      ),
+      _LearningModeData(
         title: 'Diary Quiz',
         icon: Icons.edit_note,
         onTap: () {
@@ -277,17 +286,8 @@ class _LearningPageState extends State<LearningPage> {
         },
       ),
       _LearningModeData(
-        title: 'Study',
-        icon: Icons.auto_stories,
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const StudyModePage()),
-          );
-        },
-      ),
-      _LearningModeData(
-        title: 'Custom Quiz',
-        icon: Icons.quiz,
+        title: 'My Quizzes',
+        icon: Icons.collections_bookmark,
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => const QuizSelectionPage()),

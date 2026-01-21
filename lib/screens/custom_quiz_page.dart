@@ -39,7 +39,7 @@ class CustomQuizPage extends StatefulWidget {
     this.assetPath,
     this.filePath,
     this.csvContent,
-    this.sourceName = 'Custom Quiz',
+    this.sourceName = 'Quiz',
   });
 
   @override

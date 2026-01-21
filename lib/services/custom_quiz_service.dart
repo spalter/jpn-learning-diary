@@ -156,7 +156,6 @@ Requires at least 4 entries for random selection.
 
   /// List of bundled quiz assets to copy on first run.
   static const List<String> _bundledQuizzes = [
-    'assets/quizzes/sample_japanese_basics.csv',
     'assets/quizzes/template.csv',
   ];
 
@@ -249,6 +248,22 @@ Requires at least 4 entries for random selection.
       await Process.run('open', [quizzesDir.path]);
     } else if (Platform.isLinux) {
       await Process.run('xdg-open', [quizzesDir.path]);
+    }
+  }
+
+  /// Deletes a quiz file from the quizzes directory.
+  ///
+  /// Returns true if the file was successfully deleted, false otherwise.
+  static Future<bool> deleteQuiz(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (await file.exists()) {
+        await file.delete();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
     }
   }
 
