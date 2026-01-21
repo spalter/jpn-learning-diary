@@ -354,14 +354,14 @@ class _PracticeModePageState extends State<PracticeModePage> {
       label = 'See Results';
       icon = Icons.flag;
       onPressed = controller.moveToNext;
-      backgroundColor = isCorrect ? Colors.green : Colors.red;
+      backgroundColor = isCorrect ? Colors.green[700] : Colors.red[700];
       foregroundColor = Colors.white;
     } else {
       // After answering: show styled "Next Question" button
       label = 'Next Question';
       icon = Icons.arrow_forward;
       onPressed = controller.moveToNext;
-      backgroundColor = isCorrect ? Colors.green : Colors.red;
+      backgroundColor = isCorrect ? Colors.green[700] : Colors.red[700];
       foregroundColor = Colors.white;
     }
 

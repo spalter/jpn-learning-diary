@@ -10,6 +10,7 @@
 import 'dart:io' show Platform, exit;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:jpn_learning_diary/screens/learning_page.dart';
 import 'package:jpn_learning_diary/screens/hiragana_page.dart';
 import 'package:jpn_learning_diary/screens/katakana_page.dart';
@@ -77,11 +78,13 @@ class _AppShellState extends State<AppShell> {
     super.initState();
     _searchController = TextEditingController();
     _searchController.addListener(_onSearchTextChanged);
+    HardwareKeyboard.instance.addHandler(_handleGlobalKeyEvent);
   }
 
   /// Cleans up the search controller and focus node.
   @override
   void dispose() {
+    HardwareKeyboard.instance.removeHandler(_handleGlobalKeyEvent);
     _searchController.removeListener(_onSearchTextChanged);
     _searchController.dispose();
     _searchFocusNode.dispose();
@@ -192,96 +195,126 @@ class _AppShellState extends State<AppShell> {
   }
 
   /// Builds the main scaffold with navigation bar, content, and floating button.
-  ///
-  /// Wraps everything in Shortcuts and Actions to enable keyboard navigation
-  /// like Ctrl+F for search focus.
   @override
   Widget build(BuildContext context) {
-    return Shortcuts(
-      shortcuts: _buildShortcuts(),
-      child: Actions(
-        actions: _buildActions(),
-        child: Focus(
-          autofocus: true,
-          child: Scaffold(
-            appBar: AppNavigationBar(
-              key: _navigationBarKey,
-              textController: _searchController,
-              searchFocusNode: _searchFocusNode,
+    return Scaffold(
+      appBar: AppNavigationBar(
+        key: _navigationBarKey,
+        textController: _searchController,
+        searchFocusNode: _searchFocusNode,
+        currentPageIndex: _currentPage.index,
+        onNavigateToPhrasesWords: () => _navigateToPage(AppPage.phrasesWords),
+        onNavigateToHiragana: () => _navigateToPage(AppPage.hiragana),
+        onNavigateToKatakana: () => _navigateToPage(AppPage.katakana),
+        onNavigateToDashboard: () => _navigateToPage(AppPage.dashboard),
+        onNavigateToSettings: () => _navigateToPage(AppPage.settings),
+        onSearch: _handleSearch,
+        onClearSearch: _clearSearchAndNavigate,
+        onExit: () => exit(0),
+      ),
+      // Show drawer on mobile platforms
+      drawer: _isMobile
+          ? AppNavigationDrawer(
               onNavigateToPhrasesWords: () =>
                   _navigateToPage(AppPage.phrasesWords),
               onNavigateToHiragana: () => _navigateToPage(AppPage.hiragana),
               onNavigateToKatakana: () => _navigateToPage(AppPage.katakana),
               onNavigateToDashboard: () => _navigateToPage(AppPage.dashboard),
               onNavigateToSettings: () => _navigateToPage(AppPage.settings),
-              onSearch: _handleSearch,
-              onClearSearch: _clearSearchAndNavigate,
-              onExit: () => exit(0),
-            ),
-            // Show drawer on mobile platforms
-            drawer: _isMobile
-                ? AppNavigationDrawer(
-                    onNavigateToPhrasesWords: () =>
-                        _navigateToPage(AppPage.phrasesWords),
-                    onNavigateToHiragana: () =>
-                        _navigateToPage(AppPage.hiragana),
-                    onNavigateToKatakana: () =>
-                        _navigateToPage(AppPage.katakana),
-                    onNavigateToDashboard: () =>
-                        _navigateToPage(AppPage.dashboard),
-                    onNavigateToSettings: () =>
-                        _navigateToPage(AppPage.settings),
-                  )
-                : null,
-            backgroundColor: AppTheme.scaffoldBackground(context),
-            body: Padding(
-              padding: const EdgeInsets.only(
-                left: 16,
-                top: 16,
-                right: 0,
-                bottom: 0,
-              ),
-              child: _buildCurrentPage(),
-            ),
-            floatingActionButton: _currentPage != AppPage.settings
-                ? BirdFab(onEntryCreated: _refreshCurrentPage)
-                : null,
-          ),
+            )
+          : null,
+      backgroundColor: AppTheme.scaffoldBackground(context),
+      body: Padding(
+        padding: const EdgeInsets.only(
+          left: 16,
+          top: 16,
+          right: 0,
+          bottom: 0,
         ),
+        child: _buildCurrentPage(),
       ),
+      floatingActionButton: _currentPage != AppPage.settings
+          ? BirdFab(onEntryCreated: _refreshCurrentPage)
+          : null,
     );
   }
 
-  /// Creates keyboard shortcut mappings for search focus.
+  /// Global keyboard event handler for shortcuts.
   ///
-  /// Supports Cmd+F on macOS, Ctrl+F on other platforms, plus / and F3 as
-  /// universal alternatives.
-  Map<LogicalKeySet, Intent> _buildShortcuts() {
-    return <LogicalKeySet, Intent>{
-      // Use Cmd+F on macOS, Ctrl+F on Windows/Linux
-      LogicalKeySet(
-        Platform.isMacOS ? LogicalKeyboardKey.meta : LogicalKeyboardKey.control,
-        LogicalKeyboardKey.keyF,
-      ): const FocusSearchIntent(),
-      LogicalKeySet(LogicalKeyboardKey.slash): const FocusSearchIntent(),
-      LogicalKeySet(LogicalKeyboardKey.f3): const FocusSearchIntent(),
-    };
+  /// Registered with HardwareKeyboard to catch all key events regardless
+  /// of widget focus. Supports:
+  /// - Cmd+F/Ctrl+F for search focus
+  /// - F11 for fullscreen toggle
+  /// - Option+1-4 (Mac) / Ctrl+1-4 (Win/Linux) for page navigation
+  /// - Cmd+,/Ctrl+, for settings
+  bool _handleGlobalKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent) {
+      return false;
+    }
+
+    final key = event.logicalKey;
+    final isControlPressed = HardwareKeyboard.instance.isControlPressed;
+    final isMetaPressed = HardwareKeyboard.instance.isMetaPressed;
+    final isAltPressed = HardwareKeyboard.instance.isAltPressed;
+
+    // Cmd+F on macOS, Ctrl+F on Windows/Linux - focus search
+    if (key == LogicalKeyboardKey.keyF) {
+      if ((Platform.isMacOS && isMetaPressed) ||
+          (!Platform.isMacOS && isControlPressed)) {
+        _focusSearchField();
+        return true;
+      }
+    }
+
+    // F11 for fullscreen toggle
+    if (key == LogicalKeyboardKey.f11 && !_isMobile) {
+      _toggleFullscreen();
+      return true;
+    }
+
+    // Navigation modifier: Option on Mac, Ctrl on Windows/Linux
+    final isNavModifierPressed =
+        Platform.isMacOS ? isAltPressed : isControlPressed;
+
+    // Option+1 (Mac) / Ctrl+1 (Win/Linux) - Diary page
+    if (key == LogicalKeyboardKey.digit1 && isNavModifierPressed) {
+      _navigateToPage(AppPage.phrasesWords);
+      return true;
+    }
+
+    // Option+2 (Mac) / Ctrl+2 (Win/Linux) - Hiragana page
+    if (key == LogicalKeyboardKey.digit2 && isNavModifierPressed) {
+      _navigateToPage(AppPage.hiragana);
+      return true;
+    }
+
+    // Option+3 (Mac) / Ctrl+3 (Win/Linux) - Katakana page
+    if (key == LogicalKeyboardKey.digit3 && isNavModifierPressed) {
+      _navigateToPage(AppPage.katakana);
+      return true;
+    }
+
+    // Option+4 (Mac) / Ctrl+4 (Win/Linux) - Learning/Dashboard page
+    if (key == LogicalKeyboardKey.digit4 && isNavModifierPressed) {
+      _navigateToPage(AppPage.dashboard);
+      return true;
+    }
+
+    // Cmd+, on macOS, Ctrl+, on Windows/Linux - Settings
+    if (key == LogicalKeyboardKey.comma) {
+      if ((Platform.isMacOS && isMetaPressed) ||
+          (!Platform.isMacOS && isControlPressed)) {
+        _navigateToPage(AppPage.settings);
+        return true;
+      }
+    }
+
+    return false;
   }
 
-  /// Creates action handlers that respond to keyboard shortcut intents.
-  Map<Type, Action<Intent>> _buildActions() {
-    return <Type, Action<Intent>>{
-      FocusSearchIntent: CallbackAction<FocusSearchIntent>(
-        onInvoke: (intent) {
-          _focusSearchField();
-          return null;
-        },
-      ),
-    };
+  /// Toggles fullscreen mode on desktop platforms.
+  Future<void> _toggleFullscreen() async {
+    final isFullScreen = await windowManager.isFullScreen();
+    await windowManager.setFullScreen(!isFullScreen);
   }
-}
-
-/// Intent triggered by keyboard shortcuts to focus the search field.
-class FocusSearchIntent extends Intent {
-  const FocusSearchIntent();
 }

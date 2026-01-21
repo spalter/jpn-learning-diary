@@ -29,6 +29,9 @@ class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
   /// Focus node for the search field.
   final FocusNode searchFocusNode;
 
+  /// The currently active page for highlighting the navigation icon.
+  final int currentPageIndex;
+
   /// Callback for navigating to phrases/words page.
   final VoidCallback onNavigateToPhrasesWords;
 
@@ -57,6 +60,7 @@ class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
     super.key,
     required this.textController,
     required this.searchFocusNode,
+    required this.currentPageIndex,
     required this.onNavigateToPhrasesWords,
     required this.onNavigateToHiragana,
     required this.onNavigateToKatakana,
@@ -151,13 +155,24 @@ class AppNavigationBarState extends State<AppNavigationBar> {
   }
 
   /// Creates the main navigation buttons for diary, hiragana, katakana, and learning.
+  ///
+  /// The currently active page icon is highlighted with the primary color.
   List<Widget> _buildNavigationButtons(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final defaultColor = Theme.of(context).colorScheme.onSurface;
+
     return [
       ExcludeFocus(
         child: StyledTooltip(
           message: 'Diary (Phrases & Words)',
           child: IconButton(
-            icon: const Icon(Icons.menu_book),
+            icon: Icon(
+              Icons.menu_book,
+              // Also highlight when on search results (index 5)
+              color: (widget.currentPageIndex == 0 || widget.currentPageIndex == 5)
+                  ? primaryColor
+                  : defaultColor,
+            ),
             onPressed: widget.onNavigateToPhrasesWords,
           ),
         ),
@@ -166,9 +181,13 @@ class AppNavigationBarState extends State<AppNavigationBar> {
         child: StyledTooltip(
           message: 'Hiragana',
           child: IconButton(
-            icon: const Text(
+            icon: Text(
               'あ',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: widget.currentPageIndex == 1 ? primaryColor : defaultColor,
+              ),
             ),
             onPressed: widget.onNavigateToHiragana,
           ),
@@ -178,9 +197,13 @@ class AppNavigationBarState extends State<AppNavigationBar> {
         child: StyledTooltip(
           message: 'Katakana',
           child: IconButton(
-            icon: const Text(
+            icon: Text(
               'ア',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: widget.currentPageIndex == 2 ? primaryColor : defaultColor,
+              ),
             ),
             onPressed: widget.onNavigateToKatakana,
           ),
@@ -190,7 +213,10 @@ class AppNavigationBarState extends State<AppNavigationBar> {
         child: StyledTooltip(
           message: 'Learning',
           child: IconButton(
-            icon: const Icon(Icons.school),
+            icon: Icon(
+              Icons.school,
+              color: widget.currentPageIndex == 3 ? primaryColor : defaultColor,
+            ),
             onPressed: widget.onNavigateToDashboard,
           ),
         ),
@@ -265,12 +291,18 @@ class AppNavigationBarState extends State<AppNavigationBar> {
 
   /// Creates the right-side action buttons for settings, window controls, and exit.
   List<Widget> _buildActionButtons(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final defaultColor = Theme.of(context).colorScheme.onSurface;
+
     return [
       ExcludeFocus(
         child: StyledTooltip(
           message: 'Settings',
           child: IconButton(
-            icon: const Icon(Icons.settings),
+            icon: Icon(
+              Icons.settings,
+              color: widget.currentPageIndex == 4 ? primaryColor : defaultColor,
+            ),
             onPressed: widget.onNavigateToSettings,
           ),
         ),
