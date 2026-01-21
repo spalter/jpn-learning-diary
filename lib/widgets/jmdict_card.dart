@@ -66,8 +66,9 @@ class _JMdictCardState extends State<JMdictCard> {
   Widget build(BuildContext context) {
     // Apply hover color effect only in list mode (minimal style)
     final useHoverColor = !widget.useBorderedStyle && _isHovering;
-    final primaryColor =
-        useHoverColor ? Theme.of(context).colorScheme.primary : null;
+    final primaryColor = useHoverColor
+        ? Theme.of(context).colorScheme.primary
+        : null;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
@@ -81,92 +82,101 @@ class _JMdictCardState extends State<JMdictCard> {
         onTap: () => _handleCopyToClipboard(context),
         onDoubleTap: () => _handleInsertIntoSearch(context),
         onLongPress: () => _handleOpenDictionary(context),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 400),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Primary word and reading
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Large word display
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Primary form (kanji or kana)
-                          Text(
-                            widget.entry.primaryForm,
-                            style:
-                                Theme.of(context).textTheme.displayMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: primaryColor,
-                                ),
-                      ),
-                      // Reading (if different from primary form)
-                      if (widget.entry.kanji.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.entry.primaryReading,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface
-                                        .withAlpha(179),
-                                  ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                // Metadata badges
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    if (widget.entry.isCommon)
-                      _buildBadge(context, 'Common', Icons.star),
-                    ..._buildPosBadges(context),
-                  ],
-                ),
-              ],
-            ),
-
-            // Alternative kanji forms
-            if (widget.entry.kanji.length > 1) ...[
-              const SizedBox(height: 12),
-              _buildAlternativeForms(
-                context,
-                'Also written as',
-                widget.entry.kanji.skip(1).map((k) => k.keb).toList(),
-                Icons.edit,
-              ),
-            ],
-
-            // Alternative readings
-            if (widget.entry.readings.length > 1) ...[
-              const SizedBox(height: 12),
-              _buildAlternativeForms(
-                context,
-                'Also read as',
-                widget.entry.readings.skip(1).map((r) => r.reb).toList(),
-                Icons.record_voice_over,
-              ),
-            ],
-
-            const SizedBox(height: 16),
-
-            // Senses/Meanings
-            ..._buildSenses(context),
-          ],
-        ),
-          ),
-        ),
+        child: _buildCardContent(context, primaryColor),
       ),
     );
+  }
+
+  /// Builds the card content, with scrolling for bordered style or
+  /// expanding naturally for minimal (list view) style.
+  Widget _buildCardContent(BuildContext context, Color? primaryColor) {
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Primary word and reading
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Large word display
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Primary form (kanji or kana)
+                  Text(
+                    widget.entry.primaryForm,
+                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: primaryColor,
+                    ),
+                  ),
+                  // Reading (if different from primary form)
+                  if (widget.entry.kanji.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.entry.primaryReading,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withAlpha(179),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            // Metadata badges
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (widget.entry.isCommon)
+                  _buildBadge(context, 'Common', Icons.star),
+                ..._buildPosBadges(context),
+              ],
+            ),
+          ],
+        ),
+
+        // Alternative kanji forms
+        if (widget.entry.kanji.length > 1) ...[
+          const SizedBox(height: 12),
+          _buildAlternativeForms(
+            context,
+            'Also written as',
+            widget.entry.kanji.skip(1).map((k) => k.keb).toList(),
+            Icons.edit,
+          ),
+        ],
+
+        // Alternative readings
+        if (widget.entry.readings.length > 1) ...[
+          const SizedBox(height: 12),
+          _buildAlternativeForms(
+            context,
+            'Also read as',
+            widget.entry.readings.skip(1).map((r) => r.reb).toList(),
+            Icons.record_voice_over,
+          ),
+        ],
+
+        const SizedBox(height: 16),
+
+        // Senses/Meanings
+        ..._buildSenses(context),
+      ],
+    );
+
+    // For bordered style (card view), use scrolling with max height constraint
+    // For minimal style (list view), let the content grow naturally
+    if (widget.useBorderedStyle) {
+      return ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 400),
+        child: SingleChildScrollView(child: content),
+      );
+    }
+
+    return content;
   }
 
   /// Builds badges for part-of-speech tags from the first sense.
@@ -271,7 +281,8 @@ class _JMdictCardState extends State<JMdictCard> {
       'suru verb - irregular': 'Suru (irr)',
       'suru verb - special class': 'Suru (sp)',
       'Kuru verb - special class': 'Kuru verb',
-      'Ichidan verb - zuru verb (alternative form of -jiru verbs)': 'Ichidan-zuru',
+      'Ichidan verb - zuru verb (alternative form of -jiru verbs)':
+          'Ichidan-zuru',
       // Misc tags
       '&uk;': 'Usually kana',
       '&uK;': 'Usually kanji',
@@ -436,9 +447,11 @@ class _JMdictCardState extends State<JMdictCard> {
       'jocular, humorous term': 'Humorous',
       'manga slang': 'Manga slang',
       'male slang': 'Male slang',
-      'rude or X-rated term (not displayed in educational software)': 'Rude/X-rated',
+      'rude or X-rated term (not displayed in educational software)':
+          'Rude/X-rated',
       'ateji (phonetic) reading': 'Ateji',
-      'gikun (meaning as reading)  or jukujikun (special kanji reading)': 'Gikun',
+      'gikun (meaning as reading)  or jukujikun (special kanji reading)':
+          'Gikun',
       'word containing irregular kana usage': 'Irregular kana',
       'word containing irregular kanji usage': 'Irregular kanji',
       'irregular okurigana usage': 'Irregular okurigana',
@@ -523,9 +536,9 @@ class _JMdictCardState extends State<JMdictCard> {
                   child: Text(
                     '${i + 1}',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -541,12 +554,11 @@ class _JMdictCardState extends State<JMdictCard> {
                       child: Text(
                         sense.partsOfSpeech.map(_formatPos).join(', '),
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withAlpha(179),
-                              fontStyle: FontStyle.italic,
-                            ),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withAlpha(179),
+                          fontStyle: FontStyle.italic,
+                        ),
                       ),
                     ),
                   // Gloss text
@@ -558,16 +570,16 @@ class _JMdictCardState extends State<JMdictCard> {
                   if (sense.fields.isNotEmpty || sense.misc.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
-                      [...sense.fields, ...sense.misc]
-                          .map(_formatTag)
-                          .join(', '),
+                      [
+                        ...sense.fields,
+                        ...sense.misc,
+                      ].map(_formatTag).join(', '),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withAlpha(153),
-                            fontStyle: FontStyle.italic,
-                          ),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withAlpha(153),
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ],
                 ],
@@ -599,8 +611,9 @@ class _JMdictCardState extends State<JMdictCard> {
   /// Falls back to showing a message if the navigation bar reference is unavailable.
   void _handleInsertIntoSearch(BuildContext context) {
     if (widget.navigationBarKey?.currentState != null) {
-      widget.navigationBarKey!.currentState!
-          .insertSearchText(widget.entry.primaryForm);
+      widget.navigationBarKey!.currentState!.insertSearchText(
+        widget.entry.primaryForm,
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -674,20 +687,21 @@ class _JMdictCardState extends State<JMdictCard> {
               Text(
                 title,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color:
-                          Theme.of(context).colorScheme.primary.withAlpha(179),
-                      fontWeight: FontWeight.bold,
-                    ),
+                  color: Theme.of(context).colorScheme.primary.withAlpha(179),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 4),
               Wrap(
                 spacing: 8,
                 runSpacing: 4,
                 children: forms
-                    .map((form) => Text(
-                          form,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ))
+                    .map(
+                      (form) => Text(
+                        form,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    )
                     .toList(),
               ),
             ],

@@ -11,6 +11,7 @@ import 'dart:io' show Platform, exit;
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:jpn_learning_diary/widgets/styled_tooltip.dart';
+import 'package:jpn_learning_diary/widgets/drag_to_move_area.dart';
 
 /// Custom app bar designed for learning mode pages like practice and study.
 ///
@@ -52,7 +53,7 @@ class LearningModeAppBar extends StatelessWidget
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       automaticallyImplyLeading: false,
       titleSpacing: 0,
-      title: DragToMoveArea(
+      title: DragOnlyMoveArea(
         child: Row(
           children: [
             // Left spacing to align with navigation bar

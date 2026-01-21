@@ -121,6 +121,7 @@ class _SettingsPageState extends State<SettingsPage> {
       children: [
         _buildShowRomajiSetting(context),
         _buildShowFuriganaSetting(context),
+        _buildQuizQuestionCountSetting(context),
       ],
     );
   }
@@ -167,6 +168,41 @@ class _SettingsPageState extends State<SettingsPage> {
             },
           );
         },
+      ),
+    );
+  }
+
+  /// Builds the quiz question count setting.
+  Widget _buildQuizQuestionCountSetting(BuildContext context) {
+    return _buildSettingRow(
+      context: context,
+      child: ListTile(
+        title: const Text('Quiz Question Count'),
+        subtitle: const Text('Number of questions per quiz session'),
+        trailing: FutureBuilder<int>(
+          future: AppPreferences.getQuizQuestionCount(),
+          builder: (context, snapshot) {
+            final currentCount =
+                snapshot.data ?? AppPreferences.defaultQuizQuestionCount;
+            return DropdownButton<int>(
+              value: currentCount,
+              underline: const SizedBox.shrink(),
+              borderRadius: BorderRadius.circular(8),
+              items: AppPreferences.quizQuestionCountOptions.map((count) {
+                return DropdownMenuItem<int>(
+                  value: count,
+                  child: Text('$count'),
+                );
+              }).toList(),
+              onChanged: (value) async {
+                if (value != null) {
+                  await AppPreferences.setQuizQuestionCount(value);
+                  setState(() {}); // Refresh to show updated selection
+                }
+              },
+            );
+          },
+        ),
       ),
     );
   }

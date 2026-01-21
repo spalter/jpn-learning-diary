@@ -19,6 +19,13 @@ class AppPreferences {
   static const String _keyViewMode = 'view_mode';
   static const String _keyShowRomaji = 'show_romaji';
   static const String _keyShowFurigana = 'show_furigana';
+  static const String _keyQuizQuestionCount = 'quiz_question_count';
+
+  /// Available quiz question count options.
+  static const List<int> quizQuestionCountOptions = [5, 10, 15, 20, 30, 50];
+
+  /// Default quiz question count.
+  static const int defaultQuizQuestionCount = 10;
 
   /// Gets the custom database path if set by the user.
   ///
@@ -112,5 +119,19 @@ class AppPreferences {
     if (index > 4) return;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('theme_mode_index', index);
+  }
+
+  /// Gets the number of questions to show in quizzes.
+  ///
+  /// Returns the default (10) if not set.
+  static Future<int> getQuizQuestionCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_keyQuizQuestionCount) ?? defaultQuizQuestionCount;
+  }
+
+  /// Sets the number of questions to show in quizzes.
+  static Future<void> setQuizQuestionCount(int count) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keyQuizQuestionCount, count);
   }
 }

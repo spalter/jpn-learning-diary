@@ -11,6 +11,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:jpn_learning_diary/widgets/styled_tooltip.dart';
+import 'package:jpn_learning_diary/widgets/drag_to_move_area.dart';
 
 /// Custom app bar with integrated search and navigation functionality.
 ///
@@ -135,9 +136,9 @@ class AppNavigationBarState extends State<AppNavigationBar> {
 
   /// Builds the desktop layout with navigation buttons and centered search.
   ///
-  /// Wraps content in DragToMoveArea to enable window dragging on desktop.
+  /// Wraps content in DragOnlyMoveArea to enable window dragging on desktop.
   Widget _buildDesktopTitle(BuildContext context) {
-    return DragToMoveArea(
+    return DragOnlyMoveArea(
       child: Row(
         children: [
           ..._buildNavigationButtons(context),

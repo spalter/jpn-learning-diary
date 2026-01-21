@@ -15,6 +15,7 @@ import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 import 'package:jpn_learning_diary/repositories/jmdict_repository.dart';
 import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
+import 'package:jpn_learning_diary/services/app_preferences.dart';
 
 /// Practice mode types for different learning scenarios.
 enum PracticeMode {
@@ -297,6 +298,7 @@ class PracticeController extends ChangeNotifier {
     try {
       final random = Random();
       List<QuizQuestion> questions = [];
+      final maxQuestions = await AppPreferences.getQuizQuestionCount();
 
       switch (mode) {
         case PracticeMode.diaryEntries:
@@ -304,7 +306,7 @@ class PracticeController extends ChangeNotifier {
 
           if (allEntries.length >= 4) {
             final shuffled = List<DiaryEntry>.from(allEntries)..shuffle(random);
-            final questionCount = min(10, allEntries.length);
+            final questionCount = min(maxQuestions, allEntries.length);
 
             for (int i = 0; i < questionCount; i++) {
               final entry = shuffled[i];
@@ -332,12 +334,12 @@ class PracticeController extends ChangeNotifier {
 
         case PracticeMode.kanji:
           final kanjiList = await _kanjiRepository.getRandomKanjiFromDiary(
-            count: 40, // Get more to have enough distractors
+            count: maxQuestions * 4, // Get more to have enough distractors
           );
 
           if (kanjiList.length >= 4) {
             final shuffled = List<KanjiData>.from(kanjiList)..shuffle(random);
-            final questionCount = min(10, kanjiList.length);
+            final questionCount = min(maxQuestions, kanjiList.length);
 
             for (int i = 0; i < questionCount; i++) {
               final kanji = shuffled[i];
@@ -365,13 +367,13 @@ class PracticeController extends ChangeNotifier {
 
         case PracticeMode.jmdict:
           final jmdictEntries = await _jmdictRepository.getRandomCommonEntries(
-            count: 40, // Get more to have enough distractors
+            count: maxQuestions * 4, // Get more to have enough distractors
           );
 
           if (jmdictEntries.length >= 4) {
             final shuffled = List<JMdictEntry>.from(jmdictEntries)
               ..shuffle(random);
-            final questionCount = min(10, jmdictEntries.length);
+            final questionCount = min(maxQuestions, jmdictEntries.length);
 
             for (int i = 0; i < questionCount; i++) {
               final entry = shuffled[i];
@@ -409,20 +411,41 @@ class PracticeController extends ChangeNotifier {
     }
   }
 
+  /// Whether the last committed answer was correct.
+  bool _lastAnswerCorrect = false;
+
+  /// Whether the last committed answer was correct.
+  bool get lastAnswerCorrect => _lastAnswerCorrect;
+
+  /// Whether an answer is currently selected (but not yet committed).
+  bool get hasSelection => _selectedAnswerIndex >= 0;
+
   /// Handles when the user selects an answer option.
   ///
-  /// If the user hasn't answered yet:
-  /// - Records the selected answer
-  /// - Marks the question as answered
-  /// - Increments correct count if correct
+  /// This only selects the answer visually without committing it.
+  /// The user must call [commitAnswer] to finalize their choice.
   void selectAnswer(int index) {
     if (_hasAnswered || currentQuestion == null) return;
 
-    final isCorrect = index == currentQuestion!.correctAnswerIndex;
-
     _selectedAnswerIndex = index;
+    notifyListeners();
+  }
+
+  /// Commits the currently selected answer.
+  ///
+  /// This finalizes the user's choice:
+  /// - Marks the question as answered
+  /// - Checks if the answer is correct
+  /// - Increments correct count if correct
+  void commitAnswer() {
+    if (_hasAnswered || _selectedAnswerIndex < 0 || currentQuestion == null) {
+      return;
+    }
+
+    _lastAnswerCorrect =
+        _selectedAnswerIndex == currentQuestion!.correctAnswerIndex;
     _hasAnswered = true;
-    if (isCorrect) {
+    if (_lastAnswerCorrect) {
       _correctCount++;
     }
     notifyListeners();

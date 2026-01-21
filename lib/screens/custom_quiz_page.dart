@@ -267,10 +267,8 @@ class _CustomQuizPageState extends State<CustomQuizPage> {
                 _buildQuestionCard(context, currentQuestion),
                 const SizedBox(height: 32),
                 _buildAnswerButtons(context, controller, currentQuestion),
-                if (controller.hasAnswered) ...[
-                  const SizedBox(height: 24),
-                  _buildNextButton(context, controller),
-                ],
+                const SizedBox(height: 24),
+                _buildActionButton(context, controller),
               ],
             ),
           ),
@@ -359,14 +357,15 @@ class _CustomQuizPageState extends State<CustomQuizPage> {
   ) {
     final isSelected = controller.selectedAnswerIndex == index;
     final isCorrectAnswer = index == question.correctAnswerIndex;
-    final showResult = controller.hasAnswered;
+    final hasAnswered = controller.hasAnswered;
 
     // Determine colors based on state
     Color? iconColor;
     Color? textColor;
     IconData? resultIcon;
 
-    if (showResult) {
+    if (hasAnswered) {
+      // After committing: show correct/incorrect indicators
       if (isCorrectAnswer) {
         iconColor = Colors.green;
         textColor = Colors.green[700];
@@ -378,19 +377,19 @@ class _CustomQuizPageState extends State<CustomQuizPage> {
       } else {
         textColor = Theme.of(context).colorScheme.onSurface.withAlpha(128);
       }
+    } else if (isSelected) {
+      // Before committing but selected: highlight with primary color
+      iconColor = Theme.of(context).colorScheme.primary;
+      textColor = Theme.of(context).colorScheme.primary;
     }
 
     return MouseRegion(
-      cursor: controller.hasAnswered
-          ? SystemMouseCursors.basic
-          : SystemMouseCursors.click,
+      cursor: hasAnswered ? SystemMouseCursors.basic : SystemMouseCursors.click,
       child: AppCard(
         style: AppCardStyle.bordered,
-        onTap: controller.hasAnswered
-            ? null
-            : () => controller.selectAnswer(index),
+        onTap: hasAnswered ? null : () => controller.selectAnswer(index),
         padding: const EdgeInsets.all(20),
-        isSelected: showResult && (isCorrectAnswer || isSelected),
+        isSelected: isSelected,
         child: Row(
           children: [
             // Answer letter (A, B, C, D)
@@ -435,24 +434,75 @@ class _CustomQuizPageState extends State<CustomQuizPage> {
     );
   }
 
-  /// Builds the next/finish button shown after answering.
-  Widget _buildNextButton(
+  /// Builds the action button that changes based on quiz state.
+  ///
+  /// - Before answering: "Check Answer" button (disabled until selection)
+  /// - After correct answer: Green "Next Question" button
+  /// - After wrong answer: Red "Next Question" button
+  /// - On last question after answering: "See Results" button
+  Widget _buildActionButton(
     BuildContext context,
     CustomQuizController controller,
   ) {
+    final hasAnswered = controller.hasAnswered;
+    final hasSelection = controller.hasSelection;
+    final isLastQuestion = controller.isLastQuestion;
+    final isCorrect = controller.lastAnswerCorrect;
+
+    // Determine button properties based on state
+    String label;
+    IconData icon;
+    VoidCallback? onPressed;
+    Color? backgroundColor;
+    Color? foregroundColor;
+
+    if (!hasAnswered) {
+      // Before committing: show "Check Answer" button
+      label = 'Check Answer';
+      icon = Icons.check;
+      onPressed = hasSelection ? controller.commitAnswer : null;
+      backgroundColor = null; // Use default
+      foregroundColor = null;
+    } else if (isLastQuestion) {
+      // After answering the last question
+      label = 'See Results';
+      icon = Icons.flag;
+      onPressed = controller.moveToNext;
+      backgroundColor = isCorrect ? Colors.green : Colors.red;
+      foregroundColor = Colors.white;
+    } else {
+      // After answering: show styled "Next Question" button
+      label = 'Next Question';
+      icon = Icons.arrow_forward;
+      onPressed = controller.moveToNext;
+      backgroundColor = isCorrect ? Colors.green : Colors.red;
+      foregroundColor = Colors.white;
+    }
+
     return Center(
-      child: ElevatedButton.icon(
-        onPressed: controller.moveToNext,
-        icon: Icon(
-          controller.isLastQuestion ? Icons.flag : Icons.arrow_forward,
-        ),
-        label: Text(
-          controller.isLastQuestion ? 'See Results' : 'Next Question',
-        ),
-        style: ElevatedButton.styleFrom(
+      child: TextButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon),
+        label: Text(label),
+        style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          backgroundColor: backgroundColor,
+          foregroundColor: foregroundColor,
+          disabledBackgroundColor: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest,
+          disabledForegroundColor: Theme.of(
+            context,
+          ).colorScheme.onSurface.withAlpha(100),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
+            side: backgroundColor == null
+                ? BorderSide(
+                    color: hasSelection
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.outline.withAlpha(100),
+                  )
+                : BorderSide.none,
           ),
         ),
       ),

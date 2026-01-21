@@ -10,6 +10,7 @@
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:jpn_learning_diary/models/custom_quiz_entry.dart';
+import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/custom_quiz_service.dart';
 
 /// Represents a single custom quiz question with shuffled answer options.
@@ -38,7 +39,7 @@ class CustomQuizQuestion {
   });
 
   /// Creates a quiz question from a CustomQuizEntry with shuffled answers.
-  /// 
+  ///
   /// If [entry] has predefined answers, uses those.
   /// If [entry] only has a correct answer, randomly selects 3 wrong answers
   /// from [allEntries] (excluding the current entry).
@@ -167,7 +168,7 @@ class CustomQuizController extends ChangeNotifier {
 
     try {
       final entries = await CustomQuizService.loadFromAsset(assetPath);
-      _processEntries(entries);
+      await _processEntries(entries);
     } catch (e) {
       _errorMessage = 'Failed to load quiz: $e';
       _questions = [];
@@ -189,7 +190,7 @@ class CustomQuizController extends ChangeNotifier {
 
     try {
       final entries = await CustomQuizService.loadFromFile(filePath);
-      _processEntries(entries);
+      await _processEntries(entries);
     } catch (e) {
       _errorMessage = 'Failed to load quiz: $e';
       _questions = [];
@@ -203,7 +204,10 @@ class CustomQuizController extends ChangeNotifier {
   ///
   /// [csvContent] - The CSV content to parse
   /// [sourceName] - A display name for the quiz source
-  void loadFromString(String csvContent, {String sourceName = 'Custom Quiz'}) {
+  Future<void> loadFromString(
+    String csvContent, {
+    String sourceName = 'Custom Quiz',
+  }) async {
     _isLoading = true;
     _errorMessage = null;
     _sourceName = sourceName;
@@ -211,7 +215,7 @@ class CustomQuizController extends ChangeNotifier {
 
     try {
       final entries = CustomQuizService.loadFromString(csvContent);
-      _processEntries(entries);
+      await _processEntries(entries);
     } catch (e) {
       _errorMessage = 'Failed to parse quiz: $e';
       _questions = [];
@@ -222,7 +226,7 @@ class CustomQuizController extends ChangeNotifier {
   }
 
   /// Processes loaded entries into quiz questions.
-  void _processEntries(List<CustomQuizEntry> entries) {
+  Future<void> _processEntries(List<CustomQuizEntry> entries) async {
     _loadedEntries = entries;
 
     if (entries.length < 4) {
@@ -232,16 +236,22 @@ class CustomQuizController extends ChangeNotifier {
     }
 
     final random = Random();
+    final maxQuestions = await AppPreferences.getQuizQuestionCount();
 
-    // Shuffle and take up to 10 questions
+    // Shuffle and take up to the configured question count
     final shuffled = List<CustomQuizEntry>.from(entries)..shuffle(random);
-    final selectedEntries = shuffled.take(min(10, entries.length)).toList();
+    final selectedEntries = shuffled
+        .take(min(maxQuestions, entries.length))
+        .toList();
 
     _questions = selectedEntries
-        .map((entry) => CustomQuizQuestion.fromEntry(
-              entry,
-              allEntries: entries, // Pass all entries for random answer generation
-            ))
+        .map(
+          (entry) => CustomQuizQuestion.fromEntry(
+            entry,
+            allEntries:
+                entries, // Pass all entries for random answer generation
+          ),
+        )
         .toList();
 
     _resetQuizState();
@@ -256,20 +266,41 @@ class CustomQuizController extends ChangeNotifier {
     _isCompleted = false;
   }
 
+  /// Whether the last committed answer was correct.
+  bool _lastAnswerCorrect = false;
+
+  /// Whether the last committed answer was correct.
+  bool get lastAnswerCorrect => _lastAnswerCorrect;
+
+  /// Whether an answer is currently selected (but not yet committed).
+  bool get hasSelection => _selectedAnswerIndex >= 0;
+
   /// Handles when the user selects an answer option.
   ///
-  /// If the user hasn't answered yet:
-  /// - Records the selected answer
-  /// - Marks the question as answered
-  /// - Increments correct count if correct
+  /// This only selects the answer visually without committing it.
+  /// The user must call [commitAnswer] to finalize their choice.
   void selectAnswer(int index) {
     if (_hasAnswered || currentQuestion == null) return;
 
-    final isCorrect = index == currentQuestion!.correctAnswerIndex;
-
     _selectedAnswerIndex = index;
+    notifyListeners();
+  }
+
+  /// Commits the currently selected answer.
+  ///
+  /// This finalizes the user's choice:
+  /// - Marks the question as answered
+  /// - Checks if the answer is correct
+  /// - Increments correct count if correct
+  void commitAnswer() {
+    if (_hasAnswered || _selectedAnswerIndex < 0 || currentQuestion == null) {
+      return;
+    }
+
+    _lastAnswerCorrect =
+        _selectedAnswerIndex == currentQuestion!.correctAnswerIndex;
     _hasAnswered = true;
-    if (isCorrect) {
+    if (_lastAnswerCorrect) {
       _correctCount++;
     }
     notifyListeners();
@@ -288,8 +319,8 @@ class CustomQuizController extends ChangeNotifier {
   }
 
   /// Resets and restarts the quiz with new random questions.
-  void restart() {
-    _processEntries(_loadedEntries);
+  Future<void> restart() async {
+    await _processEntries(_loadedEntries);
     notifyListeners();
   }
 }
