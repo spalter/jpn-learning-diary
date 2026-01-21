@@ -304,6 +304,18 @@ class AppNavigationBarState extends State<AppNavigationBar> {
       ),
       ExcludeFocus(
         child: StyledTooltip(
+          message: 'Fullscreen',
+          child: IconButton(
+            icon: const Icon(Icons.open_in_full),
+            onPressed: () async {
+              final isFullScreen = await windowManager.isFullScreen();
+              await windowManager.setFullScreen(!isFullScreen);
+            },
+          ),
+        ),
+      ),
+      ExcludeFocus(
+        child: StyledTooltip(
           message: 'Exit',
           child: IconButton(
             onPressed: widget.onExit,
