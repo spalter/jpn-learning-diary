@@ -9,10 +9,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/controllers/practice_controller.dart';
+import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/widgets/app_card.dart';
 import 'package:jpn_learning_diary/widgets/bird_fab.dart';
 import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
+import 'package:jpn_learning_diary/widgets/ruby_text.dart';
 import 'package:provider/provider.dart';
 
 // Re-export from controller for backwards compatibility
@@ -39,12 +41,23 @@ class PracticeModePage extends StatefulWidget {
 
 class _PracticeModePageState extends State<PracticeModePage> {
   late PracticeController _controller;
+  bool _showFurigana = true;
 
   @override
   void initState() {
     super.initState();
     _controller = PracticeController(mode: widget.mode);
     _controller.loadQuestions();
+    _loadFuriganaSetting();
+  }
+
+  Future<void> _loadFuriganaSetting() async {
+    final showFurigana = await AppPreferences.getShowFurigana();
+    if (mounted) {
+      setState(() {
+        _showFurigana = showFurigana;
+      });
+    }
   }
 
   @override
@@ -185,6 +198,18 @@ class _PracticeModePageState extends State<PracticeModePage> {
     final isJapanesePrompt =
         question.questionMode == QuizQuestionMode.japaneseToMeaning;
 
+    // Determine if we should show furigana (only for Japanese prompts with ruby patterns)
+    final shouldShowFurigana =
+        _showFurigana &&
+        isJapanesePrompt &&
+        question.rawPrompt != null &&
+        RubyText.containsRubyPattern(question.rawPrompt!);
+
+    final textStyle = Theme.of(context).textTheme.headlineMedium?.copyWith(
+      fontWeight: FontWeight.bold,
+      fontSize: isJapanesePrompt ? 36 : 24,
+    );
+
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
@@ -198,14 +223,10 @@ class _PracticeModePageState extends State<PracticeModePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            question.prompt,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: isJapanesePrompt ? 36 : 24,
-            ),
-            textAlign: TextAlign.left,
-          ),
+          if (shouldShowFurigana)
+            RubyText(text: question.rawPrompt!, textStyle: textStyle)
+          else
+            Text(question.prompt, style: textStyle, textAlign: TextAlign.left),
         ],
       ),
     );
@@ -299,14 +320,12 @@ class _PracticeModePageState extends State<PracticeModePage> {
             const SizedBox(width: 16),
             // Answer text
             Expanded(
-              child: Text(
-                question.answerOptions[index],
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: textColor ?? Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
-                  fontSize: isJapaneseAnswer ? 20 : 16,
-                ),
-                textAlign: TextAlign.left,
+              child: _buildAnswerText(
+                context,
+                question,
+                index,
+                isJapaneseAnswer,
+                textColor,
               ),
             ),
             // Result icon
@@ -318,6 +337,37 @@ class _PracticeModePageState extends State<PracticeModePage> {
         ),
       ),
     );
+  }
+
+  /// Builds the answer text, optionally with furigana for Japanese answers.
+  Widget _buildAnswerText(
+    BuildContext context,
+    QuizQuestion question,
+    int index,
+    bool isJapaneseAnswer,
+    Color? textColor,
+  ) {
+    final answerText = question.answerOptions[index];
+    final rawAnswer = question.rawAnswerOptions?[index];
+
+    // Check if we should show furigana for this answer
+    final shouldShowFurigana =
+        _showFurigana &&
+        isJapaneseAnswer &&
+        rawAnswer != null &&
+        RubyText.containsRubyPattern(rawAnswer);
+
+    final textStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
+      color: textColor ?? Theme.of(context).colorScheme.onSurface,
+      fontWeight: FontWeight.bold,
+      fontSize: isJapaneseAnswer ? 20 : 16,
+    );
+
+    if (shouldShowFurigana) {
+      return RubyText(text: rawAnswer, textStyle: textStyle);
+    }
+
+    return Text(answerText, style: textStyle, textAlign: TextAlign.left);
   }
 
   /// Builds the action button that changes based on quiz state.

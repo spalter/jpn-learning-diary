@@ -34,6 +34,9 @@ class JMdictCard extends StatefulWidget {
   /// Global key to access the navigation bar for inserting search text.
   final GlobalKey<AppNavigationBarState>? navigationBarKey;
 
+  /// Callback to set search text directly (alternative to navigationBarKey).
+  final void Function(String)? onSearchTextSet;
+
   /// Creates a JMdict card.
   ///
   /// The [entry] parameter is required and contains all the information
@@ -43,6 +46,7 @@ class JMdictCard extends StatefulWidget {
     required this.entry,
     this.useBorderedStyle = false,
     this.navigationBarKey,
+    this.onSearchTextSet,
   });
 
   @override
@@ -608,9 +612,12 @@ class _JMdictCardState extends State<JMdictCard> {
 
   /// Inserts the primary form into the navigation bar's search field.
   ///
-  /// Falls back to showing a message if the navigation bar reference is unavailable.
+  /// Uses onSearchTextSet callback if provided, falls back to navigationBarKey,
+  /// or shows a message if neither is available.
   void _handleInsertIntoSearch(BuildContext context) {
-    if (widget.navigationBarKey?.currentState != null) {
+    if (widget.onSearchTextSet != null) {
+      widget.onSearchTextSet!(widget.entry.primaryForm);
+    } else if (widget.navigationBarKey?.currentState != null) {
       widget.navigationBarKey!.currentState!.insertSearchText(
         widget.entry.primaryForm,
       );

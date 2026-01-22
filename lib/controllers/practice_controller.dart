@@ -13,6 +13,7 @@ import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/models/jmdict_entry.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
+import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 import 'package:jpn_learning_diary/repositories/jmdict_repository.dart';
 import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
@@ -45,14 +46,22 @@ enum QuizQuestionMode {
 /// - Three wrong answers (distractors)
 /// - Optional metadata like furigana for display
 class QuizQuestion {
-  /// The question text shown to the user.
+  /// The question text shown to the user (clean, without ruby patterns).
   final String prompt;
+
+  /// The raw prompt text with ruby patterns intact (for furigana display).
+  final String? rawPrompt;
 
   /// The correct answer.
   final String correctAnswer;
 
   /// List of all answer options (shuffled, includes correct answer).
+  /// Clean text without ruby patterns.
   final List<String> answerOptions;
+
+  /// List of raw answer options with ruby patterns intact (for furigana display).
+  /// Indices correspond to [answerOptions].
+  final List<String>? rawAnswerOptions;
 
   /// The index of the correct answer in [answerOptions].
   final int correctAnswerIndex;
@@ -68,8 +77,10 @@ class QuizQuestion {
 
   QuizQuestion({
     required this.prompt,
+    this.rawPrompt,
     required this.correctAnswer,
     required this.answerOptions,
+    this.rawAnswerOptions,
     required this.correctAnswerIndex,
     this.furigana,
     required this.questionMode,
@@ -81,6 +92,10 @@ class QuizQuestion {
   /// [entry] - The diary entry for the correct answer
   /// [distractors] - Three other entries to use as wrong answers
   /// [questionMode] - Whether to ask meaning->japanese or japanese->meaning
+  ///
+  /// Ruby text patterns (e.g., `[漢字](かんじ)`) are automatically stripped
+  /// from Japanese text to show clean text in the quiz. The original text
+  /// is preserved in [rawPrompt] and [rawAnswerOptions] for furigana display.
   factory QuizQuestion.fromDiaryEntry({
     required DiaryEntry entry,
     required List<DiaryEntry> distractors,
@@ -88,29 +103,53 @@ class QuizQuestion {
   }) {
     final random = Random();
 
+    // Strip ruby patterns from Japanese text for clean quiz display
+    String cleanJapanese(String text) {
+      return JapaneseTextUtils.containsRubyPattern(text)
+          ? JapaneseTextUtils.stripRubyPatterns(text)
+          : text;
+    }
+
     String prompt;
+    String? rawPrompt;
     String correctAnswer;
     List<String> wrongAnswers;
+    List<String>? rawWrongAnswers;
 
     if (questionMode == QuizQuestionMode.meaningToJapanese) {
       prompt = entry.meaning;
-      correctAnswer = entry.japanese;
-      wrongAnswers = distractors.map((d) => d.japanese).toList();
+      rawPrompt = null; // Meaning doesn't have ruby
+      correctAnswer = cleanJapanese(entry.japanese);
+      wrongAnswers = distractors.map((d) => cleanJapanese(d.japanese)).toList();
+      rawWrongAnswers = distractors.map((d) => d.japanese).toList();
     } else {
-      prompt = entry.japanese;
+      prompt = cleanJapanese(entry.japanese);
+      rawPrompt = entry.japanese; // Keep original for furigana
       correctAnswer = entry.meaning;
       wrongAnswers = distractors.map((d) => d.meaning).toList();
+      rawWrongAnswers = null; // Meanings don't have ruby
     }
 
-    // Combine and shuffle answers
+    // Combine and shuffle answers - need to track raw versions too
+    final indices = [0, 1, 2, 3];
+    indices.shuffle(random);
+
     final allAnswers = [correctAnswer, ...wrongAnswers];
-    allAnswers.shuffle(random);
+    final shuffledAnswers = indices.map((i) => allAnswers[i]).toList();
+
+    List<String>? shuffledRawAnswers;
+    if (questionMode == QuizQuestionMode.meaningToJapanese) {
+      final allRawAnswers = [entry.japanese, ...rawWrongAnswers!];
+      shuffledRawAnswers = indices.map((i) => allRawAnswers[i]).toList();
+    }
 
     return QuizQuestion(
       prompt: prompt,
+      rawPrompt: rawPrompt,
       correctAnswer: correctAnswer,
-      answerOptions: allAnswers,
-      correctAnswerIndex: allAnswers.indexOf(correctAnswer),
+      answerOptions: shuffledAnswers,
+      rawAnswerOptions: shuffledRawAnswers,
+      correctAnswerIndex: indices.indexOf(0),
       furigana: entry.furigana,
       questionMode: questionMode,
       practiceMode: PracticeMode.diaryEntries,

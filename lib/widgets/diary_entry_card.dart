@@ -257,12 +257,14 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
       widget.entry.notes != null && widget.entry.notes!.isNotEmpty;
 
   /// Copies the Japanese text to the system clipboard and shows a snackbar.
+  /// Ruby text patterns are stripped before copying.
   Future<void> _handleCopyToClipboard(BuildContext context) async {
-    await Clipboard.setData(ClipboardData(text: widget.entry.japanese));
+    final cleanText = RubyText.stripRubyPatterns(widget.entry.japanese);
+    await Clipboard.setData(ClipboardData(text: cleanText));
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Copied: ${widget.entry.japanese}'),
+          content: Text('Copied: $cleanText'),
           duration: const Duration(seconds: 2),
         ),
       );

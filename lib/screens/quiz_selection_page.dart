@@ -202,7 +202,11 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.collections_bookmark_outlined, size: 64, color: Colors.grey),
+            Icon(
+              Icons.collections_bookmark_outlined,
+              size: 64,
+              color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
+            ),
             const SizedBox(height: 16),
             Text(
               'No Quizzes Found',
@@ -213,13 +217,16 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
               Platform.isAndroid || Platform.isIOS
                   ? 'Import a CSV quiz file to get started.'
                   : 'Add CSV quiz files to your quizzes folder to get started.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            _buildTemplateInfo(context),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: _buildTemplateInfo(context),
+            ),
             const SizedBox(height: 24),
             _buildActionButtons(context),
           ],
@@ -451,6 +458,9 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
           onPressed: _loadQuizzes,
           icon: const Icon(Icons.refresh),
           label: const Text('Refresh'),
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: Theme.of(context).colorScheme.primary),
+          ),
         ),
       ],
     );

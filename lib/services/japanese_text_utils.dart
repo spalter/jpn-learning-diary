@@ -12,12 +12,48 @@ import 'package:tiny_segmenter_dart/tiny_segmenter_dart.dart';
 /// Utility class for Japanese text processing and analysis.
 ///
 /// Provides regex patterns and helper methods for identifying and extracting
-/// different types of Japanese characters (kanji, hiragana, katakana).
+/// different types of Japanese characters (kanji, hiragana, katakana),
+/// as well as ruby text (furigana) parsing utilities.
 class JapaneseTextUtils {
   // Singleton instance of TinySegmenter for word tokenization
   static final TinySegmenter _segmenter = TinySegmenter();
   // Private constructor to prevent instantiation
   JapaneseTextUtils._();
+
+  // ============================================================================
+  // Ruby Text (Furigana) Utilities
+  // ============================================================================
+
+  /// Regex pattern to match ruby text format.
+  ///
+  /// Supports various bracket styles for ease of typing in Japanese:
+  /// - `[kanji](reading)` - ASCII brackets and parentheses
+  /// - `「kanji」（reading）` - Japanese corner brackets and fullwidth parentheses
+  /// - `［kanji］（reading）` - Fullwidth square brackets and parentheses
+  /// - And any mix of the above bracket/parenthesis styles
+  ///
+  /// Captures: group 1 = kanji/base text, group 2 = reading
+  static final RegExp rubyPattern = RegExp(
+    r'[\[［「]([^\]］」]+)[\]］」][\(（]([^\)）]+)[\)）]',
+  );
+
+  /// Checks if the text contains any ruby patterns.
+  ///
+  /// Example: `containsRubyPattern('[食](た)べる')` → true
+  static bool containsRubyPattern(String text) {
+    return rubyPattern.hasMatch(text);
+  }
+
+  /// Strips ruby patterns from text, leaving only the base text (kanji).
+  ///
+  /// Example: `[晩御飯](ばんごはん)を[食](た)べる` → `晩御飯を食べる`
+  static String stripRubyPatterns(String text) {
+    return text.replaceAllMapped(rubyPattern, (match) => match.group(1)!);
+  }
+
+  // ============================================================================
+  // Particle Detection
+  // ============================================================================
 
   /// Set of common Japanese particles (助詞).
   ///

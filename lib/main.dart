@@ -55,12 +55,6 @@ void main(List<String> args) async {
 
   // Initialize window effects and settings
   await Window.initialize();
-
-  // Apply Windows Mica effect if on Windows
-  if (Platform.isWindows) {
-    await Window.setEffect(effect: WindowEffect.mica);
-  }
-
   await windowManager.ensureInitialized();
   await windowManager.setMinimumSize(const Size(700, 300));
   await windowManager.center();

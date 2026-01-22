@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/controllers/diary_entries_controller.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
+import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 import 'package:jpn_learning_diary/widgets/common_states.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
@@ -145,7 +146,7 @@ class _DiaryPageState extends State<DiaryPage> {
 
     return ResponsiveGridView(
       itemCount: entries.length,
-      minCardWidth: 320.0,
+      minCardWidth: 360.0,
       childAspectRatio: aspectRatio,
       itemBuilder: (context, index) =>
           _buildEntryCard(entries[index], useBorderedStyle: true),
@@ -162,11 +163,12 @@ class _DiaryPageState extends State<DiaryPage> {
 
   /// Builds a single diary entry card.
   Widget _buildEntryCard(DiaryEntry entry, {bool useBorderedStyle = false}) {
+    final strippedText = JapaneseTextUtils.stripRubyPatterns(entry.japanese);
     return DiaryEntryCard(
       entry: entry,
       onUpdate: () => _controller.refresh(),
       onTap: widget.onSearchTextSet != null
-          ? () => widget.onSearchTextSet!(entry.japanese)
+          ? () => widget.onSearchTextSet!(strippedText)
           : null,
       useBorderedStyle: useBorderedStyle,
     );

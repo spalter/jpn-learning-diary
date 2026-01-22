@@ -213,6 +213,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     return JMdictCard(
       entry: entry,
       useBorderedStyle: useBorderedStyle,
+      onSearchTextSet: widget.onSearchTextSet,
     );
   }
 
@@ -229,10 +230,13 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     final jmdictRepository = JMdictRepository();
 
     // Search diary entries across all text fields.
+    // Strip ruby patterns from Japanese text so searching for "何歳" finds "[何](なん)[歳](さい)"
     final allEntries = await diaryRepository.getAllEntries();
     final diaryResults = allEntries.where((entry) {
       final query = widget.searchQuery.toLowerCase();
-      return entry.japanese.toLowerCase().contains(query) ||
+      final strippedJapanese =
+          JapaneseTextUtils.stripRubyPatterns(entry.japanese).toLowerCase();
+      return strippedJapanese.contains(query) ||
           (entry.furigana?.toLowerCase().contains(query) ?? false) ||
           entry.romaji.toLowerCase().contains(query) ||
           entry.meaning.toLowerCase().contains(query) ||

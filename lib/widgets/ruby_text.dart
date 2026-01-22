@@ -8,6 +8,7 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 
 /// A segment of text that may or may not have furigana.
 class _TextSegment {
@@ -56,26 +57,19 @@ class RubyText extends StatelessWidget {
     this.maxLines,
   });
 
-  /// Regex pattern to match ruby text format.
-  /// Supports various bracket styles for ease of typing in Japanese:
-  /// - `[kanji](reading)` - ASCII brackets and parentheses
-  /// - `「kanji」（reading）` - Japanese corner brackets and fullwidth parentheses
-  /// - `［kanji］（reading）` - Fullwidth square brackets and parentheses
-  /// - And any mix of the above bracket/parenthesis styles
-  /// Captures: group 1 = kanji/base text, group 2 = reading
-  static final RegExp _rubyPattern = RegExp(
-    r'[\[［「]([^\]］」]+)[\]］」][\(（]([^\)）]+)[\)）]',
-  );
-
   /// Checks if the text contains any ruby patterns.
+  ///
+  /// Delegates to [JapaneseTextUtils.containsRubyPattern].
   static bool containsRubyPattern(String text) {
-    return _rubyPattern.hasMatch(text);
+    return JapaneseTextUtils.containsRubyPattern(text);
   }
 
   /// Strips ruby patterns from text, leaving only the base text.
+  ///
   /// Example: `[晩御飯](ばんごはん)` becomes `晩御飯`
+  /// Delegates to [JapaneseTextUtils.stripRubyPatterns].
   static String stripRubyPatterns(String text) {
-    return text.replaceAllMapped(_rubyPattern, (match) => match.group(1)!);
+    return JapaneseTextUtils.stripRubyPatterns(text);
   }
 
   /// Parses the input text into segments of regular text and ruby text.
@@ -83,7 +77,7 @@ class RubyText extends StatelessWidget {
     final segments = <_TextSegment>[];
     int lastEnd = 0;
 
-    for (final match in _rubyPattern.allMatches(text)) {
+    for (final match in JapaneseTextUtils.rubyPattern.allMatches(text)) {
       // Add any text before this match as a regular segment
       if (match.start > lastEnd) {
         segments.add(_TextSegment(text.substring(lastEnd, match.start)));

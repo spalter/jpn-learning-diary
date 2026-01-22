@@ -20,6 +20,7 @@ import 'package:jpn_learning_diary/screens/settings_page.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 import 'package:jpn_learning_diary/widgets/bird_fab.dart';
+import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart';
 
 /// Returns true when running on Android or iOS where mobile UI patterns apply.
 bool get _isMobile => Platform.isAndroid || Platform.isIOS;
@@ -165,6 +166,18 @@ class _AppShellState extends State<AppShell> {
     _searchFocusNode.requestFocus();
   }
 
+  /// Shows the new diary entry dialog.
+  Future<void> _showNewDiaryEntryDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => const EditDiaryEntryDialog(),
+    );
+
+    if (result == true) {
+      _refreshCurrentPage();
+    }
+  }
+
   /// Populates the search field with text and focuses it for editing.
   void _setSearchText(String text) {
     _searchController.text = text;
@@ -225,12 +238,7 @@ class _AppShellState extends State<AppShell> {
           : null,
       backgroundColor: AppTheme.scaffoldBackground(context),
       body: Padding(
-        padding: const EdgeInsets.only(
-          left: 16,
-          top: 16,
-          right: 0,
-          bottom: 0,
-        ),
+        padding: const EdgeInsets.only(left: 16, top: 16, right: 0, bottom: 0),
         child: _buildCurrentPage(),
       ),
       floatingActionButton: _currentPage != AppPage.settings
@@ -266,6 +274,15 @@ class _AppShellState extends State<AppShell> {
       }
     }
 
+    // Cmd+N on macOS, Ctrl+N on Windows/Linux - new diary entry
+    if (key == LogicalKeyboardKey.keyN) {
+      if ((Platform.isMacOS && isMetaPressed) ||
+          (!Platform.isMacOS && isControlPressed)) {
+        _showNewDiaryEntryDialog();
+        return true;
+      }
+    }
+
     // F11 for fullscreen toggle
     if (key == LogicalKeyboardKey.f11 && !_isMobile) {
       _toggleFullscreen();
@@ -273,8 +290,9 @@ class _AppShellState extends State<AppShell> {
     }
 
     // Navigation modifier: Option on Mac, Ctrl on Windows/Linux
-    final isNavModifierPressed =
-        Platform.isMacOS ? isAltPressed : isControlPressed;
+    final isNavModifierPressed = Platform.isMacOS
+        ? isAltPressed
+        : isControlPressed;
 
     // Option+1 (Mac) / Ctrl+1 (Win/Linux) - Diary page
     if (key == LogicalKeyboardKey.digit1 && isNavModifierPressed) {
