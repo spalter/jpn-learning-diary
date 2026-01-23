@@ -93,7 +93,7 @@ id;question;correct answer;wrong answer 1;wrong answer 2;wrong answer 3
 92;What is the possession marker in Japanese?;の;に;で;と
 93;で;location of action / means;direction marker;possession marker;question marker
 94;か;question marker;topic marker;subject marker;possession marker
-95;What is "this (thing near you)" in Japanese?;それ;これ;あれ;どれ
+95;What is "that (thing near you)" in Japanese?;それ;これ;あれ;どれ
 96;子;child;person;man;woman
 97;What is "second (time)" in Japanese?;秒;分;時間;年
 98;月;month;week;year;day
