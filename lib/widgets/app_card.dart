@@ -190,17 +190,30 @@ class _AppCardState extends State<AppCard> {
 
   /// Builds a bordered card decoration with rounded corners and hover effects.
   BoxDecoration _buildBorderedDecoration(BuildContext context) {
+    // Determine border color and width based on selection and hover state
+    final Color borderColor;
+    final double borderWidth;
+
+    if (widget.isSelected) {
+      // Selected state: use solid primary color with thicker border
+      borderColor = Theme.of(context).colorScheme.primary;
+      borderWidth = 2.5;
+    } else if (_isHovering) {
+      borderColor = Theme.of(context).colorScheme.primary.withAlpha(180);
+      borderWidth = 1;
+    } else {
+      borderColor = Theme.of(context).colorScheme.primary.withAlpha(80);
+      borderWidth = 1;
+    }
+
     return BoxDecoration(
-      border: Border.all(
-        color: Theme.of(
-          context,
-        ).colorScheme.primary.withAlpha(_isHovering ? 180 : 80),
-        width: 1,
-      ),
+      border: Border.all(color: borderColor, width: borderWidth),
       borderRadius: BorderRadius.circular(12),
-      color: _isHovering
-          ? Theme.of(context).colorScheme.primary.withAlpha(10)
-          : null,
+      color: widget.isSelected
+          ? Theme.of(context).colorScheme.primary.withAlpha(20)
+          : (_isHovering
+              ? Theme.of(context).colorScheme.primary.withAlpha(10)
+              : null),
     );
   }
 
