@@ -1,0 +1,101 @@
+id;question;correct answer;wrong answer 1;wrong answer 2;wrong answer 3
+1;私;I, me;you;he;she
+2;What is "he" in Japanese?;彼;彼女;私;あなた
+3;彼女;she;he;I;you
+4;これ;this (thing near me);that (thing near you);that (thing over there);what
+5;What is "that (thing over there)" in Japanese?;あれ;これ;それ;どれ
+6;人;person;man;woman;child
+7;What is "man" in Japanese?;男;女;人;子
+8;女;woman;man;child;person
+9;先生;teacher;student;friend;child
+10;What is "student" in Japanese?;学生;先生;友達;子
+11;友達;friend;family;teacher;student
+12;What is "family" in Japanese?;家族;友達;父;母
+13;父;my father;my mother;someone's father;someone's mother
+14;母;my mother;my father;someone's mother;someone's father
+15;What is "someone else's father" in Japanese?;お父さん;父;お母さん;母
+16;一;one;two;three;ten
+17;What is "two" in Japanese?;二;一;三;十
+18;三;three;one;two;ten
+19;十;ten;one;hundred;thousand
+20;What is "one hundred" in Japanese?;百;十;千;一
+21;千;one thousand;one hundred;ten;one
+22;今;now;today;tomorrow;yesterday
+23;What is "today" in Japanese?;今日;明日;昨日;今
+24;明日;tomorrow;today;yesterday;now
+25;昨日;yesterday;today;tomorrow;morning
+26;What is "morning" in Japanese?;朝;昼;夜;今
+27;昼;daytime, noon;morning;night;now
+28;夜;night;morning;noon;today
+29;時間;hour;minute;second;week
+30;What is "minute" in Japanese?;分;時間;秒;年
+31;週;week;month;year;day
+32;What is "year" in Japanese?;年;月;週;日
+33;家;house;school;company;shop
+34;What is "school" in Japanese?;学校;家;会社;店
+35;会社;company;school;house;station
+36;店;shop;station;restaurant;school
+37;What is "station" in Japanese?;駅;店;家;学校
+38;国;country;company;house;station
+39;水;water;tea;coffee;rice
+40;What is "tea" in Japanese?;お茶;水;コーヒー;ご飯
+41;コーヒー;coffee;tea;water;rice
+42;ご飯;rice / meal;water;tea;meat
+43;What is "food" in Japanese?;食べ物;ご飯;肉;魚
+44;肉;meat;fish;rice;food
+45;魚;fish;meat;water;food
+46;本;book;paper;pencil;bag
+47;What is "paper" in Japanese?;紙;本;鉛筆;鞄
+48;鉛筆;pencil;paper;book;telephone
+49;電話;telephone;book;pencil;bag
+50;What is "bag" in Japanese?;鞄;本;紙;電話
+51;する;to do;to become;to exist;to go
+52;What is "to become" in Japanese?;なる;する;ある;いる
+53;ある;to exist (inanimate);to exist (animate);to do;to become
+54;いる;to exist (animate);to exist (inanimate);to do;to go
+55;What is "to go" in Japanese?;行く;来る;帰る;見る
+56;来る;to come;to go;to return home;to see
+57;帰る;to return home;to go;to come;to buy
+58;What is "to eat" in Japanese?;食べる;飲む;見る;聞く
+59;飲む;to drink;to eat;to speak;to read
+60;見る;to see, to look;to hear;to speak;to read
+61;What is "to hear / to ask" in Japanese?;聞く;話す;見る;読む
+62;話す;to speak;to hear;to read;to write
+63;読む;to read;to write;to speak;to see
+64;What is "to write" in Japanese?;書く;読む;話す;買う
+65;買う;to buy;to sell;to write;to read
+66;What is "to study" in Japanese?;勉強する;読む;書く;話す
+67;良い;good;bad;big;small
+68;What is "bad" in Japanese?;悪い;良い;高い;安い
+69;大きい;big;small;high;cheap
+70;小さい;small;big;expensive;cheap
+71;What is "expensive / high" in Japanese?;高い;安い;大きい;小さい
+72;安い;cheap;expensive;big;small
+73;暑い;hot (weather);cold (weather);good;bad
+74;What is "cold (weather)" in Japanese?;寒い;暑い;高い;安い
+75;好きな;liked, favorite;disliked;quiet;healthy
+76;What is "disliked" in Japanese?;嫌いな;好きな;静かな;元気な
+77;静かな;quiet;healthy;convenient;favorite
+78;元気な;healthy, energetic;quiet;convenient;disliked
+79;What is "convenient" in Japanese?;便利な;静かな;元気な;好きな
+80;とても;very;not very;many;a little
+81;What is "not very (with negative)" in Japanese?;あまり;とても;たくさん;少し
+82;たくさん;many, a lot;a little;very;often
+83;少し;a little;many;very;always
+84;What is "often / well" in Japanese?;よく;いつも;とても;少し
+85;いつも;always;often;sometimes;never
+86;そして;and then;but;very;always
+87;What is "but" in Japanese?;でも;そして;とても;いつも
+88;は;topic marker;subject marker;object marker;question marker
+89;What is the subject marker in Japanese?;が;は;を;か
+90;を;direct object marker;topic marker;subject marker;direction marker
+91;に;direction / time marker;location of action marker;possession marker;question marker
+92;What is the possession marker in Japanese?;の;に;で;と
+93;で;location of action / means;direction marker;possession marker;question marker
+94;か;question marker;topic marker;subject marker;possession marker
+95;What is "this (thing near you)" in Japanese?;それ;これ;あれ;どれ
+96;子;child;person;man;woman
+97;What is "second (time)" in Japanese?;秒;分;時間;年
+98;月;month;week;year;day
+99;What is "day of the week" in Japanese?;曜日;月;週;年
+100;レストラン;restaurant;shop;station;school

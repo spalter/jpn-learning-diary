@@ -1,0 +1,201 @@
+id;question;correct answer;wrong answer 1;wrong answer 2;wrong answer 3
+1;息子;son;daughter;child;brother
+2;What is "daughter" in Japanese?;娘;息子;妹;姉
+3;祖父;grandfather;grandmother;father;uncle
+4;祖母;grandmother;grandfather;mother;aunt
+5;What is "uncle" in Japanese?;おじ;おば;祖父;祖母
+6;おば;aunt;uncle;grandmother;grandfather
+7;親;parent;child;relative;sibling
+8;What is "relative" in Japanese?;親戚;親;兄弟;家族
+9;夫;husband;wife;man;woman
+10;妻;wife;husband;woman;man
+11;What is "couple" in Japanese?;夫婦;夫;妻;家族
+12;彼氏;boyfriend;girlfriend;friend;husband
+13;彼女;girlfriend / she;boyfriend;friend;wife
+14;What is "neighbor" in Japanese?;隣の人;友人;知人;親戚
+15;客;guest, customer;shop owner;employee;boss
+16;社長;company president;employee;customer;teacher
+17;What is "employee" in Japanese?;社員;社長;客;店員
+18;店員;shop clerk;customer;boss;student
+19;医者;doctor;nurse;patient;dentist
+20;What is "nurse" in Japanese?;看護師;医者;患者;歯医者
+21;患者;patient;doctor;nurse;visitor
+22;警察;police;fireman;soldier;thief
+23;What is "thief" in Japanese?;泥棒;警察;犯人;探偵
+24;運転手;driver;passenger;pilot;captain
+25;歌手;singer;actor;musician;dancer
+26;What is "actor" in Japanese?;俳優;歌手;監督;作家
+27;作家;writer, author;singer;actor;painter
+28;画家;painter;writer;photographer;musician
+29;What is "photographer" in Japanese?;写真家;画家;作家;歌手
+30;政治;politics;economy;history;science
+31;経済;economy;politics;society;culture
+32;What is "society" in Japanese?;社会;経済;政治;文化
+33;文化;culture;society;history;science
+34;歴史;history;geography;science;culture
+35;What is "science" in Japanese?;科学;歴史;技術;数学
+36;技術;technology;science;art;culture
+37;法律;law;rule;politics;society
+38;What is "international" in Japanese?;国際;国内;海外;世界
+39;世界;world;country;society;universe
+40;地球;earth;moon;sun;star
+41;What is "nature" in Japanese?;自然;環境;地球;森
+42;環境;environment;nature;weather;climate
+43;気候;climate;weather;environment;season
+44;What is "earthquake" in Japanese?;地震;台風;火事;事故
+45;台風;typhoon;earthquake;flood;storm
+46;火事;fire;accident;earthquake;storm
+47;What is "accident" in Japanese?;事故;火事;地震;台風
+48;交通;traffic;transportation;road;car
+49;道路;road;traffic;bridge;corner
+50;What is "corner" in Japanese?;角;道路;橋;交差点
+51;橋;bridge;road;corner;stairs
+52;階段;stairs;elevator;escalator;floor
+53;What is "elevator" in Japanese?;エレベーター;エスカレーター;階段;階
+54;エスカレーター;escalator;elevator;stairs;floor
+55;屋上;rooftop;basement;floor;ceiling
+56;What is "basement" in Japanese?;地下;屋上;一階;天井
+57;壁;wall;floor;ceiling;door
+58;天井;ceiling;floor;wall;roof
+59;What is "curtain" in Japanese?;カーテン;窓;壁;床
+60;床;floor;ceiling;wall;ground
+61;棚;shelf;drawer;desk;chair
+62;What is "drawer" in Japanese?;引き出し;棚;机;椅子
+63;鏡;mirror;glass;window;picture
+64;石鹸;soap;shampoo;towel;toothbrush
+65;What is "towel" in Japanese?;タオル;石鹸;歯ブラシ;シャンプー
+66;歯ブラシ;toothbrush;soap;towel;comb
+67;布団;futon;blanket;pillow;bed
+68;What is "blanket" in Japanese?;毛布;布団;枕;シーツ
+69;枕;pillow;blanket;futon;sheet
+70;お皿;plate;bowl;cup;chopsticks
+71;What is "bowl" in Japanese?;お椀;お皿;コップ;茶碗
+72;茶碗;rice bowl;plate;cup;mug
+73;フォーク;fork;knife;spoon;chopsticks
+74;What is "knife" in Japanese?;ナイフ;フォーク;スプーン;包丁
+75;包丁;kitchen knife;knife;scissors;fork
+76;鍋;pot;pan;kettle;bowl
+77;What is "pan / frying pan" in Japanese?;フライパン;鍋;やかん;お皿
+78;やかん;kettle;pot;pan;cup
+79;冷蔵庫;refrigerator;microwave;oven;washing machine
+80;What is "washing machine" in Japanese?;洗濯機;冷蔵庫;電子レンジ;掃除機
+81;掃除機;vacuum cleaner;washing machine;refrigerator;air conditioner
+82;エアコン;air conditioner;heater;fan;vacuum cleaner
+83;What is "heater" in Japanese?;ヒーター;エアコン;扇風機;掃除機
+84;扇風機;fan;heater;air conditioner;cooler
+85;財布;wallet;bag;pocket;money
+86;What is "key" in Japanese?;鍵;財布;傘;靴
+87;傘;umbrella;key;bag;wallet
+88;眼鏡;glasses;sunglasses;contact lens;mirror
+89;What is "contact lens" in Japanese?;コンタクト;眼鏡;サングラス;鏡
+90;指輪;ring;necklace;earring;bracelet
+91;What is "necklace" in Japanese?;ネックレス;指輪;イヤリング;ブレスレット
+92;アクセサリー;accessory;jewelry;clothes;shoes
+93;靴下;socks;shoes;gloves;hat
+94;What is "gloves" in Japanese?;手袋;靴下;帽子;マフラー
+95;マフラー;scarf;gloves;hat;coat
+96;コート;coat;jacket;sweater;shirt
+97;What is "sweater" in Japanese?;セーター;コート;ジャケット;シャツ
+98;牛肉;beef;pork;chicken;fish
+99;豚肉;pork;beef;chicken;lamb
+100;What is "chicken (meat)" in Japanese?;鶏肉;豚肉;牛肉;魚
+101;野菜;vegetable;fruit;meat;rice
+102;What is "fruit" in Japanese?;果物;野菜;肉;魚
+103;玉ねぎ;onion;carrot;potato;cabbage
+104;人参;carrot;onion;potato;tomato
+105;What is "potato" in Japanese?;じゃがいも;人参;玉ねぎ;大根
+106;大根;radish;carrot;potato;onion
+107;りんご;apple;orange;banana;grape
+108;みかん;mandarin orange;apple;lemon;grape
+109;What is "grape" in Japanese?;ぶどう;りんご;みかん;いちご
+110;いちご;strawberry;grape;apple;orange
+111;塩;salt;sugar;pepper;soy sauce
+112;What is "sugar" in Japanese?;砂糖;塩;胡椒;醤油
+113;醤油;soy sauce;salt;sugar;vinegar
+114;味噌;miso;soy sauce;salt;soup
+115;What is "vinegar" in Japanese?;酢;味噌;醤油;塩
+116;届く;to reach, to arrive;to send;to receive;to deliver
+117;届ける;to deliver;to arrive;to receive;to take
+118;What is "to send" in Japanese?;送る;届く;届ける;受け取る
+119;受け取る;to receive;to send;to deliver;to arrive
+120;集める;to collect, to gather;to scatter;to throw;to drop
+121;What is "to throw" in Japanese?;投げる;集める;落とす;拾う
+122;拾う;to pick up;to drop;to throw;to collect
+123;落とす;to drop;to pick up;to throw;to catch
+124;What is "to catch" in Japanese?;捕まえる;落とす;投げる;拾う
+125;触る;to touch;to feel;to hold;to catch
+126;押す;to push;to pull;to press;to touch
+127;What is "to pull" in Japanese?;引く;押す;触る;持つ
+128;開ける;to open (transitive);to close;to open (intransitive);to shut
+129;閉める;to close (transitive);to open;to close (intransitive);to shut
+130;What is "to open (intransitive)" in Japanese?;開く;開ける;閉める;閉まる
+131;閉まる;to close (intransitive);to open;to close (transitive);to open (transitive)
+132;始める;to begin (transitive);to end;to begin (intransitive);to finish
+133;What is "to end (transitive)" in Japanese?;終える;始める;始まる;終わる
+134;終わる;to end (intransitive);to begin;to end (transitive);to start
+135;続ける;to continue (transitive);to stop;to continue (intransitive);to begin
+136;What is "to stop (transitive)" in Japanese?;止める;続ける;続く;止まる
+137;止まる;to stop (intransitive);to continue;to stop (transitive);to begin
+138;変える;to change (transitive);to change (intransitive);to exchange;to replace
+139;What is "to change (intransitive)" in Japanese?;変わる;変える;代わる;換える
+140;決める;to decide;to hesitate;to choose;to think
+141;What is "to choose / to select" in Japanese?;選ぶ;決める;考える;迷う
+142;迷う;to be lost, to hesitate;to decide;to choose;to think
+143;考える;to think;to decide;to believe;to feel
+144;What is "to believe" in Japanese?;信じる;考える;思う;感じる
+145;感じる;to feel;to think;to believe;to sense
+146;覚える;to memorize, to learn;to forget;to remember;to know
+147;What is "to forget" in Japanese?;忘れる;覚える;思い出す;知る
+148;思い出す;to remember, to recall;to forget;to memorize;to think
+149;間違える;to make a mistake;to correct;to understand;to confuse
+150;What is "to correct" in Japanese?;直す;間違える;正す;治す
+151;治す;to cure, to heal;to break;to correct;to hurt
+152;壊す;to break (transitive);to fix;to break (intransitive);to build
+153;What is "to break (intransitive)" in Japanese?;壊れる;壊す;直す;作る
+154;建てる;to build;to destroy;to repair;to live
+155;What is "to repair" in Japanese?;修理する;建てる;壊す;作る
+156;育てる;to raise, to grow (transitive);to grow (intransitive);to teach;to learn
+157;What is "to grow (intransitive)" in Japanese?;育つ;育てる;教える;習う
+158;起こす;to wake someone up;to sleep;to wake up (intransitive);to lie down
+159;起きる;to wake up (intransitive);to sleep;to wake someone up;to lie down
+160;What is "to lie down" in Japanese?;寝る;起きる;起こす;座る
+161;座る;to sit;to stand;to lie down;to sleep
+162;立つ;to stand;to sit;to walk;to run
+163;What is "to run" in Japanese?;走る;歩く;立つ;跳ぶ
+164;歩く;to walk;to run;to stand;to sit
+165;泳ぐ;to swim;to run;to fly;to dive
+166;What is "to fly" in Japanese?;飛ぶ;泳ぐ;走る;跳ぶ
+167;登る;to climb;to descend;to jump;to fall
+168;下りる;to descend, to get off;to climb;to get on;to fall
+169;What is "to get on (vehicle)" in Japanese?;乗る;下りる;登る;降りる
+170;乗り換える;to transfer (vehicles);to get on;to get off;to drive
+171;What is "to drive" in Japanese?;運転する;乗る;下りる;乗り換える
+172;引っ越す;to move (house);to move (object);to live;to stay
+173;What is "to stay (overnight)" in Japanese?;泊まる;住む;引っ越す;滞在する
+174;予約する;to reserve;to cancel;to order;to buy
+175;What is "to cancel" in Japanese?;キャンセルする;予約する;注文する;返す
+176;注文する;to order;to reserve;to buy;to sell
+177;払う;to pay;to receive;to borrow;to return
+178;What is "to borrow" in Japanese?;借りる;払う;貸す;返す
+179;貸す;to lend;to borrow;to return;to give
+180;返す;to return (something);to borrow;to lend;to receive
+181;What is "to steal" in Japanese?;盗む;返す;取る;失う
+182;怖い;scary;sad;happy;angry
+183;What is "sad" in Japanese?;悲しい;怖い;嬉しい;寂しい
+184;嬉しい;happy, glad;sad;scary;lonely
+185;寂しい;lonely;happy;scary;sad
+186;What is "embarrassed" in Japanese?;恥ずかしい;寂しい;悲しい;怖い
+187;珍しい;rare, unusual;common;strange;normal
+188;What is "strange" in Japanese?;変な;珍しい;普通;不思議な
+189;正しい;correct;wrong;similar;different
+190;What is "wrong" in Japanese?;間違った;正しい;違う;同じ
+191;同じ;same;different;similar;opposite
+192;違う;different;same;similar;correct
+193;What is "similar" in Japanese?;似ている;違う;同じ;近い
+194;複雑な;complicated;simple;easy;difficult
+195;What is "simple" in Japanese?;簡単な;複雑な;難しい;易しい
+196;丁寧な;polite;rude;kind;strict
+197;What is "rude" in Japanese?;失礼な;丁寧な;親切な;厳しい
+198;真面目な;serious, diligent;lazy;funny;careless
+199;What is "lazy" in Japanese?;怠け者;真面目な;面白い;不注意
+200;親切な;kind;rude;strict;cold
