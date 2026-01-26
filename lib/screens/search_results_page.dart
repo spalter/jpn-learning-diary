@@ -152,7 +152,10 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
       // JMdict cards
       if (index < currentIndex + results.jmdictEntries.length) {
         final entryIndex = index - currentIndex;
-        return _buildJmdictCard(results.jmdictEntries[entryIndex], useBorderedStyle);
+        return _buildJmdictCard(
+          results.jmdictEntries[entryIndex],
+          useBorderedStyle,
+        );
       }
       currentIndex += results.jmdictEntries.length;
 
@@ -234,8 +237,9 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     final allEntries = await diaryRepository.getAllEntries();
     final diaryResults = allEntries.where((entry) {
       final query = widget.searchQuery.toLowerCase();
-      final strippedJapanese =
-          JapaneseTextUtils.stripRubyPatterns(entry.japanese).toLowerCase();
+      final strippedJapanese = JapaneseTextUtils.stripRubyPatterns(
+        entry.japanese,
+      ).toLowerCase();
       return strippedJapanese.contains(query) ||
           (entry.furigana?.toLowerCase().contains(query) ?? false) ||
           entry.romaji.toLowerCase().contains(query) ||
@@ -247,10 +251,9 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     final kanjiResults = await kanjiRepository.searchKanji(widget.searchQuery);
 
     // Search JMdict using tokenized search
-    final tokens = JapaneseTextUtils.tokenize(widget.searchQuery)
-        .where((t) => t.trim().isNotEmpty)
-        .toSet()
-        .toList();
+    final tokens = JapaneseTextUtils.tokenize(
+      widget.searchQuery,
+    ).where((t) => t.trim().isNotEmpty).toSet().toList();
     final jmdictResults = <JMdictEntry>[];
     final seenEntSeqs = <int>{};
     for (final token in tokens) {

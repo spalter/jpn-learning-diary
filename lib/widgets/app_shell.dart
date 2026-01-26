@@ -73,6 +73,9 @@ class _AppShellState extends State<AppShell> {
   /// Key used to force page rebuilds when data changes.
   Key _pageKey = UniqueKey();
 
+  /// Whether to hide the mouse cursor (when using keyboard navigation).
+  bool _hideMouseCursor = false;
+
   /// Sets up the search controller and listens for text changes.
   @override
   void initState() {
@@ -237,9 +240,24 @@ class _AppShellState extends State<AppShell> {
             )
           : null,
       backgroundColor: AppTheme.scaffoldBackground(context),
-      body: Padding(
-        padding: const EdgeInsets.only(left: 16, top: 16, right: 0, bottom: 0),
-        child: _buildCurrentPage(),
+      body: MouseRegion(
+        cursor: _hideMouseCursor ? SystemMouseCursors.none : MouseCursor.defer,
+        onHover: (_) {
+          if (_hideMouseCursor) {
+            setState(() {
+              _hideMouseCursor = false;
+            });
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.only(
+            left: 16,
+            top: 16,
+            right: 0,
+            bottom: 0,
+          ),
+          child: _buildCurrentPage(),
+        ),
       ),
       floatingActionButton: _currentPage != AppPage.settings
           ? BirdFab(onEntryCreated: _refreshCurrentPage)
@@ -263,7 +281,6 @@ class _AppShellState extends State<AppShell> {
     final key = event.logicalKey;
     final isControlPressed = HardwareKeyboard.instance.isControlPressed;
     final isMetaPressed = HardwareKeyboard.instance.isMetaPressed;
-    final isAltPressed = HardwareKeyboard.instance.isAltPressed;
 
     // Cmd+F on macOS, Ctrl+F on Windows/Linux - focus search
     if (key == LogicalKeyboardKey.keyF) {
@@ -323,6 +340,41 @@ class _AppShellState extends State<AppShell> {
       if ((Platform.isMacOS && isMetaPressed) ||
           (!Platform.isMacOS && isControlPressed)) {
         _navigateToPage(AppPage.settings);
+        return true;
+      }
+    }
+
+    // Escape - unfocus current element
+    if (key == LogicalKeyboardKey.escape) {
+      FocusScope.of(context).unfocus();
+      return true;
+    }
+
+    // Vim-like navigation: h/j/k/l map to arrow keys
+    // Only when not typing in search field and no modifiers pressed
+    final isFocusedOnTextField = _searchFocusNode.hasFocus;
+    if (!isFocusedOnTextField && !isControlPressed && !isMetaPressed) {
+      final focus = FocusScope.of(context);
+
+      if (key == LogicalKeyboardKey.keyH) {
+        // Move left
+        setState(() => _hideMouseCursor = true);
+        focus.focusInDirection(TraversalDirection.left);
+        return true;
+      } else if (key == LogicalKeyboardKey.keyJ) {
+        // Move down
+        setState(() => _hideMouseCursor = true);
+        focus.focusInDirection(TraversalDirection.down);
+        return true;
+      } else if (key == LogicalKeyboardKey.keyK) {
+        // Move up
+        setState(() => _hideMouseCursor = true);
+        focus.focusInDirection(TraversalDirection.up);
+        return true;
+      } else if (key == LogicalKeyboardKey.keyL) {
+        // Move right
+        setState(() => _hideMouseCursor = true);
+        focus.focusInDirection(TraversalDirection.right);
         return true;
       }
     }
