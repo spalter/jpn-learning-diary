@@ -7,16 +7,20 @@
 //
 // ============================================================================
 
-import 'package:tiny_segmenter_dart/tiny_segmenter_dart.dart';
+import 'package:kuromoji/kuromoji.dart';
 
 /// Utility class for Japanese text processing and analysis.
 ///
 /// Provides regex patterns and helper methods for identifying and extracting
 /// different types of Japanese characters (kanji, hiragana, katakana),
 /// as well as ruby text (furigana) parsing utilities.
+///
+/// Uses Kuromoji for morphological analysis, providing accurate tokenization
+/// with part-of-speech tagging, readings, and dictionary forms.
 class JapaneseTextUtils {
-  // Singleton instance of TinySegmenter for word tokenization
-  static final TinySegmenter _segmenter = TinySegmenter();
+  // Singleton instance of Kuromoji Tokenizer for word tokenization
+  static final Tokenizer _tokenizer = Tokenizer.buildSync();
+
   // Private constructor to prevent instantiation
   JapaneseTextUtils._();
 
@@ -101,11 +105,33 @@ class JapaneseTextUtils {
 
   /// Tokenizes Japanese text into individual words/tokens.
   ///
-  /// Uses TinySegmenter for word boundary detection.
+  /// Uses Kuromoji for morphological analysis with dictionary-based tokenization.
+  /// Returns just the surface forms for backward compatibility.
   /// Example: "私は日本語を勉強しています" → ["私", "は", "日本語", "を", "勉強", "し", "て", "い", "ます"]
   static List<String> tokenize(String text) {
     if (text.isEmpty) return [];
-    return _segmenter.segment(text);
+    return _tokenizer.tokenize(text).map((t) => t.surfaceForm).toList();
+  }
+
+  /// Tokenizes Japanese text with full morphological information.
+  ///
+  /// Uses Kuromoji for morphological analysis, returning rich token data including:
+  /// - surfaceForm: The actual text of the token
+  /// - pos: Part of speech (名詞, 動詞, 助詞, etc.)
+  /// - reading: Kana reading of the token
+  /// - basicForm: Dictionary/lemma form
+  /// - conjugatedType/conjugatedForm: Conjugation information
+  ///
+  /// Example usage:
+  /// ```dart
+  /// final tokens = JapaneseTextUtils.tokenizeWithInfo("食べています");
+  /// for (final token in tokens) {
+  ///   print('${token.surfaceForm} - ${token.pos} - ${token.reading}');
+  /// }
+  /// ```
+  static List<UnknownToken> tokenizeWithInfo(String text) {
+    if (text.isEmpty) return [];
+    return _tokenizer.tokenize(text);
   }
 }
 
