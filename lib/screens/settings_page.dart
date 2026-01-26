@@ -14,7 +14,6 @@ import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/cloud_sync_service.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
-import 'package:jpn_learning_diary/services/file_access_service.dart';
 import 'package:jpn_learning_diary/services/theme_notifier.dart';
 import 'package:jpn_learning_diary/widgets/app_about_dialog.dart';
 
@@ -595,14 +594,8 @@ class _SettingsPageState extends State<SettingsPage> {
   /// 1. Prompts user to select a .db file via file picker
   /// 2. Verifies the selected file exists
   /// 3. Saves the file path to preferences
-  /// 4. On macOS: Creates a security-scoped bookmark for persistent access
-  /// 5. Resets database connection to immediately use the new file
-  /// 6. Refreshes UI to display the new path
-  ///
-  /// **macOS Security-Scoped Bookmarks:**
-  /// On macOS, creating a bookmark is essential for maintaining access to files
-  /// outside the app's sandbox across app restarts. If bookmark creation fails,
-  /// the user will need to re-select the file after each app restart.
+  /// 4. Resets database connection to immediately use the new file
+  /// 5. Refreshes UI to display the new path
   ///
   /// **Use Case:**
   /// Allows users to store their database in a custom location such as:
@@ -622,23 +615,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
     // Persist the selected path to preferences
     await AppPreferences.setCustomDatabasePath(selectedPath);
-
-    // macOS: Create security-scoped bookmark for persistent file access
-    // This allows the app to access the file across restarts without re-selection
-    if (Platform.isMacOS) {
-      final bookmarkSaved = await FileAccessService.saveBookmark(selectedPath);
-      if (!bookmarkSaved && mounted) {
-        // Warn user if bookmark creation failed
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Warning: Could not save persistent access. You may need to select the file again after restart.',
-            ),
-            duration: Duration(seconds: 4),
-          ),
-        );
-      }
-    }
 
     // Close existing database connection and force reconnection with new path
     await DatabaseHelper.instance.resetConnection();

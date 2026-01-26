@@ -15,7 +15,6 @@ import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/cloud_sync_service.dart';
-import 'package:jpn_learning_diary/services/file_access_service.dart';
 import 'package:jpn_learning_diary/services/jpn_database_helper.dart';
 
 /// Database helper for managing diary entries in SQLite.
@@ -52,17 +51,11 @@ class DatabaseHelper {
   ///
   /// Determines the database path based on user preferences and platform:
   /// - **Android with cloud sync**: Uses the local synced copy (sync should happen before this)
-  /// - **macOS with custom path**: Uses security-scoped bookmark for persistent access
-  /// - **Other platforms with custom path**: Uses the stored path directly
+  /// - **Custom path**: Uses the user-selected database file path
   /// - **Default**: Uses application documents directory
   ///
   /// **Note:** On Android with cloud sync, call `CloudSyncService.syncFromCloud()`
   /// before accessing the database to ensure you have the latest version.
-  ///
-  /// **macOS Security-Scoped Bookmarks:**
-  /// On macOS, attempts to resolve a saved bookmark first to regain access
-  /// to custom database files outside the sandbox. Falls back to stored path
-  /// if bookmark resolution fails (which may result in SQLITE error 14: CANTOPEN).
   ///
   /// **Parameters:**
   /// - [filePath]: Default database filename (e.g., 'diary.db')
@@ -81,31 +74,10 @@ class DatabaseHelper {
       final customPath = await AppPreferences.getCustomDatabasePath();
 
       if (customPath != null && customPath.isNotEmpty) {
-        // Custom path exists - handle platform-specific access requirements
-        if (Platform.isMacOS) {
-          // On macOS, resolve security-scoped bookmark for directory access
-          // The bookmark grants access to the parent directory, allowing SQLite
-          // to create temporary files (WAL, SHM, journal) alongside the database
-          final resolvedDirPath = await FileAccessService.resolveBookmark();
-          if (resolvedDirPath != null) {
-            // Bookmark resolved - construct full database path from directory + filename
-            final dbFileName = customPath.endsWith('.db') 
-                ? basename(customPath) 
-                : filePath;
-            path = join(resolvedDirPath, dbFileName);
-          } else {
-            // No bookmark or resolution failed - use stored path directly
-            // Note: This may fail with SQLITE error 14 (CANTOPEN) due to sandbox restrictions
-            path = customPath.endsWith('.db')
-                ? customPath
-                : join(customPath, filePath);
-          }
-        } else {
-          // Other platforms don't need security-scoped bookmarks
-          path = customPath.endsWith('.db')
-              ? customPath
-              : join(customPath, filePath);
-        }
+        // Custom path exists - use it directly
+        path = customPath.endsWith('.db')
+            ? customPath
+            : join(customPath, filePath);
       } else {
         // No custom path set - use default application database directory
         final dbPath = await getDatabasesPath();
