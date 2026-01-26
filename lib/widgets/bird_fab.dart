@@ -34,15 +34,15 @@ class _BirdFabState extends State<BirdFab> with SingleTickerProviderStateMixin {
   bool _isHovering = false;
 
   static const _tooltipMessages = [
-    "Let's add a new diary entry!",
-    "Time to write in your diary!",
-    "What did you learn today?",
-    "Let's document your progress!",
-    "Add a new entry to your journey!",
-    "Capture today's learning moments!",
-    "Share what's on your mind!",
-    "メモを取ろう！",
-    "今日は何を学んだ？",
+    'Let\'s add a new diary entry!',
+    'Time to write in your diary!',
+    'What did you learn today?',
+    'Let\'s document your progress!',
+    'Add a new entry to your journey!',
+    'Capture today\'s learning moments!',
+    'Share what\'s on your mind!',
+    'メモを取ろう！',
+    '今日は何を学んだ？',
   ];
 
   String _tooltipMessage = _tooltipMessages[0];

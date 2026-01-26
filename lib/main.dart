@@ -24,10 +24,9 @@ import 'package:jpn_learning_diary/screens/splash_screen.dart';
 
 /// Main entry point of the application.
 ///
-/// On desktop platforms, this configures a modern translucent window appearance
-/// using the Windows Mica effect or macOS transparency. The titlebar is hidden
-/// to allow for a custom UI implementation, and a minimum window size of 700x300
-/// ensures the layout remains usable. Mobile platforms skip these effects and
+/// On desktop platforms, the titlebar is hidden to allow for a custom UI 
+/// implementation, and a minimum window size of 700x300 ensures the 
+/// layout remains usable. Mobile platforms skip these effects and
 /// launch directly.
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,12 +72,6 @@ void main(List<String> args) async {
 }
 
 /// Root widget of the Japanese Learning Diary application.
-///
-/// The app uses a custom Tokyo-inspired color scheme with Tokyo Day for light
-/// mode and Tokyo Night for dark mode, following Material 3 design guidelines.
-/// Theme switching is automatic based on the system preference. On Android,
-/// a lifecycle observer triggers cloud sync when the app goes to background
-/// to ensure diary entries are backed up.
 class JapaneseLearningDiary extends StatefulWidget {
   const JapaneseLearningDiary({super.key});
 
@@ -88,7 +81,7 @@ class JapaneseLearningDiary extends StatefulWidget {
 
 /// Internal state for [JapaneseLearningDiary].
 class _JapaneseLearningDiaryState extends State<JapaneseLearningDiary> {
-  /// Builds the MaterialApp with Tokyo-themed light and dark modes.
+  /// Builds the MaterialApp with light and dark modes.
   ///
   /// The app starts with [SplashScreen] which handles initial loading and
   /// navigation to the main content. Uses [ListenableBuilder] to rebuild

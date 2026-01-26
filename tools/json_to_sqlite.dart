@@ -289,9 +289,9 @@ void convertWordsToTables(Database db, Map<String, dynamic> data) {
     db.execute('ROLLBACK');
     rethrow;
   } finally {
-    insertWord.dispose();
-    insertMeaning.dispose();
-    insertVariant.dispose();
+    insertWord.close();
+    insertMeaning.close();
+    insertVariant.close();
   }
 
   print('Created table "words" with $wordCount rows');

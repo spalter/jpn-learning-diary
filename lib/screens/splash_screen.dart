@@ -29,6 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
     _navigateToHome();
   }
 
+  // Navigate to home screen after initialization tasks.
   Future<void> _navigateToHome() async {
     if (Platform.isAndroid && await CloudSyncService.isCloudSyncEnabled()) {
       await CloudSyncService.syncFromCloud();

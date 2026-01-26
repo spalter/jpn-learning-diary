@@ -224,7 +224,7 @@ class _TakobotoViewerState extends State<TakobotoViewer>
   /// color and removes underlines from links for a cleaner appearance.
   Widget _buildHtmlContent(BuildContext context, String html) {
     final colorScheme = Theme.of(context).colorScheme;
-    final primaryHex = '#${colorScheme.primary.value.toRadixString(16).substring(2)}';
+    final primaryHex = '#${colorScheme.primary.toARGB32().toRadixString(16).substring(2)}';
     
     // Replace Takoboto's orange color with our primary color
     final styledHtml = html.replaceAll('#FF6020', primaryHex);
