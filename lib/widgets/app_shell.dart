@@ -289,30 +289,30 @@ class _AppShellState extends State<AppShell> {
       return true;
     }
 
-    // Navigation modifier: Option on Mac, Ctrl on Windows/Linux
+    // Navigation modifier: Cmd on Mac, Ctrl on Windows/Linux
     final isNavModifierPressed = Platform.isMacOS
-        ? isAltPressed
+        ? isMetaPressed
         : isControlPressed;
 
-    // Option+1 (Mac) / Ctrl+1 (Win/Linux) - Diary page
+    // Cmd+1 (Mac) / Ctrl+1 (Win/Linux) - Diary page
     if (key == LogicalKeyboardKey.digit1 && isNavModifierPressed) {
       _navigateToPage(AppPage.phrasesWords);
       return true;
     }
 
-    // Option+2 (Mac) / Ctrl+2 (Win/Linux) - Hiragana page
+    // Cmd+2 (Mac) / Ctrl+2 (Win/Linux) - Hiragana page
     if (key == LogicalKeyboardKey.digit2 && isNavModifierPressed) {
       _navigateToPage(AppPage.hiragana);
       return true;
     }
 
-    // Option+3 (Mac) / Ctrl+3 (Win/Linux) - Katakana page
+    // Cmd+3 (Mac) / Ctrl+3 (Win/Linux) - Katakana page
     if (key == LogicalKeyboardKey.digit3 && isNavModifierPressed) {
       _navigateToPage(AppPage.katakana);
       return true;
     }
 
-    // Option+4 (Mac) / Ctrl+4 (Win/Linux) - Learning/Dashboard page
+    // Cmd+4 (Mac) / Ctrl+4 (Win/Linux) - Learning/Dashboard page
     if (key == LogicalKeyboardKey.digit4 && isNavModifierPressed) {
       _navigateToPage(AppPage.dashboard);
       return true;
