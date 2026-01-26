@@ -1,0 +1,158 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: 'stable'
+          cache: true
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Build Windows
+        run: flutter build windows --release
+      
+      - name: Create archive
+        run: |
+          cd build/windows/x64/runner/Release
+          7z a -tzip ../../../../../jpn-learning-diary-windows.zip .
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: jpn-learning-diary-windows.zip
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: 'stable'
+          cache: true
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Build macOS
+        run: flutter build macos --release
+      
+      - name: Create archive
+        run: |
+          cd build/macos/Build/Products/Release
+          zip -r ../../../../../jpn-learning-diary-macos.zip "Japanese Learning Diary.app"
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: jpn-learning-diary-macos.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: 'stable'
+          cache: true
+      
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtk-3-dev libsqlite3-dev
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Build Linux
+        run: flutter build linux --release
+      
+      - name: Create archive
+        run: |
+          cd build/linux/x64/release/bundle
+          tar -czvf ../../../../../jpn-learning-diary-linux.tar.gz .
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: jpn-learning-diary-linux.tar.gz
+
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: 'stable'
+          cache: true
+      
+      - name: Decode keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/upload-keystore.jks
+      
+      - name: Create key.properties
+        run: |
+          echo "storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=../android/upload-keystore.jks" >> android/key.properties
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Build Android APK
+        run: flutter build apk --release
+      
+      - name: Rename APK
+        run: mv build/app/outputs/flutter-apk/app-release.apk jpn-learning-diary-android.apk
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-build
+          path: jpn-learning-diary-android.apk
+
+  create-release:
+    needs: [build-windows, build-macos, build-linux, build-android]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/jpn-learning-diary-windows.zip
+            artifacts/jpn-learning-diary-macos.zip
+            artifacts/jpn-learning-diary-linux.tar.gz
+            artifacts/jpn-learning-diary-android.apk
+          generate_release_notes: true
+          draft: false

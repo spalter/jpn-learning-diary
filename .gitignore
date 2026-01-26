@@ -44,6 +44,11 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Android signing
+*.jks
+*.keystore
+android/key.properties
+
 # Tools
 /tools/kanjiapi_full.json
 /tools/*.db

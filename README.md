@@ -5,8 +5,8 @@
   
   A desktop app to track your Japanese language learning progress, take notes and practice.
   
-  ![Flutter](https://img.shields.io/badge/Flutter-3.10.4-02569B?logo=flutter)
-  ![Platform](https://img.shields.io/badge/Platform-Windows%20|%20macOS%20|%20Linux-lightgrey)
+  ![Flutter](https://img.shields.io/badge/Flutter-3.38.5-02569B?logo=flutter)
+  ![Platform](https://img.shields.io/badge/Platform-Windows%20|%20macOS%20|%20Linux%20|%20Android-lightgrey)
 </div>
 
 ---
