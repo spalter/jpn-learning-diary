@@ -7,51 +7,33 @@
 //
 // ============================================================================
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
-/// Shows the application's about dialog with license information.
-void showAppAboutDialog(BuildContext context) {
-  showAboutDialog(
-    context: context,
-    applicationName: 'Japanese Learning Diary',
-    applicationVersion: '1.0.0',
-    applicationIcon: Icon(
-      Icons.book,
-      size: 48,
-      color: Theme.of(context).colorScheme.primary,
-    ),
-    children: [
-      const SizedBox(height: 16),
-      const Text(
-        'This application uses kanji data from:',
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      const SizedBox(height: 8),
-      const Text(
-        'kanjiapi.dev',
-      ),
-      const SizedBox(height: 4),
-      Text(
-          'https://kanjiapi.dev/',
-        ),
-      const SizedBox(height: 8),
-      const Text(
-        'Which uses the EDICT and KANJIDIC dictionary files. These files are the property of the Electronic Dictionary Research and Development Group, and are used in conformance with the Group\'s licence.',
-        style: TextStyle(fontStyle: FontStyle.italic),
-      ),
-      const SizedBox(height: 8),
-      const Text(
-        'EDRDG',
-      ),
-      const SizedBox(height: 4),
-      Text(
-          'https://www.edrdg.org/edrdg/licence.html',
-        ),
-      const SizedBox(height: 8),
-      const Text(
-        'ELECTRONIC DICTIONARY RESEARCH AND DEVELOPMENT GROUP GENERAL DICTIONARY LICENCE STATEMENT',
-        style: TextStyle(fontStyle: FontStyle.italic),
-      ),
-    ],
-  );
+/// Registers custom licenses for third-party data sources.
+/// Call this once during app initialization.
+void registerCustomLicenses() {
+  LicenseRegistry.addLicense(() async* {
+    yield const LicenseEntryWithLineBreaks(
+      ['kanjiapi.dev'],
+      '''This application uses kanji data from kanjiapi.dev (https://kanjiapi.dev/).
+
+kanjiapi.dev uses the EDICT and KANJIDIC dictionary files. These files are the property of the Electronic Dictionary Research and Development Group, and are used in conformance with the Group's licence.''',
+    );
+
+    yield const LicenseEntryWithLineBreaks(
+      ['EDRDG (EDICT/KANJIDIC)'],
+      '''ELECTRONIC DICTIONARY RESEARCH AND DEVELOPMENT GROUP
+GENERAL DICTIONARY LICENCE STATEMENT
+
+The dictionary files are made available under a Creative Commons Attribution-ShareAlike Licence (V4.0).
+
+In summary (from https://www.edrdg.org/edrdg/licence.html):
+
+In general, the licence statement allows free use of the dictionary files. The conditions are:
+
+- Attribution: You must give appropriate credit, provide a link to the licence, and indicate if changes were made.
+
+- ShareAlike: If you remix, transform, or build upon the material, you must distribute your contributions under the same licence as the original.''',
+    );
+  });
 }

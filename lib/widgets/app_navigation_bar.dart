@@ -164,7 +164,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     return [
       ExcludeFocus(
         child: StyledTooltip(
-          message: 'Diary (Phrases & Words)',
+          message: 'Diary',
           child: IconButton(
             icon: Icon(
               Icons.menu_book,
@@ -320,29 +320,23 @@ class AppNavigationBarState extends State<AppNavigationBar> {
       ),
       ExcludeFocus(
         child: StyledTooltip(
-          message: 'Maximize',
-          child: IconButton(
-            icon: const Icon(Icons.crop_square),
-            onPressed: () async {
-              final isMaximized = await windowManager.isMaximized();
-              if (isMaximized) {
-                await windowManager.unmaximize();
-              } else {
-                await windowManager.maximize();
-              }
-            },
-          ),
-        ),
-      ),
-      ExcludeFocus(
-        child: StyledTooltip(
-          message: 'Fullscreen',
-          child: IconButton(
-            icon: const Icon(Icons.open_in_full),
-            onPressed: () async {
+          message: 'Maximize or hold for Fullscreen',
+          child: GestureDetector(
+            onLongPress: () async {
               final isFullScreen = await windowManager.isFullScreen();
               await windowManager.setFullScreen(!isFullScreen);
             },
+            child: IconButton(
+              icon: const Icon(Icons.crop_square),
+              onPressed: () async {
+                final isMaximized = await windowManager.isMaximized();
+                if (isMaximized) {
+                  await windowManager.unmaximize();
+                } else {
+                  await windowManager.maximize();
+                }
+              },
+            ),
           ),
         ),
       ),
@@ -459,6 +453,7 @@ class AppNavigationDrawer extends StatelessWidget {
                     onNavigateToDashboard();
                   },
                 ),
+                const Divider(),
                 _buildDrawerItem(
                   context,
                   icon: Icons.settings,

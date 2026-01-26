@@ -10,11 +10,13 @@
 import 'dart:io' show Platform, exit;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:jpn_learning_diary/screens/learning_page.dart';
 import 'package:jpn_learning_diary/screens/hiragana_page.dart';
 import 'package:jpn_learning_diary/screens/katakana_page.dart';
 import 'package:jpn_learning_diary/screens/diary_page.dart';
+import 'package:jpn_learning_diary/screens/help_page.dart';
 import 'package:jpn_learning_diary/screens/search_results_page.dart';
 import 'package:jpn_learning_diary/screens/settings_page.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
@@ -83,6 +85,36 @@ class _AppShellState extends State<AppShell> {
     _searchController = TextEditingController();
     _searchController.addListener(_onSearchTextChanged);
     HardwareKeyboard.instance.addHandler(_handleGlobalKeyEvent);
+    _checkFirstLaunch();
+  }
+
+  /// Shows the help dialog on first launch.
+  Future<void> _checkFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenHelp = prefs.getBool('has_seen_help') ?? false;
+
+    if (!hasSeenHelp && mounted) {
+      // Small delay to ensure the app is fully rendered
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (mounted) {
+        await _showHelpDialog();
+        await prefs.setBool('has_seen_help', true);
+      }
+    }
+  }
+
+  /// Shows the help page as a dialog popup.
+  Future<void> _showHelpDialog() async {
+    await showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        clipBehavior: Clip.antiAlias,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+          child: const HelpPage(isDialog: true),
+        ),
+      ),
+    );
   }
 
   /// Cleans up the search controller and focus node.
@@ -179,6 +211,13 @@ class _AppShellState extends State<AppShell> {
     if (result == true) {
       _refreshCurrentPage();
     }
+  }
+
+  /// Opens the help page.
+  void _openHelp() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const HelpPage()),
+    );
   }
 
   /// Populates the search field with text and focuses it for editing.
@@ -350,9 +389,19 @@ class _AppShellState extends State<AppShell> {
       return true;
     }
 
+    // ? key (Shift+/) - Open help page
+    // Only when not typing in a text field
+    final isFocusedOnTextField = _searchFocusNode.hasFocus;
+    if (!isFocusedOnTextField) {
+      final isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
+      if (key == LogicalKeyboardKey.slash && isShiftPressed) {
+        _openHelp();
+        return true;
+      }
+    }
+
     // Vim-like navigation: h/j/k/l map to arrow keys
     // Only when not typing in search field and no modifiers pressed
-    final isFocusedOnTextField = _searchFocusNode.hasFocus;
     if (!isFocusedOnTextField && !isControlPressed && !isMetaPressed) {
       final focus = FocusScope.of(context);
 

@@ -15,7 +15,7 @@ import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/cloud_sync_service.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
 import 'package:jpn_learning_diary/services/theme_notifier.dart';
-import 'package:jpn_learning_diary/widgets/app_about_dialog.dart';
+import 'package:jpn_learning_diary/screens/help_page.dart';
 
 /// Application settings and configuration page.
 ///
@@ -36,7 +36,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _buildAboutSetting(context),
+        _buildInfoSection(context),
         _buildThemeStyleSetting(context),
         _buildViewModeSetting(context),
         _buildDisplaySettingsSection(context),
@@ -47,22 +47,12 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  /// Builds a settings row container with bottom border.
+  /// Builds a settings row container.
   Widget _buildSettingRow({
     required BuildContext context,
     required Widget child,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).colorScheme.primary.withAlpha(50),
-            width: 1,
-          ),
-        ),
-      ),
-      child: child,
-    );
+    return child;
   }
 
   /// Builds the view mode setting row.
@@ -74,7 +64,7 @@ class _SettingsPageState extends State<SettingsPage> {
       context: context,
       child: ListTile(
         title: const Text('Preferred View Mode'),
-        subtitle: const Text('Choose between grid or list view'),
+        subtitle: const Text('Grid or list layout for Diary, Search, and Study pages'),
         trailing: FutureBuilder<String>(
           future: AppPreferences.getViewMode(),
           builder: (context, snapshot) {
@@ -135,7 +125,7 @@ class _SettingsPageState extends State<SettingsPage> {
           final showRomaji = snapshot.data ?? true;
           return SwitchListTile(
             title: const Text('Show Romaji'),
-            subtitle: const Text('Display romanization in diary entry cards'),
+            subtitle: const Text('Display romanization on Diary and Search pages'),
             value: showRomaji,
             activeThumbColor: Theme.of(context).colorScheme.onSurface,
             onChanged: (value) async {
@@ -158,7 +148,7 @@ class _SettingsPageState extends State<SettingsPage> {
           final showFurigana = snapshot.data ?? true;
           return SwitchListTile(
             title: const Text('Show Furigana'),
-            subtitle: const Text('Display reading guides above Japanese text'),
+            subtitle: const Text('Display reading guides on Diary and Search pages'),
             value: showFurigana,
             activeThumbColor: Theme.of(context).colorScheme.onSurface,
             onChanged: (value) async {
@@ -206,19 +196,41 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  /// Builds the About setting row.
-  Widget _buildAboutSetting(BuildContext context) {
+  /// Builds the Info section with Help and Licenses buttons.
+  Widget _buildInfoSection(BuildContext context) {
+    final buttonStyle = TextButton.styleFrom(
+      foregroundColor: Theme.of(context).colorScheme.onSurface,
+    );
+
     return _buildSettingRow(
       context: context,
       child: ListTile(
-        title: const Text('About'),
-        subtitle: const Text('App information and licenses'),
-        trailing: FilledButton(
-          style: FilledButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.onSurface,
-          ),
-          onPressed: () => showAppAboutDialog(context),
-          child: const Text('View'),
+        title: const Text('App Information'),
+        subtitle: const Text('Help and licenses'),
+        trailing: OverflowBar(
+          spacing: 8,
+          children: [
+            TextButton.icon(
+              style: buttonStyle,
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const HelpPage()),
+                );
+              },
+              icon: const Icon(Icons.help_outline, size: 18),
+              label: const Text('Help'),
+            ),
+            TextButton.icon(
+              style: buttonStyle,
+              onPressed: () => showLicensePage(
+                context: context,
+                applicationName: 'Japanese Learning Diary',
+                applicationVersion: '1.0.0',
+              ),
+              icon: const Icon(Icons.description_outlined, size: 18),
+              label: const Text('Licenses'),
+            ),
+          ],
         ),
       ),
     );

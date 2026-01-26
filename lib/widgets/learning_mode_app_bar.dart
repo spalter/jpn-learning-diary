@@ -119,29 +119,23 @@ class LearningModeAppBar extends StatelessWidget
       ),
       ExcludeFocus(
         child: StyledTooltip(
-          message: 'Maximize',
-          child: IconButton(
-            icon: const Icon(Icons.crop_square),
-            onPressed: () async {
-              final isMaximized = await windowManager.isMaximized();
-              if (isMaximized) {
-                await windowManager.unmaximize();
-              } else {
-                await windowManager.maximize();
-              }
-            },
-          ),
-        ),
-      ),
-      ExcludeFocus(
-        child: StyledTooltip(
-          message: 'Fullscreen',
-          child: IconButton(
-            icon: const Icon(Icons.open_in_full),
-            onPressed: () async {
+          message: 'Maximize or hold for Fullscreen',
+          child: GestureDetector(
+            onLongPress: () async {
               final isFullScreen = await windowManager.isFullScreen();
               await windowManager.setFullScreen(!isFullScreen);
             },
+            child: IconButton(
+              icon: const Icon(Icons.crop_square),
+              onPressed: () async {
+                final isMaximized = await windowManager.isMaximized();
+                if (isMaximized) {
+                  await windowManager.unmaximize();
+                } else {
+                  await windowManager.maximize();
+                }
+              },
+            ),
           ),
         ),
       ),

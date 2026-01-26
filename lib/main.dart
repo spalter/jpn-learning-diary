@@ -21,6 +21,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:jpn_learning_diary/services/theme_notifier.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/screens/splash_screen.dart';
+import 'package:jpn_learning_diary/widgets/app_about_dialog.dart';
 
 /// Main entry point of the application.
 ///
@@ -30,6 +31,9 @@ import 'package:jpn_learning_diary/screens/splash_screen.dart';
 /// launch directly.
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Register custom licenses for third-party data sources
+  registerCustomLicenses();
 
   // Initialize theme notifier
   await ThemeNotifier.instance.initialize();
