@@ -23,6 +23,21 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       
+      - name: Build database
+        shell: bash
+        run: |
+          # Download and extract Kanji API data
+          curl -L -o tools/kanjiapi_full.zip https://kanjiapi.dev/kanjiapi_full.zip
+          unzip -j tools/kanjiapi_full.zip kanjiapi_full.json -d tools
+          dart --packages=".dart_tool/package_config.json" tools/json_to_sqlite.dart tools/kanjiapi_full.json lib/assets/jpn.db
+          rm tools/kanjiapi_full.zip
+          
+          # Download and convert JMdict data
+          curl -o tools/JMdict_e.gz ftp://ftp.edrdg.org/pub/Nihongo/JMdict_e.gz
+          gzip -d tools/JMdict_e.gz
+          dart --packages=".dart_tool/package_config.json" tools/jmdict_to_sqlite.dart tools/JMdict_e lib/assets/jpn.db
+          rm tools/JMdict_e
+      
       - name: Build Windows
         run: flutter build windows --release
       
@@ -49,6 +64,20 @@ jobs:
       
       - name: Install dependencies
         run: flutter pub get
+      
+      - name: Build database
+        run: |
+          # Download and extract Kanji API data
+          curl -L -o tools/kanjiapi_full.zip https://kanjiapi.dev/kanjiapi_full.zip
+          unzip -j tools/kanjiapi_full.zip kanjiapi_full.json -d tools
+          dart --packages=".dart_tool/package_config.json" tools/json_to_sqlite.dart tools/kanjiapi_full.json lib/assets/jpn.db
+          rm tools/kanjiapi_full.zip
+          
+          # Download and convert JMdict data
+          curl -o tools/JMdict_e.gz ftp://ftp.edrdg.org/pub/Nihongo/JMdict_e.gz
+          gzip -d tools/JMdict_e.gz
+          dart --packages=".dart_tool/package_config.json" tools/jmdict_to_sqlite.dart tools/JMdict_e lib/assets/jpn.db
+          rm tools/JMdict_e
       
       - name: Build macOS
         run: flutter build macos --release
@@ -81,6 +110,20 @@ jobs:
       
       - name: Install dependencies
         run: flutter pub get
+      
+      - name: Build database
+        run: |
+          # Download and extract Kanji API data
+          curl -L -o tools/kanjiapi_full.zip https://kanjiapi.dev/kanjiapi_full.zip
+          unzip -j tools/kanjiapi_full.zip kanjiapi_full.json -d tools
+          dart --packages=".dart_tool/package_config.json" tools/json_to_sqlite.dart tools/kanjiapi_full.json lib/assets/jpn.db
+          rm tools/kanjiapi_full.zip
+          
+          # Download and convert JMdict data
+          curl -o tools/JMdict_e.gz ftp://ftp.edrdg.org/pub/Nihongo/JMdict_e.gz
+          gzip -d tools/JMdict_e.gz
+          dart --packages=".dart_tool/package_config.json" tools/jmdict_to_sqlite.dart tools/JMdict_e lib/assets/jpn.db
+          rm tools/JMdict_e
       
       - name: Build Linux
         run: flutter build linux --release
@@ -123,6 +166,20 @@ jobs:
       
       - name: Install dependencies
         run: flutter pub get
+      
+      - name: Build database
+        run: |
+          # Download and extract Kanji API data
+          curl -L -o tools/kanjiapi_full.zip https://kanjiapi.dev/kanjiapi_full.zip
+          unzip -j tools/kanjiapi_full.zip kanjiapi_full.json -d tools
+          dart --packages=".dart_tool/package_config.json" tools/json_to_sqlite.dart tools/kanjiapi_full.json lib/assets/jpn.db
+          rm tools/kanjiapi_full.zip
+          
+          # Download and convert JMdict data
+          curl -o tools/JMdict_e.gz ftp://ftp.edrdg.org/pub/Nihongo/JMdict_e.gz
+          gzip -d tools/JMdict_e.gz
+          dart --packages=".dart_tool/package_config.json" tools/jmdict_to_sqlite.dart tools/JMdict_e lib/assets/jpn.db
+          rm tools/JMdict_e
       
       - name: Build Android APK
         run: flutter build apk --release

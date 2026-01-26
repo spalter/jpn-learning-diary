@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 # Simple script to download the jpn data, extract it and convert it.
 # Kanji API: https://kanjiapi.dev/kanjiapi_full.zip
@@ -34,4 +34,4 @@ gzip -d tools/JMdict_e.gz
 dart --packages=".dart_tool/package_config.json" tools/jmdict_to_sqlite.dart tools/JMdict_e lib/assets/jpn.db
 
 # Clean up the extracted file
-rm tools/JMdict_e.gz
+rm tools/JMdict_e
