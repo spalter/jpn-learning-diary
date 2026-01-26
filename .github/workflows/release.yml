@@ -112,8 +112,6 @@ jobs:
         run: flutter pub get
       
       - name: Build database
-        env:
-          SQLITE3_LIBRARY_PATH: /usr/lib/x86_64-linux-gnu/libsqlite3.so
         run: |
           # Download and extract Kanji API data
           curl -L -o tools/kanjiapi_full.zip https://kanjiapi.dev/kanjiapi_full.zip
@@ -175,8 +173,6 @@ jobs:
         run: flutter pub get
       
       - name: Build database
-        env:
-          SQLITE3_LIBRARY_PATH: /usr/lib/x86_64-linux-gnu/libsqlite3.so
         run: |
           # Download and extract Kanji API data
           curl -L -o tools/kanjiapi_full.zip https://kanjiapi.dev/kanjiapi_full.zip
