@@ -391,7 +391,10 @@ class _AppShellState extends State<AppShell> {
 
     // ? key (Shift+/) - Open help page
     // Only when not typing in a text field
-    final isFocusedOnTextField = _searchFocusNode.hasFocus;
+    final primaryFocus = FocusManager.instance.primaryFocus;
+    final isFocusedOnTextField = primaryFocus?.context
+            ?.findAncestorWidgetOfExactType<EditableText>() !=
+        null;
     if (!isFocusedOnTextField) {
       final isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
       if (key == LogicalKeyboardKey.slash && isShiftPressed) {
@@ -401,7 +404,7 @@ class _AppShellState extends State<AppShell> {
     }
 
     // Vim-like navigation: h/j/k/l map to arrow keys
-    // Only when not typing in search field and no modifiers pressed
+    // Only when not typing in any text field and no modifiers pressed
     if (!isFocusedOnTextField && !isControlPressed && !isMetaPressed) {
       final focus = FocusScope.of(context);
 
