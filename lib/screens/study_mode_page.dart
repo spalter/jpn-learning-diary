@@ -8,21 +8,13 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/models/jmdict_entry.dart';
-import 'package:jpn_learning_diary/models/kanji_data.dart';
-import 'package:jpn_learning_diary/models/word_data.dart';
 import 'package:jpn_learning_diary/repositories/jmdict_repository.dart';
 import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
-import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
-import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/widgets/jmdict_card.dart';
-import 'package:jpn_learning_diary/widgets/kanji_card.dart';
 import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
 import 'package:jpn_learning_diary/widgets/bird_fab.dart';
-import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
-import 'package:jpn_learning_diary/widgets/word_card.dart';
 import 'package:jpn_learning_diary/widgets/takoboto_viewer.dart';
 
 /// Study mode page for analyzing text and displaying kanji information.
@@ -38,32 +30,31 @@ class StudyModePage extends StatefulWidget {
 
 class _StudyModePageState extends State<StudyModePage> {
   final TextEditingController _textController = TextEditingController();
-  final KanjiRepository _kanjiRepository = KanjiRepository();
   final JMdictRepository _jmdictRepository = JMdictRepository();
 
   /// Static storage for session persistence of input text.
   static String _sessionText = '';
 
-  /// Map of line index to list of kanji found in that line.
-  final Map<int, List<KanjiData>> _kanjiByLine = {};
-
-  /// Map of line index to list of words found in that line.
-  final Map<int, List<WordData>> _wordsByLine = {};
-
-  /// Map of line index to list of JMdict entries found in that line.
-  final Map<int, List<JMdictEntry>> _jmdictByLine = {};
-
   /// Current lines parsed from the input text.
   List<String> _lines = [];
 
-  /// Tracks loading state for each line.
-  final Map<int, bool> _loadingLines = {};
+  /// Currently selected word/token.
+  String? _selectedWord;
 
-  /// Current view mode ('grid' or 'list').
-  String _viewMode = 'list';
+  /// Search results for the selected word.
+  List<JMdictEntry> _searchResults = [];
 
-  /// Whether to show tokenized text with nakaguro separators.
-  bool _showTokenized = false;
+  /// Whether a search is in progress.
+  bool _isSearching = false;
+
+  /// Whether the text input area is collapsed.
+  bool _isInputCollapsed = false;
+
+  /// User annotations for tokens (token -> note text).
+  final Map<String, String> _tokenAnnotations = {};
+
+  /// Controller for annotation input field.
+  final TextEditingController _annotationController = TextEditingController();
 
   @override
   void initState() {
@@ -73,17 +64,6 @@ class _StudyModePageState extends State<StudyModePage> {
     if (_sessionText.isNotEmpty) {
       _textController.text = _sessionText;
     }
-    _loadViewMode();
-  }
-
-  /// Loads the view mode preference from app settings.
-  Future<void> _loadViewMode() async {
-    final viewMode = await AppPreferences.getViewMode();
-    if (mounted) {
-      setState(() {
-        _viewMode = viewMode;
-      });
-    }
   }
 
   @override
@@ -92,6 +72,7 @@ class _StudyModePageState extends State<StudyModePage> {
     _sessionText = _textController.text;
     _textController.removeListener(_onTextChanged);
     _textController.dispose();
+    _annotationController.dispose();
     super.dispose();
   }
 
@@ -103,17 +84,6 @@ class _StudyModePageState extends State<StudyModePage> {
     setState(() {
       _lines = newLines;
     });
-
-    // Process each line for kanji
-    for (int i = 0; i < newLines.length; i++) {
-      _processLineForKanji(i, newLines[i]);
-    }
-
-    // Clean up kanji data for removed lines
-    _kanjiByLine.removeWhere((key, value) => key >= newLines.length);
-    _wordsByLine.removeWhere((key, value) => key >= newLines.length);
-    _jmdictByLine.removeWhere((key, value) => key >= newLines.length);
-    _loadingLines.removeWhere((key, value) => key >= newLines.length);
   }
 
   /// Punctuation characters that should not have nakaguro around them.
@@ -127,148 +97,29 @@ class _StudyModePageState extends State<StudyModePage> {
     TakobotoViewer.showPopup(context, word);
   }
 
-  /// Copies the word to clipboard and shows a snackbar.
-  Future<void> _copyWord(BuildContext context, String word) async {
-    await Clipboard.setData(ClipboardData(text: word));
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Copied: $word'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
-  /// Builds clickable tokenized text where each word can be tapped.
-  Widget _buildClickableTokenizedText(BuildContext context, String line) {
-    // Tokenize the text
-    final tokens = JapaneseTextUtils.tokenize(
-      line,
-    ).where((t) => t.trim().isNotEmpty).toList();
-
-    return Wrap(
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        for (int i = 0; i < tokens.length; i++) ...[
-          _buildClickableToken(context, tokens[i], i, tokens.length),
-        ],
-      ],
-    );
-  }
-
-  /// Builds a single clickable token widget.
-  Widget _buildClickableToken(
-    BuildContext context,
-    String token,
-    int index,
-    int totalTokens,
-  ) {
-    final isPunctuation = _punctuationPattern.hasMatch(token);
-    final showSeparator = _showTokenized && !isPunctuation && index > 0;
-
-    // Check if previous token was punctuation (for separator logic)
-    // We'll handle this in the parent widget instead
-
-    if (isPunctuation) {
-      // Punctuation is not clickable
-      return Text(
-        token,
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(height: 1.5),
-      );
-    }
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (showSeparator)
-          Text(
-            '・',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              height: 1.5,
-              color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
-            ),
-          ),
-        _ClickableWord(
-          word: token,
-          onTap: () => _copyWord(context, token),
-          onLongPress: () => _openTakoboto(token),
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(height: 1.5),
-        ),
-      ],
-    );
-  }
-
-  /// Extracts kanji characters from a line and fetches their data and words.
-  /// Also tokenizes the line and searches JMdict for each token.
-  Future<void> _processLineForKanji(int lineIndex, String line) async {
-    // Extract kanji characters using regex
-    final kanjiPattern = RegExp(r'[\u4E00-\u9FFF\u3400-\u4DBF]');
-    final matches = kanjiPattern.allMatches(line);
-    final kanjiChars = matches.map((m) => m.group(0)!).toSet().toList();
-
-    // Tokenize the line for JMdict search
-    final tokens = JapaneseTextUtils.tokenize(line)
-        .where((t) => t.trim().isNotEmpty)
-        .where((t) => !_punctuationPattern.hasMatch(t))
-        .toSet()
-        .toList();
-
-    if (kanjiChars.isEmpty && tokens.isEmpty) {
+  /// Clears the current word selection.
+  void _clearSelection() {
+    if (_selectedWord != null) {
       setState(() {
-        _kanjiByLine[lineIndex] = [];
-        _wordsByLine[lineIndex] = [];
-        _jmdictByLine[lineIndex] = [];
-        _loadingLines[lineIndex] = false;
+        _selectedWord = null;
+        _searchResults = [];
       });
-      return;
     }
+  }
 
-    // Check if we need to update (compare with existing kanji)
-    final existingKanji =
-        _kanjiByLine[lineIndex]?.map((k) => k.kanji).toSet() ?? {};
-    final newKanjiSet = kanjiChars.toSet();
-    final existingJmdict =
-        _jmdictByLine[lineIndex]?.map((e) => e.entSeq).toSet() ?? {};
-
-    // Skip if no changes (simple check - kanji same and we already have jmdict data)
-    if (existingKanji.containsAll(newKanjiSet) &&
-        newKanjiSet.containsAll(existingKanji) &&
-        existingJmdict.isNotEmpty) {
-      return;
-    }
-
+  /// Searches for meanings of the given word.
+  Future<void> _searchWord(String word) async {
     setState(() {
-      _loadingLines[lineIndex] = true;
+      _selectedWord = word;
+      _isSearching = true;
     });
 
-    // Fetch kanji data for each character
-    final kanjiDataList = <KanjiData>[];
-    for (final char in kanjiChars) {
-      final kanjiData = await _kanjiRepository.getKanji(char);
-      if (kanjiData != null) {
-        kanjiDataList.add(kanjiData);
-      }
-    }
-
-    // Fetch JMdict entries for each token
-    final jmdictEntries = <JMdictEntry>[];
-    final seenEntSeqs = <int>{};
-    for (final token in tokens) {
-      final entries = await _jmdictRepository.searchByToken(token, limit: 5);
-      for (final entry in entries) {
-        if (!seenEntSeqs.contains(entry.entSeq)) {
-          seenEntSeqs.add(entry.entSeq);
-          jmdictEntries.add(entry);
-        }
-      }
-    }
+    final results = await _jmdictRepository.searchByToken(word, limit: 20);
 
     if (mounted) {
       setState(() {
-        _kanjiByLine[lineIndex] = kanjiDataList;
-        _jmdictByLine[lineIndex] = jmdictEntries;
-        _loadingLines[lineIndex] = false;
+        _searchResults = results;
+        _isSearching = false;
       });
     }
   }
@@ -279,52 +130,180 @@ class _StudyModePageState extends State<StudyModePage> {
       backgroundColor: AppTheme.scaffoldBackground(context),
       appBar: const LearningModeAppBar(title: 'Study Mode'),
       floatingActionButton: const BirdFab(),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Text input area
-            _buildTextInputArea(context),
-            const SizedBox(height: 12),
+      body: GestureDetector(
+        onTap: _clearSelection,
+        behavior: HitTestBehavior.translucent,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Text input area
+              _buildTextInputArea(context),
+              const SizedBox(height: 12),
 
-            // Tokenize toggle
-            _buildTokenizeToggle(context),
-            const SizedBox(height: 12),
-
-            // Lines and kanji cards list
-            Expanded(child: _buildLinesAndKanjiList(context)),
-          ],
+              // Main content area split into two parts
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Left side: vertical lines
+                    Expanded(child: _buildLinesAndKanjiList(context)),
+                    // Subtle glow separator
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Container(
+                        width: 1,
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withAlpha(180),
+                          borderRadius: BorderRadius.circular(1),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withAlpha(60),
+                              blurRadius: 4,
+                              spreadRadius: 0,
+                            ),
+                            BoxShadow(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withAlpha(30),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Right side: search results
+                    Expanded(child: _buildSearchResultsPanel(context)),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  /// Builds the tokenize toggle button.
-  Widget _buildTokenizeToggle(BuildContext context) {
-    return Row(
-      children: [
-        Icon(
-          Icons.auto_awesome,
-          size: 18,
-          color: Theme.of(context).colorScheme.primary.withAlpha(150),
+  /// Builds the search results panel for the right side.
+  Widget _buildSearchResultsPanel(BuildContext context) {
+    // No word selected - show hint
+    if (_selectedWord == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.touch_app,
+              size: 48,
+              color: Theme.of(context).colorScheme.primary.withAlpha(100),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Tap a word to search',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Dictionary results will appear here',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 8),
-        Text(
-          'Word separation',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withAlpha(180),
+      );
+    }
+
+    // Searching - show loading
+    if (_isSearching) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Searching for "$_selectedWord"...',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // No results found
+    if (_searchResults.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 48,
+              color: Theme.of(context).colorScheme.primary.withAlpha(100),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No results for "$_selectedWord"',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Show results
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header with selected word
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            children: [
+              Text(
+                _selectedWord!,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '(${_searchResults.length} results)',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+                ),
+              ),
+            ],
           ),
         ),
-        const Spacer(),
-        Transform.scale(
-          scale: 0.85,
-          child: Switch(
-            value: _showTokenized,
-            onChanged: (value) {
-              setState(() {
-                _showTokenized = value;
-              });
+        // Annotation input field
+        _buildAnnotationInput(context),
+        const SizedBox(height: 12),
+        // Results list
+        Expanded(
+          child: ListView.builder(
+            itemCount: _searchResults.length,
+            itemBuilder: (context, index) {
+              return JMdictCard(
+                entry: _searchResults[index],
+                useBorderedStyle: false,
+              );
             },
           ),
         ),
@@ -332,43 +311,119 @@ class _StudyModePageState extends State<StudyModePage> {
     );
   }
 
-  /// Builds the expandable text input area.
+  /// Builds the expandable text input area with collapse button.
   Widget _buildTextInputArea(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(
-        minHeight: 80, // Approximately 3 lines
-      ),
-      child: TextField(
-        controller: _textController,
-        maxLines: null, // Allows unlimited lines
-        minLines: 3, // Shows at least 3 lines
-        decoration: InputDecoration(
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: Theme.of(context).colorScheme.primary.withAlpha(80),
-            ),
+    final borderColor = Theme.of(context).colorScheme.primary.withAlpha(80);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Text field with animated height
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+          constraints: BoxConstraints(
+            minHeight: _isInputCollapsed ? 40 : 80,
+            maxHeight: _isInputCollapsed ? 40 : 200,
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: Theme.of(context).colorScheme.primary.withAlpha(80),
+          child: TextField(
+            controller: _textController,
+            maxLines: _isInputCollapsed ? 1 : null,
+            minLines: _isInputCollapsed ? 1 : 3,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.vertical(
+                  top: const Radius.circular(12),
+                  bottom: Radius.circular(_isInputCollapsed ? 12 : 0),
+                ),
+                borderSide: BorderSide(color: borderColor),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.vertical(
+                  top: const Radius.circular(12),
+                  bottom: Radius.circular(_isInputCollapsed ? 12 : 0),
+                ),
+                borderSide: BorderSide(color: borderColor),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.vertical(
+                  top: const Radius.circular(12),
+                  bottom: Radius.circular(_isInputCollapsed ? 12 : 0),
+                ),
+                borderSide: BorderSide(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 2,
+                ),
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: _isInputCollapsed ? 8 : 16,
+              ),
+              filled: true,
+              fillColor: Theme.of(
+                context,
+              ).colorScheme.primaryContainer.withAlpha(20),
+              suffixIcon: _isInputCollapsed
+                  ? IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _isInputCollapsed = false;
+                        });
+                      },
+                      icon: Icon(
+                        Icons.expand_more,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      tooltip: 'Expand',
+                    )
+                  : null,
             ),
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: Theme.of(context).colorScheme.primary,
-              width: 2,
-            ),
-          ),
-          contentPadding: const EdgeInsets.all(16),
-          filled: true,
-          fillColor: Theme.of(
-            context,
-          ).colorScheme.primaryContainer.withAlpha(20),
         ),
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
+        // Collapse button integrated into bottom border
+        if (!_isInputCollapsed) _buildCollapseButton(context),
+      ],
+    );
+  }
+
+  /// Builds a subtle collapse handle.
+  Widget _buildCollapseButton(BuildContext context) {
+    final borderColor = Theme.of(context).colorScheme.primary.withAlpha(80);
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _isInputCollapsed = true;
+          });
+        },
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            border: Border(
+              left: BorderSide(color: borderColor),
+              right: BorderSide(color: borderColor),
+              bottom: BorderSide(color: borderColor),
+            ),
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(12),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Center(
+            // Small horizontal grip line
+            child: Container(
+              width: 32,
+              height: 3,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withAlpha(40),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -404,274 +459,207 @@ class _StudyModePageState extends State<StudyModePage> {
       );
     }
 
-    return ListView.builder(
-      itemCount: _lines.length,
-      itemBuilder: (context, index) {
-        final line = _lines[index];
-        final kanjiList = _kanjiByLine[index] ?? [];
-        final wordsList = _wordsByLine[index] ?? [];
-        final jmdictList = _jmdictByLine[index] ?? [];
-        final isLoading = _loadingLines[index] ?? false;
-
-        // Skip empty lines
-        if (line.trim().isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        return _buildLineSection(
-          context,
-          index,
-          line,
-          kanjiList,
-          wordsList,
-          jmdictList,
-          isLoading,
-        );
-      },
+    // Vertical layout: display lines from right to left with automatic line breaks
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      reverse: true, // Start from right side
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        textDirection: TextDirection.rtl, // Right to left
+        children: [
+          for (int index = 0; index < _lines.length; index++)
+            if (_lines[index].trim().isNotEmpty)
+              _buildVerticalLineSection(context, index, _lines[index]),
+        ],
+      ),
     );
   }
 
-  /// Builds a section for a single line with its words and kanji cards below.
-  Widget _buildLineSection(
+  /// Builds a vertical section for a single line (tategaki style) with line breaks.
+  Widget _buildVerticalLineSection(
     BuildContext context,
     int lineIndex,
     String line,
-    List<KanjiData> kanjiList,
-    List<WordData> wordsList,
-    List<JMdictEntry> jmdictList,
-    bool isLoading,
   ) {
-    final hasResults =
-        kanjiList.isNotEmpty || wordsList.isNotEmpty || jmdictList.isNotEmpty;
-    final totalCount = jmdictList.length + wordsList.length + kanjiList.length;
-
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(left: 8, right: 8),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Line header with the text
+          // Line number badge at top
           Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.primaryContainer.withAlpha(30),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.primary.withAlpha(50),
-              ),
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(6),
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Line number badge
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      '${lineIndex + 1}',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Line text with clickable words
-                Expanded(child: _buildClickableTokenizedText(context, line)),
-              ],
+            child: Text(
+              '${lineIndex + 1}',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onPrimary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
+          const SizedBox(height: 12),
+          // Vertical text with line breaks (wraps to new columns)
+          Expanded(child: _buildVerticalTokenizedText(context, line)),
+        ],
+      ),
+    );
+  }
 
-          // Results section (words + kanji)
-          if (isLoading)
-            Padding(
-              padding: const EdgeInsets.only(top: 12, left: 16),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Loading...',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withAlpha(150),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else if (hasResults)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16, bottom: 8),
-                    child: Text(
-                      '$totalCount results (${jmdictList.length} dictionary, ${wordsList.length} words, ${kanjiList.length} kanji)',
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  _viewMode == 'grid'
-                      ? _buildCombinedGridView(jmdictList, wordsList, kanjiList)
-                      : _buildCombinedListView(
-                          jmdictList,
-                          wordsList,
-                          kanjiList,
-                        ),
-                ],
-              ),
-            )
-          else
-            Padding(
-              padding: const EdgeInsets.only(top: 8, left: 16),
-              child: Text(
-                'No kanji in this line',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+  /// Builds vertical tokenized text with automatic column wrapping.
+  Widget _buildVerticalTokenizedText(BuildContext context, String line) {
+    final tokens = JapaneseTextUtils.tokenize(
+      line,
+    ).where((t) => t.trim().isNotEmpty).toList();
+
+    // Build list of token widgets (each token stays together as a unit)
+    final List<Widget> elements = [];
+    for (int i = 0; i < tokens.length; i++) {
+      elements.add(
+        _buildVerticalToken(context, tokens[i], _tokenAnnotations[tokens[i]]),
+      );
+    }
+
+    // Use Wrap with vertical direction, flowing right to left
+    return Wrap(
+      direction: Axis.vertical,
+      verticalDirection: VerticalDirection.down,
+      textDirection: TextDirection.rtl, // New columns appear to the left
+      crossAxisAlignment:
+          WrapCrossAlignment.center,
+      spacing: 0,
+      runSpacing: 8, // Space between columns
+      children: elements,
+    );
+  }
+
+  /// Builds a vertical token (characters stacked top to bottom, kept as a unit).
+  Widget _buildVerticalToken(
+    BuildContext context,
+    String token,
+    String? annotation,
+  ) {
+    final isPunctuation = _punctuationPattern.hasMatch(token);
+    final style = Theme.of(context).textTheme.titleLarge;
+    final isSelected = token == _selectedWord;
+    const double tokenWidth = 20.0;
+
+    if (isPunctuation) {
+      // Punctuation stays as-is without fixed width to merge with previous token
+      return Text(token, style: style);
+    }
+
+    // Display each character vertically, keeping the word together
+    return _ClickableVerticalWord(
+      word: token,
+      isSelected: isSelected,
+      annotation: annotation,
+      onTap: () => _searchWord(token),
+      onLongPress: () => _openTakoboto(token),
+      style: style,
+      fixedWidth: tokenWidth,
+    );
+  }
+
+  /// Builds the annotation input field for adding notes to selected tokens.
+  Widget _buildAnnotationInput(BuildContext context) {
+    final currentAnnotation = _tokenAnnotations[_selectedWord] ?? '';
+
+    // Update controller if the selected word changed
+    if (_annotationController.text != currentAnnotation) {
+      _annotationController.text = currentAnnotation;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer.withAlpha(20),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withAlpha(40),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.edit_note,
+            size: 18,
+            color: Theme.of(context).colorScheme.primary.withAlpha(150),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: _annotationController,
+              decoration: InputDecoration(
+                hintText: 'Add note (e.g., reading, meaning)...',
+                hintStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
-                  fontStyle: FontStyle.italic,
                 ),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+              style: Theme.of(context).textTheme.bodyMedium,
+              onChanged: (value) {
+                setState(() {
+                  if (value.isEmpty) {
+                    _tokenAnnotations.remove(_selectedWord);
+                  } else {
+                    _tokenAnnotations[_selectedWord!] = value;
+                  }
+                });
+              },
+            ),
+          ),
+          if (_annotationController.text.isNotEmpty)
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _annotationController.clear();
+                  _tokenAnnotations.remove(_selectedWord);
+                });
+              },
+              child: Icon(
+                Icons.close,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
               ),
             ),
         ],
       ),
     );
   }
-
-  /// Builds a combined list view of JMdict cards, word cards, then kanji cards.
-  Widget _buildCombinedListView(
-    List<JMdictEntry> jmdictList,
-    List<WordData> wordsList,
-    List<KanjiData> kanjiList,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // JMdict cards first (dictionary entries from tokens)
-        ...jmdictList.map(
-          (entry) => Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: JMdictCard(entry: entry, useBorderedStyle: false),
-          ),
-        ),
-        // Word cards second
-        ...wordsList.map(
-          (word) => Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: WordCard(word: word, useBorderedStyle: false),
-          ),
-        ),
-        // Then kanji cards
-        ...kanjiList.map(
-          (kanji) => Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: KanjiCard(kanji: kanji, useBorderedStyle: false),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Builds a combined grid view of JMdict cards, word cards, then kanji cards.
-  Widget _buildCombinedGridView(
-    List<JMdictEntry> jmdictList,
-    List<WordData> wordsList,
-    List<KanjiData> kanjiList,
-  ) {
-    final totalCount = jmdictList.length + wordsList.length + kanjiList.length;
-
-    return Padding(
-      padding: const EdgeInsets.only(left: 16),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final crossAxisCount = ResponsiveGridView.calculateCrossAxisCount(
-            constraints.maxWidth,
-            320.0, // minCardWidth
-            8.0, // spacing
-            EdgeInsets.zero,
-          );
-
-          return GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              childAspectRatio: 3 / 3,
-              crossAxisSpacing: 8.0,
-              mainAxisSpacing: 8.0,
-            ),
-            itemCount: totalCount,
-            itemBuilder: (context, index) {
-              // JMdict entries come first, then words, then kanji
-              if (index < jmdictList.length) {
-                return JMdictCard(
-                  entry: jmdictList[index],
-                  useBorderedStyle: true,
-                );
-              } else if (index < jmdictList.length + wordsList.length) {
-                final wordIndex = index - jmdictList.length;
-                return WordCard(
-                  word: wordsList[wordIndex],
-                  useBorderedStyle: true,
-                );
-              } else {
-                final kanjiIndex = index - jmdictList.length - wordsList.length;
-                return KanjiCard(
-                  kanji: kanjiList[kanjiIndex],
-                  useBorderedStyle: true,
-                );
-              }
-            },
-          );
-        },
-      ),
-    );
-  }
 }
 
-/// A clickable word widget that copies on tap and opens dictionary on long press.
-class _ClickableWord extends StatefulWidget {
+/// A clickable vertical word widget for tategaki (vertical) text display.
+class _ClickableVerticalWord extends StatefulWidget {
   final String word;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
   final TextStyle? style;
+  final bool isSelected;
+  final String? annotation;
+  final double? fixedWidth;
 
-  const _ClickableWord({
+  const _ClickableVerticalWord({
     required this.word,
     required this.onTap,
     this.onLongPress,
     this.style,
+    this.isSelected = false,
+    this.annotation,
+    this.fixedWidth,
   });
 
   @override
-  State<_ClickableWord> createState() => _ClickableWordState();
+  State<_ClickableVerticalWord> createState() => _ClickableVerticalWordState();
 }
 
-class _ClickableWordState extends State<_ClickableWord> {
+class _ClickableVerticalWordState extends State<_ClickableVerticalWord> {
   bool _isHovering = false;
 
   @override
@@ -679,6 +667,17 @@ class _ClickableWordState extends State<_ClickableWord> {
     final baseColor =
         widget.style?.color ?? Theme.of(context).colorScheme.onSurface;
     final hoverColor = Theme.of(context).colorScheme.primary;
+    final selectedColor = Theme.of(context).colorScheme.primary;
+
+    // Determine the color based on state
+    Color textColor;
+    if (widget.isSelected) {
+      textColor = selectedColor;
+    } else if (_isHovering) {
+      textColor = hoverColor;
+    } else {
+      textColor = baseColor;
+    }
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -687,13 +686,87 @@ class _ClickableWordState extends State<_ClickableWord> {
       child: GestureDetector(
         onTap: widget.onTap,
         onLongPress: widget.onLongPress,
-        child: Text(
-          widget.word,
-          style:
-              widget.style?.copyWith(
-                color: _isHovering ? hoverColor : baseColor,
-              ) ??
-              TextStyle(color: _isHovering ? hoverColor : baseColor),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Main word column with optional fixed width
+            SizedBox(
+              width: widget.fixedWidth,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  // Background highlight layer - larger than text, can overflow
+                  if (widget.isSelected)
+                    Positioned.fill(
+                      top: -2,
+                      bottom: -3,
+                      left: -4,
+                      right: -4,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withAlpha(25),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                  // Text layer with minimal padding
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 1,
+                      vertical: 1,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (final char in widget.word.characters)
+                          Text(
+                            char,
+                            style:
+                                widget.style?.copyWith(
+                                  color: textColor,
+                                  fontWeight: widget.isSelected
+                                      ? FontWeight.bold
+                                      : null,
+                                ) ??
+                                TextStyle(
+                                  color: textColor,
+                                  fontWeight: widget.isSelected
+                                      ? FontWeight.bold
+                                      : null,
+                                ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Annotation column (to the right of the main text, like furigana)
+            if (widget.annotation != null && widget.annotation!.isNotEmpty)
+              Transform.translate(
+                offset: const Offset(4, 0), // Visual offset without affecting layout
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final char in widget.annotation!.characters)
+                      Text(
+                        char,
+                        style: TextStyle(
+                          fontSize: 10,
+                          height: 1.0,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withAlpha(180),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+          ],
         ),
       ),
     );
