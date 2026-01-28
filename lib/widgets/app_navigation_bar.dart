@@ -455,7 +455,6 @@ class AppNavigationDrawer extends StatelessWidget {
                     onNavigateToDashboard();
                   },
                 ),
-                const Divider(),
                 _buildDrawerItem(
                   context,
                   icon: Icons.settings,

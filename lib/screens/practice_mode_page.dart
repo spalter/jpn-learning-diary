@@ -426,17 +426,17 @@ class _PracticeModePageState extends State<PracticeModePage> {
           foregroundColor: foregroundColor,
           disabledBackgroundColor: Theme.of(
             context,
-          ).colorScheme.surfaceContainerHighest,
+          ).colorScheme.primary.withAlpha(20),
           disabledForegroundColor: Theme.of(
             context,
-          ).colorScheme.onSurface.withAlpha(100),
+          ).colorScheme.primary.withAlpha(100),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
             side: backgroundColor == null
                 ? BorderSide(
                     color: hasSelection
                         ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).colorScheme.outline.withAlpha(100),
+                        : Theme.of(context).colorScheme.primary.withAlpha(60),
                   )
                 : BorderSide.none,
           ),

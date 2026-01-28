@@ -7,6 +7,8 @@
 //
 // ============================================================================
 
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/models/jmdict_entry.dart';
 import 'package:jpn_learning_diary/repositories/jmdict_repository.dart';
@@ -31,6 +33,9 @@ class StudyModePage extends StatefulWidget {
 class _StudyModePageState extends State<StudyModePage> {
   final TextEditingController _textController = TextEditingController();
   final JMdictRepository _jmdictRepository = JMdictRepository();
+
+  /// Focus node for the text input field.
+  final FocusNode _textFocusNode = FocusNode();
 
   /// Static storage for session persistence of input text.
   static String _sessionText = '';
@@ -73,6 +78,7 @@ class _StudyModePageState extends State<StudyModePage> {
     _textController.removeListener(_onTextChanged);
     _textController.dispose();
     _annotationController.dispose();
+    _textFocusNode.dispose();
     super.dispose();
   }
 
@@ -107,6 +113,9 @@ class _StudyModePageState extends State<StudyModePage> {
     }
   }
 
+  /// Whether we're on a mobile platform (Android/iOS).
+  bool get _isMobile => Platform.isAndroid || Platform.isIOS;
+
   /// Searches for meanings of the given word.
   Future<void> _searchWord(String word) async {
     setState(() {
@@ -121,7 +130,70 @@ class _StudyModePageState extends State<StudyModePage> {
         _searchResults = results;
         _isSearching = false;
       });
+
+      // On mobile, show bottom sheet with results
+      if (_isMobile) {
+        _showMobileResultsSheet();
+      }
     }
+  }
+
+  /// Shows the search results in a bottom sheet (for mobile).
+  void _showMobileResultsSheet() {
+    // Unfocus the text input to prevent keyboard from reappearing
+    _textFocusNode.unfocus();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _buildMobileBottomSheet(context),
+    );
+  }
+
+  /// Builds the mobile bottom sheet with search results.
+  Widget _buildMobileBottomSheet(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.3,
+      maxChildSize: 0.9,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).colorScheme.primary.withAlpha(30),
+                blurRadius: 10,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              // Drag handle
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withAlpha(60),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Content
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildSearchResultsContent(context, scrollController),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -142,51 +214,57 @@ class _StudyModePageState extends State<StudyModePage> {
               _buildTextInputArea(context),
               const SizedBox(height: 12),
 
-              // Main content area split into two parts
+              // Main content area - responsive layout
               Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Left side: vertical lines
-                    Expanded(child: _buildLinesAndKanjiList(context)),
-                    // Subtle glow separator
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Container(
-                        width: 1,
-                        decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withAlpha(180),
-                          borderRadius: BorderRadius.circular(1),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withAlpha(60),
-                              blurRadius: 4,
-                              spreadRadius: 0,
-                            ),
-                            BoxShadow(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withAlpha(30),
-                              blurRadius: 8,
-                              spreadRadius: 1,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Right side: search results
-                    Expanded(child: _buildSearchResultsPanel(context)),
-                  ],
-                ),
+                child: _isMobile
+                    ? _buildMobileLayout(context)
+                    : _buildDesktopLayout(context),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  /// Builds the mobile layout (full-width text area only).
+  Widget _buildMobileLayout(BuildContext context) {
+    return _buildLinesAndKanjiList(context);
+  }
+
+  /// Builds the desktop layout (two-column with separator).
+  Widget _buildDesktopLayout(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Left side: vertical lines
+        Expanded(child: _buildLinesAndKanjiList(context)),
+        // Subtle glow separator
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            width: 1,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withAlpha(180),
+              borderRadius: BorderRadius.circular(1),
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).colorScheme.primary.withAlpha(60),
+                  blurRadius: 4,
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: Theme.of(context).colorScheme.primary.withAlpha(30),
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Right side: search results
+        Expanded(child: _buildSearchResultsPanel(context)),
+      ],
     );
   }
 
@@ -222,6 +300,14 @@ class _StudyModePageState extends State<StudyModePage> {
       );
     }
 
+    return _buildSearchResultsContent(context, null);
+  }
+
+  /// Builds the search results content (used in both desktop panel and mobile sheet).
+  Widget _buildSearchResultsContent(
+    BuildContext context,
+    ScrollController? scrollController,
+  ) {
     // Searching - show loading
     if (_isSearching) {
       return Center(
@@ -298,6 +384,7 @@ class _StudyModePageState extends State<StudyModePage> {
         // Results list
         Expanded(
           child: ListView.builder(
+            controller: scrollController,
             itemCount: _searchResults.length,
             itemBuilder: (context, index) {
               return JMdictCard(
@@ -328,8 +415,12 @@ class _StudyModePageState extends State<StudyModePage> {
           ),
           child: TextField(
             controller: _textController,
+            focusNode: _textFocusNode,
             maxLines: _isInputCollapsed ? 1 : null,
             minLines: _isInputCollapsed ? 1 : 3,
+            readOnly:
+                _isInputCollapsed &&
+                _isMobile, // Prevent focus when collapsed on mobile
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.vertical(
@@ -481,8 +572,11 @@ class _StudyModePageState extends State<StudyModePage> {
     int lineIndex,
     String line,
   ) {
+    // Add bottom padding on mobile to avoid FAB overlap
+    final bottomPadding = _isMobile ? 110.0 : 0.0;
+
     return Padding(
-      padding: const EdgeInsets.only(left: 8, right: 8),
+      padding: EdgeInsets.only(left: 8, right: 8, bottom: bottomPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisSize: MainAxisSize.min,
@@ -529,10 +623,9 @@ class _StudyModePageState extends State<StudyModePage> {
       direction: Axis.vertical,
       verticalDirection: VerticalDirection.down,
       textDirection: TextDirection.rtl, // New columns appear to the left
-      crossAxisAlignment:
-          WrapCrossAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
       spacing: 0,
-      runSpacing: 8, // Space between columns
+      runSpacing: _isMobile ? 16 : 10, // More space between columns on mobile
       children: elements,
     );
   }
@@ -562,6 +655,7 @@ class _StudyModePageState extends State<StudyModePage> {
       onLongPress: () => _openTakoboto(token),
       style: style,
       fixedWidth: tokenWidth,
+      isMobile: _isMobile,
     );
   }
 
@@ -644,6 +738,7 @@ class _ClickableVerticalWord extends StatefulWidget {
   final bool isSelected;
   final String? annotation;
   final double? fixedWidth;
+  final bool isMobile;
 
   const _ClickableVerticalWord({
     required this.word,
@@ -653,6 +748,7 @@ class _ClickableVerticalWord extends StatefulWidget {
     this.isSelected = false,
     this.annotation,
     this.fixedWidth,
+    this.isMobile = false,
   });
 
   @override
@@ -686,89 +782,101 @@ class _ClickableVerticalWordState extends State<_ClickableVerticalWord> {
       child: GestureDetector(
         onTap: widget.onTap,
         onLongPress: widget.onLongPress,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Main word column with optional fixed width
-            SizedBox(
-              width: widget.fixedWidth,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  // Background highlight layer - larger than text, can overflow
-                  if (widget.isSelected)
-                    Positioned.fill(
-                      top: -2,
-                      bottom: -3,
-                      left: -4,
-                      right: -4,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withAlpha(25),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                  // Text layer with minimal padding
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 1,
-                      vertical: 1,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        for (final char in widget.word.characters)
-                          Text(
-                            char,
-                            style:
-                                widget.style?.copyWith(
-                                  color: textColor,
-                                  fontWeight: widget.isSelected
-                                      ? FontWeight.bold
-                                      : null,
-                                ) ??
-                                TextStyle(
-                                  color: textColor,
-                                  fontWeight: widget.isSelected
-                                      ? FontWeight.bold
-                                      : null,
-                                ),
-                          ),
-                      ],
+        // Use IntrinsicHeight + Row so annotation affects height but not token position
+        child: IntrinsicHeight(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _buildMainWordColumn(context, textColor),
+              // Annotation column - zero-width container with overflow
+              if (widget.annotation != null && widget.annotation!.isNotEmpty)
+                SizedBox(
+                  width: 0,
+                  child: OverflowBox(
+                    maxWidth: double.infinity,
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: EdgeInsets.only(left: widget.isMobile ? 8 : 2),
+                      child: _buildAnnotationColumn(context),
                     ),
                   ),
-                ],
-              ),
-            ),
-            // Annotation column (to the right of the main text, like furigana)
-            if (widget.annotation != null && widget.annotation!.isNotEmpty)
-              Transform.translate(
-                offset: const Offset(4, 0), // Visual offset without affecting layout
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (final char in widget.annotation!.characters)
-                      Text(
-                        char,
-                        style: TextStyle(
-                          fontSize: 10,
-                          height: 1.0,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withAlpha(180),
-                        ),
-                      ),
-                  ],
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  /// Builds the main word column with optional fixed width.
+  Widget _buildMainWordColumn(BuildContext context, Color textColor) {
+    return SizedBox(
+      width: widget.fixedWidth,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          // Background highlight layer - larger than text, can overflow
+          if (widget.isSelected)
+            Positioned.fill(
+              top: -1,
+              bottom: -3,
+              left: -4,
+              right: -8,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withAlpha(25),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+          // Text layer with minimal padding
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 1),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final char in widget.word.characters)
+                  Text(
+                    char,
+                    style:
+                        widget.style?.copyWith(
+                          color: textColor,
+                          fontWeight: widget.isSelected
+                              ? FontWeight.bold
+                              : null,
+                        ) ??
+                        TextStyle(
+                          color: textColor,
+                          fontWeight: widget.isSelected
+                              ? FontWeight.bold
+                              : null,
+                        ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Builds the annotation column.
+  Widget _buildAnnotationColumn(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final char in widget.annotation!.characters)
+          Text(
+            char,
+            style: TextStyle(
+              fontSize: 11,
+              height: 1.0,
+              color: Theme.of(context).colorScheme.primary.withAlpha(180),
+            ),
+          ),
+      ],
     );
   }
 }
