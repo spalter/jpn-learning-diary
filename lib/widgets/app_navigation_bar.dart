@@ -257,13 +257,15 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     return InputDecoration(
       prefixIcon: const Icon(Icons.search),
       suffixIcon: widget.textController.text.isNotEmpty
-          ? StyledTooltip(
+          ? ExcludeFocus(
+            child:StyledTooltip(
               message: 'Clear',
               child: IconButton(
                 icon: const Icon(Icons.close, size: 20),
                 onPressed: widget.onClearSearch,
               ),
             )
+          )
           : null,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
