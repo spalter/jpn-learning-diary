@@ -16,25 +16,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service for syncing database files with cloud storage on Android.
 ///
-/// ## Background
-/// Android's Storage Access Framework (SAF) provides access to cloud storage
-/// providers (Dropbox, Google Drive, etc.) but returns content:// URIs that
-/// SQLite cannot directly use. This service implements a copy-sync pattern:
-///
-/// 1. **On app launch**: Copy cloud file to local working directory
-/// 2. **During use**: Work with the local copy (SQLite compatible)
-/// 3. **On app pause/close**: Sync local changes back to cloud
-///
-/// ## Usage Flow
-/// 1. User selects a cloud file via SAF picker
-/// 2. Call [saveCloudUri] to store the persistent URI permission
-/// 3. Call [syncFromCloud] on app startup to download the latest version
-/// 4. App works with the local database file
-/// 5. Call [syncToCloud] when app goes to background or closes
-///
-/// ## Platform Support
-/// - **Android**: Full cloud sync support via SAF
-/// - **Other platforms**: Methods are no-ops (use direct file paths instead)
+/// This service implements a manual sync pattern using the Storage Access Framework
+/// (SAF) to bridge the gap between Android's content URIs and SQLite's file
+/// requirement. It manages the lifecycle of the database file by copying it from
+/// the cloud provider on launch, working with a local copy, and pushing changes
+/// back to the cloud when the app is paused or closed.
 class CloudSyncService {
   /// SharedPreferences key for storing the cloud file URI
   static const String _keyCloudUri = 'cloud_database_uri';

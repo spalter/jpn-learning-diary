@@ -9,11 +9,12 @@
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Service for managing persistent application preferences.
+/// Service for managing persistent application preferences via SharedPreferences.
 ///
-/// Handles storage and retrieval of user preferences including:
-/// - Custom database path
-/// - Other app configuration settings
+/// This convenience wrapper handles the storage and retrieval of user settings
+/// such as the custom database path, view modes, and quiz configurations. It
+/// abstracts the underlying key-value store implementation and provides tailored
+/// methods for each application setting to ensure type safety and consistency.
 class AppPreferences {
   static const String _keyCustomDbPath = 'custom_db_path';
   static const String _keyViewMode = 'view_mode';

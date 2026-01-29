@@ -17,10 +17,15 @@ import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
 import 'package:provider/provider.dart';
 
-/// Phrases and words tracking page.
+/// Phrases and words tracking and management page.
 ///
-/// Displays and manages learned Japanese phrases and vocabulary words.
-/// Provides functionality to track learning progress and practice.
+/// This widget displays the user's collection of learned phrases and vocabulary.
+/// It provides a grid-based view of diary entries and allows for detailed management
+/// of the learning diary. Key functionalities accessible from this page:
+///
+/// - [DiaryEntryCard]: Displays individual entry details with edit/delete actions
+/// - [ResponsiveGridView]: Adapts the layout to different screen sizes
+/// - Search Integration: Allows filtering entries via [onSearchTextSet]
 class DiaryPage extends StatefulWidget {
   /// Callback to set search text in the navigation bar.
   final void Function(String)? onSearchTextSet;

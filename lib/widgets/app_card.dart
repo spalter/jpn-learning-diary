@@ -11,8 +11,15 @@ import 'package:flutter/material.dart';
 
 /// A unified card widget that provides consistent styling across the app.
 ///
-/// Supports different card styles (bordered, minimal, elevated) and handles
-/// hover states, interactions, and decorations in a centralized way.
+/// This widget acts as the foundational container for almost all list items
+/// and content blocks in the application. It centralizes styling logic to
+/// ensure a cohesive look and feel across different card types.
+///
+/// * [child]: The content to display inside the card.
+/// * [style]: The visual style variant (bordered, minimal, elevated).
+/// * [onTap]: Callback triggered when the card is tapped.
+/// * [onDoubleTap]: Callback triggered on double-tap events.
+/// * [onLongPress]: Callback triggered on long-press events.
 class AppCard extends StatefulWidget {
   /// The child widget to display inside the card.
   final Widget child;

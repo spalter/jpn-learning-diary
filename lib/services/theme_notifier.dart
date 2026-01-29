@@ -11,9 +11,12 @@ import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 
-/// A notifier that manages the app's theme state and notifies listeners on changes.
+/// A notifier that manages the application's visual theme state.
 ///
-/// This allows live theme switching without requiring an app restart.
+/// This class acts as the central source of truth for the active theme configuration.
+/// It persists user preferences for theme selection and leverages the ChangeNotifier
+/// pattern to immediately propagate style updates to the entire widget tree without
+/// requiring an application restart.
 class ThemeNotifier extends ChangeNotifier {
   /// Singleton instance for global access.
   static final ThemeNotifier instance = ThemeNotifier._();

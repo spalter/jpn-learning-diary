@@ -17,9 +17,10 @@ import 'package:url_launcher/url_launcher.dart';
 /// A widget that displays dictionary content from Takoboto for Japanese words.
 ///
 /// This viewer fetches definitions from the Takoboto online dictionary and
-/// renders them in a styled popup dialog. The content is displayed as HTML
-/// with the app's theme colors applied, and tapping any link opens the full
-/// Takoboto page in the system browser for additional details.
+/// renders them in a styled popup dialog. It bridges the native app UI with
+/// external web content, injecting theme colors for a seamless integration.
+///
+/// * [text]: The Japanese word or phrase to look up.
 class TakobotoViewer extends StatefulWidget {
   /// The Japanese text to look up.
   final String text;
@@ -37,7 +38,7 @@ class TakobotoViewer extends StatefulWidget {
       builder: (dialogContext) => Dialog(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
-          child: SingleChildScrollView(child: TakobotoViewer(text: word)),
+          child: TakobotoViewer(text: word),
         ),
       ),
     );
@@ -224,41 +225,90 @@ class _TakobotoViewerState extends State<TakobotoViewer>
   /// color and removes underlines from links for a cleaner appearance.
   Widget _buildHtmlContent(BuildContext context, String html) {
     final colorScheme = Theme.of(context).colorScheme;
-    final primaryHex = '#${colorScheme.primary.toARGB32().toRadixString(16).substring(2)}';
-    
-    // Replace Takoboto's orange color with our primary color
-    final styledHtml = html.replaceAll('#FF6020', primaryHex);
-    
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'Data from takoboto.jp',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface.withAlpha(150),
-                  fontStyle: FontStyle.italic,
+    final primaryHex =
+        '#${colorScheme.primary.toARGB32().toRadixString(16).substring(2)}';
+    final mutedPrimaryColor = Color.alphaBlend(
+      colorScheme.onSurface.withAlpha(128),
+      colorScheme.primary,
+    );
+    final mutedPrimaryHex =
+        '#${mutedPrimaryColor.toARGB32().toRadixString(16).substring(2)}';
+    final mutedColor = Color.alphaBlend(
+      colorScheme.onSurface.withAlpha(128),
+      colorScheme.surface,
+    );
+    final mutedHex = '#${mutedColor.toARGB32().toRadixString(16).substring(2)}';
+
+    // Replace Takoboto's orange color with our primary color, and light grey with muted onSurface
+    final styledHtml = html
+        .replaceAll('#FF6020', primaryHex)
+        .replaceAll('#A0A0A0', mutedPrimaryHex)
+        .replaceAll('#C0C0C0', mutedHex)
+        .replaceAll('#606060', mutedHex);
+
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(right: 70.0),
+                child: Text(
+                  'Data from takoboto.jp',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withAlpha(150),
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
+              ),
+              const SizedBox(height: 12),
+              HtmlWidget(
+                styledHtml,
+                textStyle: TextStyle(color: colorScheme.onSurface),
+                customStylesBuilder: (element) {
+                  // Remove underline from links
+                  if (element.localName == 'a') {
+                    return {'text-decoration': 'none'};
+                  }
+                  return null;
+                },
+                onTapUrl: (url) {
+                  _openInBrowser();
+                  return true;
+                },
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          HtmlWidget(
-            styledHtml,
-            customStylesBuilder: (element) {
-              // Remove underline from links
-              if (element.localName == 'a') {
-                return {'text-decoration': 'none'};
-              }
-              return null;
-            },
-            onTapUrl: (url) {
-              _openInBrowser();
-              return true;
-            },
+        ),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.open_in_new, size: 20),
+                onPressed: _openInBrowser,
+                tooltip: 'Open in Browser',
+                style: IconButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, size: 20),
+                onPressed: () => Navigator.of(context).pop(),
+                tooltip: 'Close',
+                style: IconButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

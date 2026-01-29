@@ -22,18 +22,14 @@ class _TextSegment {
 
 /// A widget that renders Japanese text with furigana (ruby text) support.
 ///
-/// Parses text containing ruby patterns and displays the reading above the
-/// kanji characters. Regular text is displayed normally.
+/// This widget parses text containing specific ruby syntax patterns and displays
+/// the reading (furigana) above the corresponding kanji characters. It ensures
+/// that learners can read difficult kanji by providing immediate phonetic guides.
 ///
-/// Supports various bracket styles for typing in Japanese:
-/// - `[kanji](reading)` - ASCII brackets and parentheses
-/// - `「kanji」（reading）` - Japanese corner brackets, fullwidth parentheses
-/// - `［kanji］（reading）` - Fullwidth square brackets and parentheses
-/// - And any mix of the above
-///
-/// Example input: `「今」（いま）ねます。` or `[晩御飯](ばんごはん)`
-///
-/// This will render the kanji with furigana displayed above it.
+/// * [text]: The input text containing ruby syntax (e.g. `[kanji](reading)`).
+/// * [textStyle]: The style for the main text (kanji and regular characters).
+/// * [rubyStyle]: The style for the furigana readings.
+/// * [maxLines]: The maximum number of lines before truncating.
 class RubyText extends StatelessWidget {
   /// The text to parse and render, may contain `[kanji](reading)` patterns.
   final String text;

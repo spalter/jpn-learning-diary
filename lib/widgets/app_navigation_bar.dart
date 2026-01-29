@@ -22,6 +22,15 @@ import 'package:jpn_learning_diary/widgets/drag_to_move_area.dart';
 /// button, allowing the search bar to use the full width. Navigation events are
 /// communicated to the parent widget through callbacks rather than being managed
 /// internally.
+///
+/// * [textController]: Controller for managing the search input text.
+/// * [searchFocusNode]: Focus node for controlling keyboard focus on the search field.
+/// * [onSearchChanged]: Callback triggered when the search text changes.
+/// * [onSearchSubmitted]: Callback triggered when the user submits the search.
+/// * [onClearSearch]: Callback triggered when the clear button is pressed.
+/// * [onNavItemSelected]: Callback triggered when a navigation item is selected.
+/// * [onOpenDrawer]: Callback triggered when the hamburger menu is tapped (mobile only).
+/// * [currentRoute]: The name of the currently active route for highlighting.
 class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
   /// Controller for the search text field.
   final TextEditingController textController;

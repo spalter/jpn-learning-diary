@@ -16,10 +16,12 @@ import 'package:jpn_learning_diary/widgets/drag_to_move_area.dart';
 /// Custom app bar designed for learning mode pages like practice and study.
 ///
 /// This widget provides a consistent navigation experience across all learning
-/// screens that are pushed onto the navigation stack. It features a back button
-/// on the left for returning to the previous page, a centered title, and window
-/// control buttons on the right for desktop platforms. The entire bar is draggable
-/// to allow repositioning the window.
+/// screens that are pushed onto the navigation stack. It features a back button,
+/// a centered title, and window control buttons on desktop platforms. The
+/// entire bar acts as a drag handle for the window.
+///
+/// * [title]: The text to display in the center of the app bar.
+/// * [onBack]: Optional callback for the back button (defaults to popping the route).
 class LearningModeAppBar extends StatelessWidget
     implements PreferredSizeWidget {
   /// The title to display in the app bar.

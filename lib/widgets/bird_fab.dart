@@ -15,9 +15,12 @@ import 'package:jpn_learning_diary/widgets/styled_tooltip.dart';
 
 /// A floating action button featuring the bird mascot.
 ///
-/// When tapped, opens the diary entry dialog to create a new entry.
-/// This widget is designed to be used as the floatingActionButton in any Scaffold.
-/// Features a cute bobbing animation on hover.
+/// This widget provides a friendly primary action button for the app, typically
+/// used to create new entries. It features a custom image asset of the bird
+/// mascot and applies a subtle bobbing animation when hovered over, adding
+/// character to the interface.
+///
+/// * [onEntryCreated]: Optional callback triggered when a new diary entry is successfully created.
 class BirdFab extends StatefulWidget {
   /// Optional callback when a diary entry is successfully created.
   final VoidCallback? onEntryCreated;

@@ -13,17 +13,12 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-/// Database helper for the read-only Japanese language database.
+/// Database helper for accessing the read-only Japanese dictionary data.
 ///
-/// This database contains kanji, readings, words, and JMdict data that is
-/// shipped with the app as an asset.
-///
-/// - On desktop platforms (Windows, Linux, macOS), the database is opened
-///   directly from the assets folder.
-/// - On mobile platforms (Android, iOS), the database is copied from assets
-///   to the app's documents directory on first launch.
-///
-/// Uses a singleton pattern to ensure only one database connection exists.
+/// This singleton manages the connection to the pre-populated 'jpn.db' database
+/// which contains the core dictionary, kanji information, and example sentences.
+/// It handles the initial asset-to-filesystem copy process required on mobile
+/// platforms and ensures efficient read access to the static learning content.
 class JpnDatabaseHelper {
   /// Singleton instance of the database helper.
   static final JpnDatabaseHelper instance = JpnDatabaseHelper._init();

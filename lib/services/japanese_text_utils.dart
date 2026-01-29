@@ -9,14 +9,13 @@
 
 import 'package:kuromoji/kuromoji.dart';
 
-/// Utility class for Japanese text processing and analysis.
+/// Utility class for Japanese text processing and morphological analysis.
 ///
-/// Provides regex patterns and helper methods for identifying and extracting
-/// different types of Japanese characters (kanji, hiragana, katakana),
-/// as well as ruby text (furigana) parsing utilities.
-///
-/// Uses Kuromoji for morphological analysis, providing accurate tokenization
-/// with part-of-speech tagging, readings, and dictionary forms.
+/// This service provides specialized tools for working with Japanese text,
+/// including precise regex patterns for ruby text (furigana) parsing and
+/// integration with the Kuromoji tokenizer. It enables the app to break down
+/// sentences into interactive words and identify character types like hiragana,
+/// katakana, and kanji.
 class JapaneseTextUtils {
   // Singleton instance of Kuromoji Tokenizer for word tokenization
   static final Tokenizer _tokenizer = Tokenizer.buildSync();

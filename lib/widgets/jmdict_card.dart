@@ -17,10 +17,12 @@ import 'package:url_launcher/url_launcher.dart';
 /// Card widget for displaying a JMdict dictionary entry.
 ///
 /// This widget presents JMdict data in a clean, flat design that matches the
-/// kanji card style throughout the app. The card displays the word prominently
-/// along with readings, meanings, part-of-speech info, and other metadata.
-/// Users can tap to copy, double-tap to search, or long-press to open an
-/// external dictionary.
+/// kanji card style throughout the app. It organizes complex dictionary data
+/// into a readable format, displaying the headword, reading, meanings, and
+/// metadata badges.
+///
+/// * [entry]: The JMdict data object containing the dictionary entry details.
+/// * [useBorderedStyle]: Whether to render the card with a visible border (default false).
 class JMdictCard extends StatefulWidget {
   /// The JMdict entry data to display.
   final JMdictEntry entry;
@@ -102,42 +104,43 @@ class _JMdictCardState extends State<JMdictCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Large word display
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Primary form (kanji or kana)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Primary form (kanji or kana)
+                Text(
+                  widget.entry.primaryForm,
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: primaryColor,
+                  ),
+                ),
+                // Reading (if different from primary form)
+                if (widget.entry.kanji.isNotEmpty) ...[
+                  const SizedBox(height: 4),
                   Text(
-                    widget.entry.primaryForm,
-                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor,
+                    widget.entry.primaryReading,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withAlpha(179),
                     ),
                   ),
-                  // Reading (if different from primary form)
-                  if (widget.entry.kanji.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.entry.primaryReading,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withAlpha(179),
-                      ),
-                    ),
-                  ],
+                ],
+              ],
+            ),
+            const SizedBox(width: 16),
+            // Metadata badges
+            Expanded(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (widget.entry.isCommon)
+                    _buildBadge(context, 'Common', Icons.star),
+                  ..._buildPosBadges(context),
                 ],
               ),
-            ),
-            // Metadata badges
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                if (widget.entry.isCommon)
-                  _buildBadge(context, 'Common', Icons.star),
-                ..._buildPosBadges(context),
-              ],
             ),
           ],
         ),

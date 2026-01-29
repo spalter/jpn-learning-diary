@@ -11,8 +11,13 @@ import 'package:flutter/material.dart';
 
 /// A reusable section header widget with optional icon.
 ///
-/// Provides consistent styling for section titles across the application.
-/// Can be used with or without a leading icon.
+/// Provides consistent styling for section titles across the application,
+/// ensuring uniform typography and spacing. It supports an optional leading
+/// icon to visually distinguish different content areas.
+///
+/// * [title]: The text string to display as the header.
+/// * [icon]: Optional icon data to display before the title.
+/// * [bottomPadding]: The amount of vertical space below the header (default 16).
 class SectionHeader extends StatelessWidget {
   /// The title text to display.
   final String title;

@@ -10,25 +10,14 @@
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
-/// A widget for drag to move window without double-tap to maximize.
+/// A widget that enables window dragging behavior without maximize-on-double-tap.
 ///
-/// This is a custom implementation that replicates [DragToMoveArea] from
-/// window_manager but without the double-tap maximize behavior.
+/// This custom implementation wraps the content in a gesture detector that
+/// communicates with the window manager to initiate window movement when
+/// dragged. Unlike standard title bars, it overrides the double-tap behavior
+/// to prevent maximizing the window, which is useful for custom app bars.
 ///
-/// {@tool snippet}
-///
-/// The sample creates a draggable area for moving the window.
-///
-/// ```dart
-/// DragOnlyMoveArea(
-///   child: Container(
-///     width: 300,
-///     height: 32,
-///     color: Colors.red,
-///   ),
-/// )
-/// ```
-/// {@end-tool}
+/// * [child]: The widget that should trigger the drag behavior.
 class DragOnlyMoveArea extends StatelessWidget {
   const DragOnlyMoveArea({
     super.key,

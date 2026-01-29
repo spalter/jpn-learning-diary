@@ -9,22 +9,26 @@
 
 import 'dart:io' show Platform;
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/models/jmdict_entry.dart';
 import 'package:jpn_learning_diary/repositories/jmdict_repository.dart';
-import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
-import 'package:jpn_learning_diary/widgets/jmdict_card.dart';
 import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
 import 'package:jpn_learning_diary/widgets/bird_fab.dart';
-import 'package:jpn_learning_diary/widgets/takoboto_viewer.dart';
+import 'package:jpn_learning_diary/widgets/collapsible_section.dart';
+import 'package:jpn_learning_diary/widgets/vertical_text_display.dart';
+import 'package:jpn_learning_diary/widgets/study_search_results_panel.dart';
 
-//// This page provides an interactive study environment for Japanese text:
 /// Study mode page for analyzing Japanese text with dictionary lookup.
 ///
-/// Displays text in traditional vertical (tategaki) format and provides
-/// interactive word search capabilities using the JMdict dictionary.
+/// This widget provides an environment for reading and analyzing Japanese text,
+/// displaying it in traditional vertical (tategaki) format. It supports interactive
+/// study sessions by allowing users to tap on words to look them up.
+///
+/// Features include:
+/// - [VerticalTextDisplay]: Renders text vertically with Japanese typography rules
+/// - [StudySearchResultsPanel]: Shows dictionary definitions for selected words
+/// - [CollapsibleSection]: Allows maximizing screen space for reading
 class StudyModePage extends StatefulWidget {
   const StudyModePage({super.key});
 
@@ -33,12 +37,6 @@ class StudyModePage extends StatefulWidget {
 }
 
 class _StudyModePageState extends State<StudyModePage> {
-  /// Punctuation characters that should not be treated as searchable tokens.
-  /// These merge visually with adjacent text and don't need click handlers.
-  static final RegExp _punctuationPattern = RegExp(
-    r'^[、。！？「」『』（）〈〉《》【】〔〕・…―ー～，．：；]+$',
-  );
-
   /// Controller for the main text input field.
   final TextEditingController _textController = TextEditingController();
 
@@ -46,9 +44,6 @@ class _StudyModePageState extends State<StudyModePage> {
   /// Used to programmatically unfocus before showing mobile bottom sheet,
   /// preventing the keyboard from reappearing unexpectedly.
   final FocusNode _textFocusNode = FocusNode();
-
-  /// Controller for the annotation input in the results panel.
-  final TextEditingController _annotationController = TextEditingController();
 
   /// Controller for horizontal scrolling of the vertical text display.
   /// Enables custom scroll behavior (mouse wheel without shift key).
@@ -99,7 +94,6 @@ class _StudyModePageState extends State<StudyModePage> {
     // Clean up listeners and controllers
     _textController.removeListener(_onTextChanged);
     _textController.dispose();
-    _annotationController.dispose();
     _textFocusNode.dispose();
     _horizontalScrollController.dispose();
     super.dispose();
@@ -153,13 +147,6 @@ class _StudyModePageState extends State<StudyModePage> {
         _showMobileResultsSheet();
       }
     }
-  }
-
-  /// Opens the Takoboto dictionary app/website for the given word.
-  /// Triggered by long-pressing a word.
-  void _openTakoboto(String word) {
-    if (!mounted) return;
-    TakobotoViewer.showPopup(context, word);
   }
 
   @override
@@ -311,288 +298,76 @@ class _StudyModePageState extends State<StudyModePage> {
   /// Builds the collapsible text input area at the top of the page.
   /// Features an animated height transition and a collapse handle.
   Widget _buildTextInputArea(BuildContext context) {
-    final borderColor = Theme.of(context).colorScheme.primary.withAlpha(80);
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Text field with animated height
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeInOut,
-          constraints: BoxConstraints(
-            minHeight: _isInputCollapsed ? 40 : 80,
-            maxHeight: _isInputCollapsed ? 40 : 200,
-          ),
-          child: TextField(
-            controller: _textController,
-            focusNode: _textFocusNode,
-            maxLines: _isInputCollapsed ? 1 : null,
-            minLines: _isInputCollapsed ? 1 : 3,
-            // Prevent focus when collapsed on mobile to avoid keyboard popup
-            readOnly: _isInputCollapsed && _isMobile,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.vertical(
-                  top: const Radius.circular(12),
-                  bottom: Radius.circular(_isInputCollapsed ? 12 : 0),
-                ),
-                borderSide: BorderSide(color: borderColor),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.vertical(
-                  top: const Radius.circular(12),
-                  bottom: Radius.circular(_isInputCollapsed ? 12 : 0),
-                ),
-                borderSide: BorderSide(color: borderColor),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.vertical(
-                  top: const Radius.circular(12),
-                  bottom: Radius.circular(_isInputCollapsed ? 12 : 0),
-                ),
-                borderSide: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 2,
-                ),
-              ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: _isInputCollapsed ? 8 : 16,
-              ),
-              filled: true,
-              fillColor: Theme.of(
-                context,
-              ).colorScheme.primaryContainer.withAlpha(20),
-              // Show expand button when collapsed
-              suffixIcon: _isInputCollapsed
-                  ? IconButton(
-                      onPressed: () => setState(() => _isInputCollapsed = false),
-                      icon: Icon(
-                        Icons.expand_more,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      tooltip: 'Expand',
-                    )
-                  : null,
+    return CollapsibleSection(
+      isCollapsed: _isInputCollapsed,
+      onCollapseChanged: (value) => setState(() => _isInputCollapsed = value),
+      child: TextField(
+        controller: _textController,
+        focusNode: _textFocusNode,
+        maxLines: _isInputCollapsed ? 1 : null,
+        minLines: _isInputCollapsed ? 1 : 3,
+        readOnly: _isInputCollapsed && _isMobile,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.vertical(
+              top: const Radius.circular(12),
+              bottom: Radius.circular(_isInputCollapsed ? 12 : 0),
             ),
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.primary.withAlpha(80),
+            ),
           ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.vertical(
+              top: const Radius.circular(12),
+              bottom: Radius.circular(_isInputCollapsed ? 12 : 0),
+            ),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.primary.withAlpha(80),
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.vertical(
+              top: const Radius.circular(12),
+              bottom: Radius.circular(_isInputCollapsed ? 12 : 0),
+            ),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.primary,
+              width: 2,
+            ),
+          ),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: _isInputCollapsed ? 8 : 16,
+          ),
+          filled: true,
+          fillColor: Theme.of(
+            context,
+          ).colorScheme.primaryContainer.withAlpha(20),
+          suffixIcon: _isInputCollapsed
+              ? IconButton(
+                  onPressed: () => setState(() => _isInputCollapsed = false),
+                  icon: Icon(
+                    Icons.expand_more,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  tooltip: 'Expand',
+                )
+              : null,
         ),
-        // Collapse handle (only shown when expanded)
-        if (!_isInputCollapsed) _buildCollapseHandle(context),
-      ],
-    );
-  }
-
-  /// Builds the subtle collapse handle below the text input.
-  /// Styled as a grip line to indicate draggability.
-  Widget _buildCollapseHandle(BuildContext context) {
-    final borderColor = Theme.of(context).colorScheme.primary.withAlpha(80);
-
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: () => setState(() => _isInputCollapsed = true),
-        child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            border: Border(
-              left: BorderSide(color: borderColor),
-              right: BorderSide(color: borderColor),
-              bottom: BorderSide(color: borderColor),
-            ),
-            borderRadius: const BorderRadius.vertical(
-              bottom: Radius.circular(12),
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Center(
-            // Small horizontal grip line
-            child: Container(
-              width: 32,
-              height: 3,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withAlpha(40),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-        ),
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
       ),
     );
   }
 
   /// Builds the main vertical text display area.
-  /// Shows an empty state hint when no text is entered, or the vertical
-  /// tokenized text with right-to-left line flow.
   Widget _buildLinesAndKanjiList(BuildContext context) {
-    // Empty state
-    if (_lines.isEmpty || (_lines.length == 1 && _lines[0].isEmpty)) {
-      return _buildEmptyStateHint(context);
-    }
-
-    // Filter out empty lines for display
-    final nonEmptyLines = _lines.where((l) => l.trim().isNotEmpty).toList();
-
-    // Vertical layout with custom scroll behavior:
-    // Listener converts vertical mouse wheel to horizontal scroll,
-    // allowing natural scrolling without holding Shift key.
-    return Listener(
-      onPointerSignal: (event) {
-        if (event is PointerScrollEvent) {
-          final offset =
-              _horizontalScrollController.offset - event.scrollDelta.dy;
-          _horizontalScrollController.jumpTo(
-            offset.clamp(
-              0.0,
-              _horizontalScrollController.position.maxScrollExtent,
-            ),
-          );
-        }
-      },
-      child: SingleChildScrollView(
-        controller: _horizontalScrollController,
-        scrollDirection: Axis.horizontal,
-        reverse: true, // Start from right side (traditional Japanese)
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          textDirection: TextDirection.rtl, // Lines flow right to left
-          children: [
-            for (int index = 0; index < nonEmptyLines.length; index++)
-              _buildVerticalLineSection(
-                context,
-                index,
-                nonEmptyLines[index],
-                isLast: index == nonEmptyLines.length - 1,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Builds the empty state hint when no text has been entered.
-  Widget _buildEmptyStateHint(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.edit_note,
-            size: 64,
-            color: Theme.of(context).colorScheme.primary.withAlpha(100),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Enter some Japanese text above',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Kanji found in each line will be displayed here',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Builds a vertical section for a single line (tategaki style).
-  /// Includes a subtle divider between line sections (except after the last).
-  Widget _buildVerticalLineSection(
-    BuildContext context,
-    int lineIndex,
-    String line, {
-    bool isLast = false,
-  }) {
-    // Add bottom padding on mobile to avoid FAB (floating bird) overlap
-    final bottomPadding = _isMobile ? 110.0 : 0.0;
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Subtle divider between sections (not after last line in RTL layout)
-        if (!isLast)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Container(
-              width: 1,
-              color: Theme.of(context).colorScheme.primary.withAlpha(20),
-            ),
-          ),
-        // The vertical tokenized text for this line
-        Padding(
-          padding: EdgeInsets.only(
-            left: 8,
-            right: isLast ? 8 : 0,
-            bottom: bottomPadding,
-          ),
-          child: _buildVerticalTokenizedText(context, line),
-        ),
-      ],
-    );
-  }
-
-  /// Builds vertical tokenized text with automatic column wrapping.
-  /// Tokenizes the line and displays each token as a vertical unit.
-  Widget _buildVerticalTokenizedText(BuildContext context, String line) {
-    final tokens = JapaneseTextUtils.tokenize(
-      line,
-    ).where((t) => t.trim().isNotEmpty).toList();
-
-    // Build list of token widgets
-    final List<Widget> elements = [];
-    for (int i = 0; i < tokens.length; i++) {
-      elements.add(
-        _buildVerticalToken(context, tokens[i], _tokenAnnotations[tokens[i]]),
-      );
-    }
-
-    // Wrap flows vertically down, then creates new columns to the left
-    return Wrap(
-      direction: Axis.vertical,
-      verticalDirection: VerticalDirection.down,
-      textDirection: TextDirection.rtl, // New columns appear to the left
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 0,
-      runSpacing: _isMobile ? 16 : 12, // More space between columns on mobile
-      children: elements,
-    );
-  }
-
-  /// Builds a single vertical token (word displayed character-by-character).
-  /// Punctuation is rendered inline without interaction.
-  /// Words are clickable for dictionary lookup and support annotations.
-  Widget _buildVerticalToken(
-    BuildContext context,
-    String token,
-    String? annotation,
-  ) {
-    final isPunctuation = _punctuationPattern.hasMatch(token);
-    final style = Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 23);
-    final isSelected = token == _selectedWord;
-    const double tokenWidth = 22.0;
-
-    // Punctuation: simple text without interaction
-    if (isPunctuation) {
-      return Text(token, style: style);
-    }
-
-    // Word: clickable with hover effects and optional annotation
-    return _ClickableVerticalWord(
-      word: token,
-      isSelected: isSelected,
-      annotation: annotation,
-      onTap: () => _searchWord(token),
-      onLongPress: () => _openTakoboto(token),
-      style: style,
-      fixedWidth: tokenWidth,
+    return VerticalTextDisplay(
+      lines: _lines,
+      selectedWord: _selectedWord,
+      annotations: _tokenAnnotations,
+      onWordTap: _searchWord,
+      scrollController: _horizontalScrollController,
       isMobile: _isMobile,
     );
   }
@@ -600,374 +375,43 @@ class _StudyModePageState extends State<StudyModePage> {
   /// Builds the search results panel for desktop layout.
   /// Shows different states: hint, loading, no results, or results list.
   Widget _buildSearchResultsPanel(BuildContext context) {
-    // No word selected - show hint
-    if (_selectedWord == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.touch_app,
-              size: 48,
-              color: Theme.of(context).colorScheme.primary.withAlpha(100),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Tap a word to search',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Dictionary results will appear here',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return _buildSearchResultsContent(context, null);
+    return StudySearchResultsPanel(
+      selectedWord: _selectedWord,
+      isSearching: _isSearching,
+      results: _searchResults,
+      currentAnnotation: _selectedWord != null ? _tokenAnnotations[_selectedWord!] : null,
+      onAnnotationChanged: (value) {
+        setState(() {
+          if (value.isEmpty) {
+            _tokenAnnotations.remove(_selectedWord);
+          } else {
+            _tokenAnnotations[_selectedWord!] = value;
+          }
+        });
+      },
+    );
   }
 
   /// Builds the search results content (used in both desktop panel and mobile sheet).
-  /// Handles loading state, empty results, and the results list with annotation input.
   Widget _buildSearchResultsContent(
     BuildContext context,
     ScrollController? scrollController,
   ) {
-    // Loading state
-    if (_isSearching) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Searching for "$_selectedWord"...',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // No results found
-    if (_searchResults.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search_off,
-              size: 48,
-              color: Theme.of(context).colorScheme.primary.withAlpha(100),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No results for "$_selectedWord"',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Results list with header and annotation input
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header with selected word and result count
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            children: [
-              Text(
-                _selectedWord!,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '(${_searchResults.length} results)',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Annotation input field
-        _buildAnnotationInput(context),
-        const SizedBox(height: 12),
-        // Results list
-        Expanded(
-          child: ListView.builder(
-            controller: scrollController,
-            itemCount: _searchResults.length,
-            itemBuilder: (context, index) {
-              return JMdictCard(
-                entry: _searchResults[index],
-                useBorderedStyle: false,
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Builds the annotation input field for adding notes to selected tokens.
-  /// Annotations appear as small text next to words in the vertical display.
-  Widget _buildAnnotationInput(BuildContext context) {
-    final currentAnnotation = _tokenAnnotations[_selectedWord] ?? '';
-
-    // Sync controller with current annotation value
-    if (_annotationController.text != currentAnnotation) {
-      _annotationController.text = currentAnnotation;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer.withAlpha(20),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withAlpha(40),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.edit_note,
-            size: 18,
-            color: Theme.of(context).colorScheme.primary.withAlpha(150),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: _annotationController,
-              decoration: InputDecoration(
-                hintText: 'Add note (e.g., reading, meaning)...',
-                hintStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
-                ),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-              style: Theme.of(context).textTheme.bodyMedium,
-              onChanged: (value) {
-                setState(() {
-                  if (value.isEmpty) {
-                    _tokenAnnotations.remove(_selectedWord);
-                  } else {
-                    _tokenAnnotations[_selectedWord!] = value;
-                  }
-                });
-              },
-            ),
-          ),
-          // Clear button
-          if (_annotationController.text.isNotEmpty)
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _annotationController.clear();
-                  _tokenAnnotations.remove(_selectedWord);
-                });
-              },
-              child: Icon(
-                Icons.close,
-                size: 16,
-                color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-// These widgets are only used within this page and handle the interactive
-// vertical text display with hover/selection states and annotations.
-
-/// A clickable vertical word widget for tategaki (vertical) text display.
-///
-/// Displays a word character-by-character in a vertical column with:
-class _ClickableVerticalWord extends StatefulWidget {
-  /// The word to display vertically.
-  final String word;
-
-  /// Callback when the word is tapped (triggers dictionary search).
-  final VoidCallback onTap;
-
-  /// Callback when the word is long-pressed (opens Takoboto).
-  final VoidCallback? onLongPress;
-
-  /// Text style for the word characters.
-  final TextStyle? style;
-
-  /// Whether this word is currently selected.
-  final bool isSelected;
-
-  /// Optional annotation to display next to the word.
-  final String? annotation;
-
-  /// Fixed width for consistent character alignment.
-  final double? fixedWidth;
-
-  /// Whether we're on mobile (affects annotation spacing).
-  final bool isMobile;
-
-  const _ClickableVerticalWord({
-    required this.word,
-    required this.onTap,
-    this.onLongPress,
-    this.style,
-    this.isSelected = false,
-    this.annotation,
-    this.fixedWidth,
-    this.isMobile = false,
-  });
-
-  @override
-  State<_ClickableVerticalWord> createState() => _ClickableVerticalWordState();
-}
-
-class _ClickableVerticalWordState extends State<_ClickableVerticalWord> {
-  /// Whether the mouse is currently hovering over this word.
-  bool _isHovering = false;
-
-  @override
-  Widget build(BuildContext context) {
-    // Determine text color based on interaction state
-    final baseColor =
-        widget.style?.color ?? Theme.of(context).colorScheme.onSurface;
-    final hoverColor = Theme.of(context).colorScheme.primary;
-    final selectedColor = Theme.of(context).colorScheme.primary;
-
-    Color textColor;
-    if (widget.isSelected) {
-      textColor = selectedColor;
-    } else if (_isHovering) {
-      textColor = hoverColor;
-    } else {
-      textColor = baseColor;
-    }
-
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _isHovering = true),
-      onExit: (_) => setState(() => _isHovering = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        onLongPress: widget.onLongPress,
-        // IntrinsicHeight + Row: annotation affects height but not word position.
-        // This ensures the word stays aligned while annotation can overflow.
-        child: IntrinsicHeight(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _buildMainWordColumn(context, textColor),
-              // Annotation: zero-width container with overflow to avoid shifting word
-              if (widget.annotation != null && widget.annotation!.isNotEmpty)
-                SizedBox(
-                  width: 0,
-                  child: OverflowBox(
-                    maxWidth: double.infinity,
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      // More spacing on mobile for touch readability
-                      padding: EdgeInsets.only(left: widget.isMobile ? 8 : 2),
-                      child: _buildAnnotationColumn(context),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Builds the main word column with selection highlight.
-  Widget _buildMainWordColumn(BuildContext context, Color textColor) {
-    return SizedBox(
-      width: widget.fixedWidth,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: [
-          // Selection highlight background (slightly larger than text)
-          if (widget.isSelected)
-            Positioned.fill(
-              top: -1,
-              bottom: -3,
-              left: -4,
-              right: -8,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withAlpha(25),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ),
-          // Text layer: each character stacked vertically
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 1),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (final char in widget.word.characters)
-                  Text(
-                    char,
-                    style:
-                        widget.style?.copyWith(
-                          color: textColor,
-                          fontWeight: widget.isSelected ? FontWeight.bold : null,
-                        ) ??
-                        TextStyle(
-                          color: textColor,
-                          fontWeight: widget.isSelected ? FontWeight.bold : null,
-                        ),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Builds the annotation column (small vertical text next to the word).
-  Widget _buildAnnotationColumn(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (final char in widget.annotation!.characters)
-          Text(
-            char,
-            style: TextStyle(
-              fontSize: 12,
-              height: 1.0,
-              color: Theme.of(context).colorScheme.primary.withAlpha(180),
-            ),
-          ),
-      ],
+    return StudySearchResultsPanel(
+      selectedWord: _selectedWord,
+      isSearching: _isSearching,
+      results: _searchResults,
+      scrollController: scrollController,
+      currentAnnotation: _selectedWord != null ? _tokenAnnotations[_selectedWord!] : null,
+      onAnnotationChanged: (value) {
+        setState(() {
+          if (value.isEmpty) {
+            _tokenAnnotations.remove(_selectedWord);
+          } else {
+            _tokenAnnotations[_selectedWord!] = value;
+          }
+        });
+      },
     );
   }
 }

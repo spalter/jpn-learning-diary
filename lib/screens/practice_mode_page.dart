@@ -11,10 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/controllers/practice_controller.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
-import 'package:jpn_learning_diary/widgets/app_card.dart';
 import 'package:jpn_learning_diary/widgets/bird_fab.dart';
 import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
 import 'package:jpn_learning_diary/widgets/ruby_text.dart';
+import 'package:jpn_learning_diary/widgets/quiz_option_button.dart';
 import 'package:provider/provider.dart';
 
 // Re-export from controller for backwards compatibility
@@ -258,116 +258,17 @@ class _PracticeModePageState extends State<PracticeModePage> {
     QuizQuestion question,
     int index,
   ) {
-    final isSelected = controller.selectedAnswerIndex == index;
-    final isCorrectAnswer = index == question.correctAnswerIndex;
-    final hasAnswered = controller.hasAnswered;
-
-    final isJapaneseAnswer =
-        question.questionMode == QuizQuestionMode.meaningToJapanese;
-
-    // Determine colors based on state
-    Color? iconColor;
-    Color? textColor;
-    IconData? resultIcon;
-
-    if (hasAnswered) {
-      // After committing: show correct/incorrect indicators
-      if (isCorrectAnswer) {
-        iconColor = Colors.green;
-        textColor = Colors.green[700];
-        resultIcon = Icons.check_circle;
-      } else if (isSelected) {
-        iconColor = Colors.red;
-        textColor = Colors.red[700];
-        resultIcon = Icons.cancel;
-      } else {
-        textColor = Theme.of(context).colorScheme.onSurface.withAlpha(128);
-      }
-    } else if (isSelected) {
-      // Before committing but selected: highlight with primary color
-      iconColor = Theme.of(context).colorScheme.primary;
-      textColor = Theme.of(context).colorScheme.primary;
-    }
-
-    return MouseRegion(
-      cursor: hasAnswered ? SystemMouseCursors.basic : SystemMouseCursors.click,
-      child: AppCard(
-        style: AppCardStyle.bordered,
-        onTap: hasAnswered ? null : () => controller.selectAnswer(index),
-        padding: const EdgeInsets.all(20),
-        isSelected: isSelected,
-        child: Row(
-          children: [
-            // Answer letter (A, B, C, D)
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: (iconColor ?? Theme.of(context).colorScheme.primary)
-                    .withAlpha(30),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(
-                child: Text(
-                  String.fromCharCode(65 + index), // A, B, C, D
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: iconColor ?? Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            // Answer text
-            Expanded(
-              child: _buildAnswerText(
-                context,
-                question,
-                index,
-                isJapaneseAnswer,
-                textColor,
-              ),
-            ),
-            // Result icon
-            if (resultIcon != null)
-              Icon(resultIcon, color: iconColor, size: 28)
-            else
-              const SizedBox(width: 28),
-          ],
-        ),
-      ),
+    return QuizOptionButton(
+      index: index,
+      text: question.answerOptions[index],
+      rawText: question.rawAnswerOptions?[index],
+      isSelected: controller.selectedAnswerIndex == index,
+      hasAnswered: controller.hasAnswered,
+      isCorrectAnswer: index == question.correctAnswerIndex,
+      isJapanese: question.questionMode == QuizQuestionMode.meaningToJapanese,
+      showFurigana: _showFurigana,
+      onTap: () => controller.selectAnswer(index),
     );
-  }
-
-  /// Builds the answer text, optionally with furigana for Japanese answers.
-  Widget _buildAnswerText(
-    BuildContext context,
-    QuizQuestion question,
-    int index,
-    bool isJapaneseAnswer,
-    Color? textColor,
-  ) {
-    final answerText = question.answerOptions[index];
-    final rawAnswer = question.rawAnswerOptions?[index];
-
-    // Check if we should show furigana for this answer
-    final shouldShowFurigana =
-        _showFurigana &&
-        isJapaneseAnswer &&
-        rawAnswer != null &&
-        RubyText.containsRubyPattern(rawAnswer);
-
-    final textStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
-      color: textColor ?? Theme.of(context).colorScheme.onSurface,
-      fontWeight: FontWeight.bold,
-      fontSize: isJapaneseAnswer ? 20 : 16,
-    );
-
-    if (shouldShowFurigana) {
-      return RubyText(text: rawAnswer, textStyle: textStyle);
-    }
-
-    return Text(answerText, style: textStyle, textAlign: TextAlign.left);
   }
 
   /// Builds the action button that changes based on quiz state.

@@ -21,6 +21,9 @@ import 'package:jpn_learning_diary/widgets/ruby_text.dart';
 /// furigana reading, romaji transliteration, English meaning, and optional
 /// notes. Users can tap to copy the text, double-tap for custom actions, or
 /// long-press to edit the entry.
+///
+/// * [entry]: The diary entry data object containing text and meanings.
+/// * [onUpdate]: Callback triggered when the entry is modified or deleted.
 class DiaryEntryCard extends StatefulWidget {
   /// The diary entry to display.
   final DiaryEntry entry;

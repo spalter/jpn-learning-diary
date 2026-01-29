@@ -19,6 +19,8 @@ import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 /// This modal dialog presents input fields for all diary entry properties
 /// including Japanese text, furigana, romaji, meaning, and notes. When editing
 /// an existing entry, a delete button is also available with confirmation.
+///
+/// * [entry]: The existing diary entry to edit, or null to create a new one.
 class EditDiaryEntryDialog extends StatefulWidget {
   /// The diary entry to edit, or null to create a new entry.
   ///

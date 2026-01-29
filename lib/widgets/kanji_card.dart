@@ -17,10 +17,12 @@ import 'package:url_launcher/url_launcher.dart';
 /// Card widget for displaying a single kanji character entry.
 ///
 /// This widget presents kanji data in a clean, flat design that matches the
-/// diary entry card style throughout the app. The card displays the kanji
-/// prominently along with meanings, readings, stroke count, grade level, and
-/// JLPT information. Users can tap to copy, double-tap to search, or long-press
-/// to open an external dictionary.
+/// diary entry card style throughout the app. It serves as a comprehensive
+/// summary of a kanji character's properties, showing readings, meanings,
+/// and JLPT levels.
+///
+/// * [kanji]: The kanji data object containing character details.
+/// * [useBorderedStyle]: Whether to render the card with a visible border (default false).
 class KanjiCard extends StatefulWidget {
   /// The kanji data to display.
   final KanjiData kanji;

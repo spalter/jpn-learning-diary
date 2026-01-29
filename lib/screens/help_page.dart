@@ -280,7 +280,7 @@ class HelpPage extends StatelessWidget {
           description:
               'Paste or type Japanese text (multiple lines supported) and the app will automatically '
               'separate lines and tokenize words. Each line is analyzed to find matching words, kanji, '
-              'and dictionary entries, with results appearing below to help you understand the text. '
+              'and dictionary entries, with results appearing by selecting a word to help you understand the text. '
               'Tap any word to see its breakdown. Long press a word to search for it on takoboto.jp '
               'for detailed definitions. Toggle the tokenized view to see word boundaries clearly separated.',
         ),

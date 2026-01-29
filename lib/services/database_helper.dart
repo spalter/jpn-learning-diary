@@ -17,13 +17,12 @@ import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/cloud_sync_service.dart';
 import 'package:jpn_learning_diary/services/jpn_database_helper.dart';
 
-/// Database helper for managing diary entries in SQLite.
+/// Database helper for managing user diary entries in SQLite.
 ///
-/// Provides CRUD operations for diary entries with a singleton pattern.
-/// Designed to be easily replaceable with an API service later.
-///
-/// Uses a singleton pattern to ensure only one database connection exists
-/// throughout the application lifecycle.
+/// This singleton class provides a unified interface for all Create, Read, Update,
+/// and Delete operations related to the user's personal learning diary. It handles
+/// platform-specific initialization including FFI setup for desktop environments
+/// and manages the connection lifecycle to the local SQLite database file.
 class DatabaseHelper {
   /// Singleton instance of the database helper.
   static final DatabaseHelper instance = DatabaseHelper._init();

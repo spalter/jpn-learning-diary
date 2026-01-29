@@ -17,10 +17,12 @@ import 'package:url_launcher/url_launcher.dart';
 /// Card widget for displaying a single Japanese word entry.
 ///
 /// This widget presents vocabulary data in a clean, flat design that matches
-/// the kanji card style throughout the app. The card displays the written form
-/// prominently, along with readings, meanings, and frequency indicators. Users
-/// can tap to copy the word, double-tap to search, or long-press to open an
-/// external dictionary.
+/// the kanji card style. It displays the written word form prominently, along
+/// with its readings, meanings, and frequency data, serving as a primary
+/// view for vocabulary lists.
+///
+/// * [word]: The vocabulary data object to display.
+/// * [useBorderedStyle]: Whether to render the card with a visible border (default false).
 class WordCard extends StatefulWidget {
   /// The word data to display.
   final WordData word;

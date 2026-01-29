@@ -9,11 +9,17 @@
 
 import 'package:flutter/material.dart';
 
-/// A responsive grid view that automatically adjusts the number of columns
-/// based on available width while maintaining a minimum card width.
+/// A responsive grid view that automatically adjusts column counts.
 ///
 /// This widget ensures cards are always large enough to display their content
-/// properly, and fits as many columns as possible across the available space.
+/// properly by dynamically calculating the number of columns based on the
+/// available width and a minimum card width constraint. It fits as many
+/// columns as possible while maintaining the specified aspect ratio.
+///
+/// * [itemCount]: The total number of items in the grid.
+/// * [itemBuilder]: Function that builds a widget for a given index.
+/// * [minCardWidth]: The minimum width in logical pixels for each grid item (default 280).
+/// * [childAspectRatio]: The ratio of cross-axis to main-axis extent of each child (default 4/3).
 class ResponsiveGridView extends StatelessWidget {
   /// The items to display in the grid.
   final int itemCount;

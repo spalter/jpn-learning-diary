@@ -9,10 +9,17 @@
 
 import 'package:flutter/material.dart';
 
-/// A tooltip widget styled to match the app's colorscheme.
+/// A tooltip widget styled to match the app's color scheme.
 ///
-/// Wraps the standard [Tooltip] widget with consistent styling using
-/// the current theme's surface and primary colors.
+/// Wraps the standard Flutter Tooltip widget with specific decoration logic
+/// to ensure it aligns with the application's visual theme, using surface
+/// colors and appropriate text contrast.
+///
+/// * [message]: The text message to display inside the tooltip.
+/// * [child]: The widget that triggers the tooltip on hover or long press.
+/// * [verticalOffset]: The vertical distance between the widget and the tooltip.
+/// * [waitDuration]: The length of time a pointer must hover before the tooltip is shown.
+/// * [preferBelow]: Whether the tooltip should attempt to display below the widget.
 class StyledTooltip extends StatelessWidget {
   /// The message to display in the tooltip.
   final String message;

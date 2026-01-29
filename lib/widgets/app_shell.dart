@@ -13,8 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:jpn_learning_diary/screens/learning_page.dart';
-import 'package:jpn_learning_diary/screens/hiragana_page.dart';
-import 'package:jpn_learning_diary/screens/katakana_page.dart';
+import 'package:jpn_learning_diary/screens/kana_page.dart';
 import 'package:jpn_learning_diary/screens/diary_page.dart';
 import 'package:jpn_learning_diary/screens/help_page.dart';
 import 'package:jpn_learning_diary/screens/search_results_page.dart';
@@ -232,9 +231,9 @@ class _AppShellState extends State<AppShell> {
       case AppPage.phrasesWords:
         return DiaryPage(key: _pageKey, onSearchTextSet: _setSearchText);
       case AppPage.hiragana:
-        return const HiraganaPage();
+        return const KanaPage(type: KanaType.hiragana);
       case AppPage.katakana:
-        return const KatakanaPage();
+        return const KanaPage(type: KanaType.katakana);
       case AppPage.dashboard:
         return LearningPage(key: _pageKey);
       case AppPage.settings:

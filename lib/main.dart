@@ -13,36 +13,28 @@
 /// including hiragana, katakana, phrases, and words.
 library;
 
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:window_manager/window_manager.dart';
 import 'package:jpn_learning_diary/services/theme_notifier.dart';
+import 'package:jpn_learning_diary/services/window_manager_service.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/screens/splash_screen.dart';
 import 'package:jpn_learning_diary/widgets/app_about_dialog.dart';
 
 /// Main entry point of the application.
 ///
-/// On desktop platforms, the titlebar is hidden to allow for a custom UI 
-/// implementation, and a minimum window size of 700x300 ensures the 
+/// On desktop platforms, the titlebar is hidden to allow for a custom UI
+/// implementation, and a minimum window size of 700x300 ensures the
 /// layout remains usable. Mobile platforms skip these effects and
 /// launch directly.
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Register custom licenses for third-party data sources
+  // Register custom licenses for third-party data sources (JMdict, etc.)
   registerCustomLicenses();
 
   // Initialize theme notifier
   await ThemeNotifier.instance.initialize();
-
-  // Mobile platforms: run app directly
-  if (Platform.isAndroid || Platform.isIOS) {
-    runApp(const JapaneseLearningDiary());
-    return;
-  }
 
   // Clear shared preferences if requested
   if (args.contains('--reset-prefs')) {
@@ -50,28 +42,7 @@ void main(List<String> args) async {
     await prefs.clear();
   }
 
-  // Skip window effects if specified
-  if (args.contains('--no-effects')) {
-    runApp(const JapaneseLearningDiary());
-    return;
-  }
-
-  // Initialize window effects and settings
-  await Window.initialize();
-  await windowManager.ensureInitialized();
-  await windowManager.setMinimumSize(const Size(700, 300));
-  await windowManager.center();
-
-  // Hide titlebar for custom implementation
-  if (Platform.isWindows || Platform.isLinux) {
-    await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
-  } else if (Platform.isMacOS) {
-    await Window.hideTitle();
-    await Window.makeTitlebarTransparent();
-    await Window.enableFullSizeContentView();
-    await Window.hideWindowControls();
-  }
-
+  await WindowManagerService.instance.initialize();
   runApp(const JapaneseLearningDiary());
 }
 

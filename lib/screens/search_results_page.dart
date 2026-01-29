@@ -23,10 +23,15 @@ import 'package:jpn_learning_diary/widgets/kanji_card.dart';
 import 'package:jpn_learning_diary/widgets/responsive_grid_view.dart';
 import 'package:jpn_learning_diary/widgets/section_header.dart';
 
-/// Search results page that displays results based on search query.
+/// Search results page for displaying matches across all data sources.
 ///
-/// Shows matching diary entries, kanji, and other relevant information
-/// based on the search text provided.
+/// This widget aggregates and displays search results from multiple repositories
+/// based on the user's query. It segments results into different categories to
+/// providing comprehensive coverage. The results include:
+///
+/// - Diary Entries: Matches from the user's personal collection
+/// - Kanji: Matches from the kanji database
+/// - Dictionary: Matches from the JMdict dictionary (via [JMdictRepository])
 class SearchResultsPage extends StatefulWidget {
   /// The search query text.
   final String searchQuery;

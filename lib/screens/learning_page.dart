@@ -19,8 +19,14 @@ import 'package:provider/provider.dart';
 
 /// Dashboard page showing learning progress overview and training modes.
 ///
-/// Displays progress statistics and provides access to different
-/// learning and training scenarios.
+/// This widget acts as the central hub for the user's learning activities. It displays
+/// summary statistics about current progress and provides navigation to various
+/// study and practice modes. The available sections include:
+///
+/// - Progress Overview: Visual stats on learned items
+/// - [PracticeModePage]: Access to multiple-choice quizzes
+/// - [StudyModePage]: Access to the Japanese text analyzer
+/// - [QuizSelectionPage]: Access to JLPT and custom quizzes
 class LearningPage extends StatefulWidget {
   const LearningPage({super.key});
 

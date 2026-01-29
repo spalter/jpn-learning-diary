@@ -12,8 +12,14 @@ import 'package:jpn_learning_diary/widgets/app_card.dart';
 
 /// A reusable card widget for displaying Japanese characters.
 ///
-/// Used for displaying hiragana, katakana, and kanji characters
-/// with optional romanization.
+/// This widget is used to display individual hiragana, katakana, and kanji
+/// characters with their romanization. It supports selection states and
+/// user interaction, serving as the building block for character grids.
+///
+/// * [character]: The Japanese character to display (e.g., 'あ').
+/// * [romanization]: The romanized reading of the character (e.g., 'a').
+/// * [onTap]: Callback triggered when the card is tapped.
+/// * [isSelected]: Whether the card is currently selected/highlighted.
 class CharacterCard extends StatelessWidget {
   /// The Japanese character to display (e.g., 'あ', 'ア', '漢').
   final String character;

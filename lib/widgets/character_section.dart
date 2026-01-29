@@ -17,8 +17,11 @@ import 'package:jpn_learning_diary/widgets/character_card.dart';
 /// This widget renders a collection of character cards that automatically adjust
 /// their size based on available width, ranging from 70-84px while maintaining
 /// a 0.7 aspect ratio for proper proportions. Tapping any card copies the
-/// character to the clipboard. Used for displaying hiragana, katakana, and
-/// similar character sets throughout the app.
+/// character to the clipboard.
+///
+/// * [title]: The header title for this section.
+/// * [characters]: The list of character data objects to display.
+/// * [characterTypeName]: The name of the character type (e.g., "hiragana") for toast messages.
 class CharacterSection extends StatelessWidget {
   /// The title of the section.
   final String title;

@@ -13,12 +13,12 @@ import 'package:jpn_learning_diary/models/custom_quiz_entry.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
-/// Service for loading and managing custom quiz data from CSV files.
+/// Service for loading and parsing custom quiz data from external sources.
 ///
-/// This service handles parsing CSV files containing custom quiz questions.
-/// Supports two formats:
-/// - 5 columns: id;question;correct answer;wrong answer 1;wrong answer 2;wrong answer 3
-/// - 2 columns: id;question;correct answer (wrong answers randomly selected from other entries)
+/// This utility handles the importation of user-generated quiz content from
+/// CSV files. It supports multiple formats including a comprehensive 5-column
+/// structure with defined distractors and a simplified 2-column format that
+/// automatically generates wrong answers from other entries in the set.
 class CustomQuizService {
   CustomQuizService._();
 
