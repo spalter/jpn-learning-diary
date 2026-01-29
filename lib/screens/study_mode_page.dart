@@ -9,6 +9,7 @@
 
 import 'dart:io' show Platform;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/models/jmdict_entry.dart';
 import 'package:jpn_learning_diary/repositories/jmdict_repository.dart';
@@ -61,6 +62,9 @@ class _StudyModePageState extends State<StudyModePage> {
   /// Controller for annotation input field.
   final TextEditingController _annotationController = TextEditingController();
 
+  /// Scroll controller for horizontal text scrolling.
+  final ScrollController _horizontalScrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -79,6 +83,7 @@ class _StudyModePageState extends State<StudyModePage> {
     _textController.dispose();
     _annotationController.dispose();
     _textFocusNode.dispose();
+    _horizontalScrollController.dispose();
     super.dispose();
   }
 
@@ -237,8 +242,8 @@ class _StudyModePageState extends State<StudyModePage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Left side: vertical lines
-        Expanded(child: _buildLinesAndKanjiList(context)),
+        // Left side: vertical lines (60%)
+        Expanded(flex: 3, child: _buildLinesAndKanjiList(context)),
         // Subtle glow separator
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -262,8 +267,8 @@ class _StudyModePageState extends State<StudyModePage> {
             ),
           ),
         ),
-        // Right side: search results
-        Expanded(child: _buildSearchResultsPanel(context)),
+        // Right side: search results (40%)
+        Expanded(flex: 2, child: _buildSearchResultsPanel(context)),
       ],
     );
   }
@@ -551,17 +556,38 @@ class _StudyModePageState extends State<StudyModePage> {
     }
 
     // Vertical layout: display lines from right to left with automatic line breaks
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      reverse: true, // Start from right side
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        textDirection: TextDirection.rtl, // Right to left
-        children: [
-          for (int index = 0; index < _lines.length; index++)
-            if (_lines[index].trim().isNotEmpty)
-              _buildVerticalLineSection(context, index, _lines[index]),
-        ],
+    // Use Listener to convert vertical scroll wheel to horizontal scroll
+    final nonEmptyLines = _lines.where((l) => l.trim().isNotEmpty).toList();
+    return Listener(
+      onPointerSignal: (event) {
+        if (event is PointerScrollEvent) {
+          final offset =
+              _horizontalScrollController.offset - event.scrollDelta.dy;
+          _horizontalScrollController.jumpTo(
+            offset.clamp(
+              0.0,
+              _horizontalScrollController.position.maxScrollExtent,
+            ),
+          );
+        }
+      },
+      child: SingleChildScrollView(
+        controller: _horizontalScrollController,
+        scrollDirection: Axis.horizontal,
+        reverse: true, // Start from right side
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          textDirection: TextDirection.rtl, // Right to left
+          children: [
+            for (int index = 0; index < nonEmptyLines.length; index++)
+              _buildVerticalLineSection(
+                context,
+                index,
+                nonEmptyLines[index],
+                isLast: index == nonEmptyLines.length - 1,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -570,37 +596,34 @@ class _StudyModePageState extends State<StudyModePage> {
   Widget _buildVerticalLineSection(
     BuildContext context,
     int lineIndex,
-    String line,
-  ) {
+    String line, {
+    bool isLast = false,
+  }) {
     // Add bottom padding on mobile to avoid FAB overlap
     final bottomPadding = _isMobile ? 110.0 : 0.0;
 
-    return Padding(
-      padding: EdgeInsets.only(left: 8, right: 8, bottom: bottomPadding),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Line number badge at top
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              '${lineIndex + 1}',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onPrimary,
-                fontWeight: FontWeight.bold,
-              ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Subtle divider between sections (not after last line in RTL)
+        if (!isLast)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Container(
+              width: 1,
+              color: Theme.of(context).colorScheme.primary.withAlpha(20),
             ),
           ),
-          const SizedBox(height: 12),
-          // Vertical text with line breaks (wraps to new columns)
-          Expanded(child: _buildVerticalTokenizedText(context, line)),
-        ],
-      ),
+        Padding(
+          padding: EdgeInsets.only(
+            left: 8,
+            right: isLast ? 8 : 0,
+            bottom: bottomPadding,
+          ),
+          child: _buildVerticalTokenizedText(context, line),
+        ),
+      ],
     );
   }
 
@@ -625,7 +648,7 @@ class _StudyModePageState extends State<StudyModePage> {
       textDirection: TextDirection.rtl, // New columns appear to the left
       crossAxisAlignment: WrapCrossAlignment.center,
       spacing: 0,
-      runSpacing: _isMobile ? 16 : 10, // More space between columns on mobile
+      runSpacing: _isMobile ? 16 : 12, // More space between columns on mobile
       children: elements,
     );
   }
@@ -637,9 +660,9 @@ class _StudyModePageState extends State<StudyModePage> {
     String? annotation,
   ) {
     final isPunctuation = _punctuationPattern.hasMatch(token);
-    final style = Theme.of(context).textTheme.titleLarge;
+    final style = Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 23);
     final isSelected = token == _selectedWord;
-    const double tokenWidth = 20.0;
+    const double tokenWidth = 22.0;
 
     if (isPunctuation) {
       // Punctuation stays as-is without fixed width to merge with previous token
@@ -871,7 +894,7 @@ class _ClickableVerticalWordState extends State<_ClickableVerticalWord> {
           Text(
             char,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 12,
               height: 1.0,
               color: Theme.of(context).colorScheme.primary.withAlpha(180),
             ),
