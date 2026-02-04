@@ -10,7 +10,9 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart';
+import 'package:jpn_learning_diary/models/diary_entry.dart';
+import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart'
+    show EditDiaryEntryDialog, EditDiaryEntryResult;
 import 'package:jpn_learning_diary/widgets/styled_tooltip.dart';
 
 /// A floating action button featuring the bird mascot.
@@ -20,10 +22,10 @@ import 'package:jpn_learning_diary/widgets/styled_tooltip.dart';
 /// mascot and applies a subtle bobbing animation when hovered over, adding
 /// character to the interface.
 ///
-/// * [onEntryCreated]: Optional callback triggered when a new diary entry is successfully created.
+/// * [onEntryCreated]: Optional callback with the new entry when successfully created.
 class BirdFab extends StatefulWidget {
   /// Optional callback when a diary entry is successfully created.
-  final VoidCallback? onEntryCreated;
+  final void Function(DiaryEntry newEntry)? onEntryCreated;
 
   const BirdFab({super.key, this.onEntryCreated});
 
@@ -87,7 +89,8 @@ class _BirdFabState extends State<BirdFab> with SingleTickerProviderStateMixin {
     if (!_isHovering) {
       _isHovering = true;
       setState(() {
-        _tooltipMessage = _tooltipMessages[Random().nextInt(_tooltipMessages.length)];
+        _tooltipMessage =
+            _tooltipMessages[Random().nextInt(_tooltipMessages.length)];
       });
       _controller.forward(from: 0);
     }
@@ -129,13 +132,13 @@ class _BirdFabState extends State<BirdFab> with SingleTickerProviderStateMixin {
   }
 
   Future<void> _handleAddEntry(BuildContext context) async {
-    final result = await showDialog<bool>(
+    final result = await showDialog<EditDiaryEntryResult>(
       context: context,
       builder: (context) => const EditDiaryEntryDialog(),
     );
 
-    if (result == true && widget.onEntryCreated != null) {
-      widget.onEntryCreated!();
+    if (result?.updatedEntry != null && widget.onEntryCreated != null) {
+      widget.onEntryCreated!(result!.updatedEntry!);
     }
   }
 }

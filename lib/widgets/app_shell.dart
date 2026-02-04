@@ -21,7 +21,8 @@ import 'package:jpn_learning_diary/screens/settings_page.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 import 'package:jpn_learning_diary/widgets/bird_fab.dart';
-import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart';
+import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart'
+    show EditDiaryEntryDialog, EditDiaryEntryResult;
 
 /// Returns true when running on Android or iOS where mobile UI patterns apply.
 bool get _isMobile => Platform.isAndroid || Platform.isIOS;
@@ -202,21 +203,21 @@ class _AppShellState extends State<AppShell> {
 
   /// Shows the new diary entry dialog.
   Future<void> _showNewDiaryEntryDialog() async {
-    final result = await showDialog<bool>(
+    final result = await showDialog<EditDiaryEntryResult>(
       context: context,
       builder: (context) => const EditDiaryEntryDialog(),
     );
 
-    if (result == true) {
+    if (result?.updatedEntry != null) {
       _refreshCurrentPage();
     }
   }
 
   /// Opens the help page.
   void _openHelp() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const HelpPage()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const HelpPage()));
   }
 
   /// Populates the search field with text and focuses it for editing.
@@ -298,7 +299,7 @@ class _AppShellState extends State<AppShell> {
         ),
       ),
       floatingActionButton: _currentPage != AppPage.settings
-          ? BirdFab(onEntryCreated: _refreshCurrentPage)
+          ? BirdFab(onEntryCreated: (_) => _refreshCurrentPage())
           : null,
     );
   }
@@ -391,8 +392,8 @@ class _AppShellState extends State<AppShell> {
     // ? key (Shift+/) - Open help page
     // Only when not typing in a text field
     final primaryFocus = FocusManager.instance.primaryFocus;
-    final isFocusedOnTextField = primaryFocus?.context
-            ?.findAncestorWidgetOfExactType<EditableText>() !=
+    final isFocusedOnTextField =
+        primaryFocus?.context?.findAncestorWidgetOfExactType<EditableText>() !=
         null;
     if (!isFocusedOnTextField) {
       final isShiftPressed = HardwareKeyboard.instance.isShiftPressed;

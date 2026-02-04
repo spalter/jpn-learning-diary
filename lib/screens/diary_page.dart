@@ -153,8 +153,14 @@ class _DiaryPageState extends State<DiaryPage> {
       itemCount: entries.length,
       minCardWidth: 360.0,
       childAspectRatio: aspectRatio,
-      itemBuilder: (context, index) =>
-          _buildEntryCard(entries[index], useBorderedStyle: true),
+      itemBuilder: (context, index) {
+        final entry = entries[index];
+        return _buildEntryCard(
+          entry,
+          key: ValueKey(entry.id),
+          useBorderedStyle: true,
+        );
+      },
     );
   }
 
@@ -162,16 +168,25 @@ class _DiaryPageState extends State<DiaryPage> {
   Widget _buildEntriesListView(List<DiaryEntry> entries) {
     return ListView.builder(
       itemCount: entries.length,
-      itemBuilder: (context, index) => _buildEntryCard(entries[index]),
+      itemBuilder: (context, index) {
+        final entry = entries[index];
+        return _buildEntryCard(entry, key: ValueKey(entry.id));
+      },
     );
   }
 
   /// Builds a single diary entry card.
-  Widget _buildEntryCard(DiaryEntry entry, {bool useBorderedStyle = false}) {
+  Widget _buildEntryCard(
+    DiaryEntry entry, {
+    Key? key,
+    bool useBorderedStyle = false,
+  }) {
     final strippedText = JapaneseTextUtils.stripRubyPatterns(entry.japanese);
     return DiaryEntryCard(
+      key: key,
       entry: entry,
-      onUpdate: () => _controller.refresh(),
+      onEntryUpdated: _controller.updateEntry,
+      onEntryDeleted: (id) => _controller.removeEntry(id),
       onTap: widget.onSearchTextSet != null
           ? () => widget.onSearchTextSet!(strippedText)
           : null,

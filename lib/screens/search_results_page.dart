@@ -198,8 +198,10 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   /// Builds a diary entry card.
   Widget _buildDiaryEntryCard(DiaryEntry entry, bool useBorderedStyle) {
     return DiaryEntryCard(
+      key: ValueKey(entry.id),
       entry: entry,
-      onUpdate: _performSearch,
+      onEntryUpdated: (_) => _performSearch(),
+      onEntryDeleted: (_) => _performSearch(),
       onTap: widget.onSearchTextSet != null
           ? () => widget.onSearchTextSet!(entry.japanese)
           : null,

@@ -20,10 +20,10 @@ class DiaryEntriesController extends ChangeNotifier {
   String? _errorMessage;
 
   DiaryEntriesController({DiaryRepository? repository})
-      : _repository = repository ?? DiaryRepository();
+    : _repository = repository ?? DiaryRepository();
 
   /// Current list of diary entries.
-  List<DiaryEntry> get entries => _entries;
+  List<DiaryEntry> get entries => List.unmodifiable(_entries);
 
   /// Whether data is currently being loaded.
   bool get isLoading => _isLoading;
@@ -54,4 +54,32 @@ class DiaryEntriesController extends ChangeNotifier {
 
   /// Refreshes the entries list.
   Future<void> refresh() => loadEntries();
+
+  /// Updates a single entry in the list without reloading everything.
+  ///
+  /// Finds the entry by ID and replaces it with the updated version.
+  /// This preserves scroll position by only notifying of the change.
+  void updateEntry(DiaryEntry updatedEntry) {
+    final index = _entries.indexWhere((e) => e.id == updatedEntry.id);
+    if (index != -1) {
+      _entries[index] = updatedEntry;
+      notifyListeners();
+    }
+  }
+
+  /// Adds a new entry to the beginning of the list.
+  ///
+  /// Used after creating a new entry to avoid full list reload.
+  void addEntry(DiaryEntry newEntry) {
+    _entries.insert(0, newEntry);
+    notifyListeners();
+  }
+
+  /// Removes an entry from the list by ID.
+  ///
+  /// Used after deleting an entry to avoid full list reload.
+  void removeEntry(int entryId) {
+    _entries.removeWhere((e) => e.id == entryId);
+    notifyListeners();
+  }
 }

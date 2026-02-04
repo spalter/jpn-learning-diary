@@ -12,7 +12,8 @@ import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/widgets/app_card.dart';
-import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart';
+import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart'
+    show EditDiaryEntryDialog, EditDiaryEntryResult;
 import 'package:jpn_learning_diary/widgets/ruby_text.dart';
 
 /// Card widget for displaying a single diary entry.
@@ -23,13 +24,17 @@ import 'package:jpn_learning_diary/widgets/ruby_text.dart';
 /// long-press to edit the entry.
 ///
 /// * [entry]: The diary entry data object containing text and meanings.
-/// * [onUpdate]: Callback triggered when the entry is modified or deleted.
+/// * [onEntryUpdated]: Callback with updated entry when the entry is modified.
+/// * [onEntryDeleted]: Callback with entry ID when the entry is deleted.
 class DiaryEntryCard extends StatefulWidget {
   /// The diary entry to display.
   final DiaryEntry entry;
 
-  /// Callback when the entry is updated.
-  final VoidCallback? onUpdate;
+  /// Callback when the entry is updated, passes the updated entry.
+  final void Function(DiaryEntry updatedEntry)? onEntryUpdated;
+
+  /// Callback when the entry is deleted, passes the entry ID.
+  final void Function(int entryId)? onEntryDeleted;
 
   /// Callback when the card is tapped.
   final VoidCallback? onTap;
@@ -47,7 +52,8 @@ class DiaryEntryCard extends StatefulWidget {
   const DiaryEntryCard({
     super.key,
     required this.entry,
-    this.onUpdate,
+    this.onEntryUpdated,
+    this.onEntryDeleted,
     this.onTap,
     this.useBorderedStyle = false,
   });
@@ -274,15 +280,19 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
     }
   }
 
-  /// Opens the edit dialog and refreshes the parent list if changes were saved.
+  /// Opens the edit dialog and notifies the parent of changes.
   Future<void> _handleEditEntry(BuildContext context) async {
-    final updated = await showDialog<bool>(
+    final result = await showDialog<EditDiaryEntryResult>(
       context: context,
       builder: (context) => EditDiaryEntryDialog(entry: widget.entry),
     );
-    // Refresh the parent list if entry was modified.
-    if (updated == true && widget.onUpdate != null) {
-      widget.onUpdate!();
+
+    if (result == null) return;
+
+    if (result.wasDeleted && widget.onEntryDeleted != null) {
+      widget.onEntryDeleted!(widget.entry.id!);
+    } else if (result.updatedEntry != null && widget.onEntryUpdated != null) {
+      widget.onEntryUpdated!(result.updatedEntry!);
     }
   }
 }

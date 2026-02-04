@@ -14,6 +14,23 @@ import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 
+/// Result of editing a diary entry dialog.
+///
+/// Contains either the updated/created entry or indicates deletion.
+class EditDiaryEntryResult {
+  /// The updated or newly created entry, null if deleted.
+  final DiaryEntry? updatedEntry;
+
+  /// Whether the entry was deleted.
+  final bool wasDeleted;
+
+  const EditDiaryEntryResult.updated(DiaryEntry entry)
+    : updatedEntry = entry,
+      wasDeleted = false;
+
+  const EditDiaryEntryResult.deleted() : updatedEntry = null, wasDeleted = true;
+}
+
 /// Dialog for creating or editing a diary entry.
 ///
 /// This modal dialog presents input fields for all diary entry properties
@@ -226,7 +243,9 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
                     final diaryRepository = DiaryRepository();
                     await diaryRepository.deleteEntry(widget.entry!.id!);
                     if (context.mounted) {
-                      Navigator.of(context).pop(true);
+                      Navigator.of(
+                        context,
+                      ).pop(const EditDiaryEntryResult.deleted());
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Entry deleted')),
                       );
@@ -239,7 +258,7 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
                 child: const Text('Delete'),
               ),
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () => Navigator.of(context).pop(null),
               child: const Text('Cancel'),
             ),
             // Save button - creates new entry or updates existing one.
@@ -255,12 +274,14 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
     final isEditing = widget.entry != null;
     final diaryRepository = DiaryRepository();
 
+    DiaryEntry savedEntry;
+
     if (isEditing) {
       // Update existing entry in database with new values.
       final furiganaText = _furiganaController.text.trim();
       final notesText = _notesController.text.trim();
 
-      final updatedEntry = widget.entry!.copyWith(
+      savedEntry = widget.entry!.copyWith(
         japanese: _japaneseController.text,
         furigana: furiganaText.isEmpty ? null : furiganaText,
         clearFurigana: furiganaText.isEmpty,
@@ -269,7 +290,7 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
         notes: notesText.isEmpty ? null : notesText,
         clearNotes: notesText.isEmpty,
       );
-      await diaryRepository.updateEntry(updatedEntry);
+      await diaryRepository.updateEntry(savedEntry);
     } else {
       // Create new entry with current timestamp.
       final newEntry = DiaryEntry(
@@ -282,11 +303,11 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
         notes: _notesController.text.isEmpty ? null : _notesController.text,
         dateAdded: DateTime.now(),
       );
-      await diaryRepository.createEntry(newEntry);
+      savedEntry = await diaryRepository.createEntry(newEntry);
     }
 
     if (mounted) {
-      Navigator.of(context).pop(true);
+      Navigator.of(context).pop(EditDiaryEntryResult.updated(savedEntry));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(isEditing ? 'Entry saved' : 'Entry added')),
       );
