@@ -27,11 +27,7 @@ import 'package:jpn_learning_diary/widgets/section_header.dart';
 ///
 /// This widget aggregates and displays search results from multiple repositories
 /// based on the user's query. It segments results into different categories to
-/// providing comprehensive coverage. The results include:
-///
-/// - Diary Entries: Matches from the user's personal collection
-/// - Kanji: Matches from the kanji database
-/// - Dictionary: Matches from the JMdict dictionary (via [JMdictRepository])
+/// providing comprehensive coverage.
 class SearchResultsPage extends StatefulWidget {
   /// The search query text.
   final String searchQuery;

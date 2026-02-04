@@ -21,12 +21,7 @@ import 'package:provider/provider.dart';
 ///
 /// This widget acts as the central hub for the user's learning activities. It displays
 /// summary statistics about current progress and provides navigation to various
-/// study and practice modes. The available sections include:
-///
-/// - Progress Overview: Visual stats on learned items
-/// - [PracticeModePage]: Access to multiple-choice quizzes
-/// - [StudyModePage]: Access to the Japanese text analyzer
-/// - [QuizSelectionPage]: Access to JLPT and custom quizzes
+/// study and practice modes.
 class LearningPage extends StatefulWidget {
   const LearningPage({super.key});
 

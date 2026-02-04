@@ -24,11 +24,6 @@ import 'package:jpn_learning_diary/widgets/study_search_results_panel.dart';
 /// This widget provides an environment for reading and analyzing Japanese text,
 /// displaying it in traditional vertical (tategaki) format. It supports interactive
 /// study sessions by allowing users to tap on words to look them up.
-///
-/// Features include:
-/// - [VerticalTextDisplay]: Renders text vertically with Japanese typography rules
-/// - [StudySearchResultsPanel]: Shows dictionary definitions for selected words
-/// - [CollapsibleSection]: Allows maximizing screen space for reading
 class StudyModePage extends StatefulWidget {
   const StudyModePage({super.key});
 

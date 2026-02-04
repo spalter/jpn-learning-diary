@@ -21,11 +21,7 @@ import 'package:provider/provider.dart';
 ///
 /// This widget displays the user's collection of learned phrases and vocabulary.
 /// It provides a grid-based view of diary entries and allows for detailed management
-/// of the learning diary. Key functionalities accessible from this page:
-///
-/// - [DiaryEntryCard]: Displays individual entry details with edit/delete actions
-/// - [ResponsiveGridView]: Adapts the layout to different screen sizes
-/// - Search Integration: Allows filtering entries via [onSearchTextSet]
+/// of the learning diary.
 class DiaryPage extends StatefulWidget {
   /// Callback to set search text in the navigation bar.
   final void Function(String)? onSearchTextSet;
