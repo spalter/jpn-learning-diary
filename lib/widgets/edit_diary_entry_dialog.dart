@@ -34,8 +34,9 @@ class EditDiaryEntryResult {
 /// Dialog for creating or editing a diary entry.
 ///
 /// This modal dialog presents input fields for all diary entry properties
-/// including Japanese text, furigana, romaji, meaning, and notes. When editing
-/// an existing entry, a delete button is also available with confirmation.
+/// including Japanese text (with inline ruby patterns for furigana), romaji,
+/// meaning, and notes. When editing an existing entry, a delete button is
+/// also available with confirmation.
 ///
 /// * [entry]: The existing diary entry to edit, or null to create a new one.
 class EditDiaryEntryDialog extends StatefulWidget {
@@ -59,9 +60,6 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
   /// Controller for the Japanese text input field.
   late final TextEditingController _japaneseController;
 
-  /// Controller for the furigana reading input field.
-  late final TextEditingController _furiganaController;
-
   /// Controller for the romaji transliteration input field.
   late final TextEditingController _romajiController;
 
@@ -78,9 +76,6 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
     _japaneseController = TextEditingController(
       text: widget.entry?.japanese ?? '',
     );
-    _furiganaController = TextEditingController(
-      text: widget.entry?.furigana ?? '',
-    );
     _romajiController = TextEditingController(text: widget.entry?.romaji ?? '');
     _meaningController = TextEditingController(
       text: widget.entry?.meaning ?? '',
@@ -92,7 +87,6 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
   @override
   void dispose() {
     _japaneseController.dispose();
-    _furiganaController.dispose();
     _romajiController.dispose();
     _meaningController.dispose();
     _notesController.dispose();
@@ -131,6 +125,7 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
                     controller: _japaneseController,
                     decoration: InputDecoration(
                       labelText: 'Japanese',
+                      helperText: 'Use [漢字](かんじ) for inline furigana',
                       border: const OutlineInputBorder(),
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(
@@ -141,21 +136,6 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
                       ),
                     ),
                     style: const TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _furiganaController,
-                    decoration: InputDecoration(
-                      labelText: 'Furigana',
-                      border: const OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withAlpha(100),
-                        ),
-                      ),
-                    ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
@@ -278,13 +258,10 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
 
     if (isEditing) {
       // Update existing entry in database with new values.
-      final furiganaText = _furiganaController.text.trim();
       final notesText = _notesController.text.trim();
 
       savedEntry = widget.entry!.copyWith(
         japanese: _japaneseController.text,
-        furigana: furiganaText.isEmpty ? null : furiganaText,
-        clearFurigana: furiganaText.isEmpty,
         romaji: _romajiController.text,
         meaning: _meaningController.text,
         notes: notesText.isEmpty ? null : notesText,
@@ -295,9 +272,6 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
       // Create new entry with current timestamp.
       final newEntry = DiaryEntry(
         japanese: _japaneseController.text,
-        furigana: _furiganaController.text.isEmpty
-            ? null
-            : _furiganaController.text,
         romaji: _romajiController.text,
         meaning: _meaningController.text,
         notes: _notesController.text.isEmpty ? null : _notesController.text,

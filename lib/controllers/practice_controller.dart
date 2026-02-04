@@ -44,7 +44,7 @@ enum QuizQuestionMode {
 /// - The prompt (question) to show the user
 /// - The correct answer
 /// - Three wrong answers (distractors)
-/// - Optional metadata like furigana for display
+/// - Raw text with ruby patterns for furigana display
 class QuizQuestion {
   /// The question text shown to the user (clean, without ruby patterns).
   final String prompt;
@@ -66,9 +66,6 @@ class QuizQuestion {
   /// The index of the correct answer in [answerOptions].
   final int correctAnswerIndex;
 
-  /// Optional furigana reading for the correct answer.
-  final String? furigana;
-
   /// The question mode (meaning->japanese or japanese->meaning).
   final QuizQuestionMode questionMode;
 
@@ -82,7 +79,6 @@ class QuizQuestion {
     required this.answerOptions,
     this.rawAnswerOptions,
     required this.correctAnswerIndex,
-    this.furigana,
     required this.questionMode,
     required this.practiceMode,
   });
@@ -150,7 +146,6 @@ class QuizQuestion {
       answerOptions: shuffledAnswers,
       rawAnswerOptions: shuffledRawAnswers,
       correctAnswerIndex: indices.indexOf(0),
-      furigana: entry.furigana,
       questionMode: questionMode,
       practiceMode: PracticeMode.diaryEntries,
     );
@@ -191,9 +186,6 @@ class QuizQuestion {
       correctAnswer: correctAnswer,
       answerOptions: allAnswers,
       correctAnswerIndex: allAnswers.indexOf(correctAnswer),
-      furigana: kanji.readingsKun.isNotEmpty
-          ? kanji.readingsKun.split(',').first.trim()
-          : kanji.readingsOn.split(',').first.trim(),
       questionMode: questionMode,
       practiceMode: PracticeMode.kanji,
     );
@@ -244,7 +236,6 @@ class QuizQuestion {
       correctAnswer: correctAnswer,
       answerOptions: allAnswers,
       correctAnswerIndex: allAnswers.indexOf(correctAnswer),
-      furigana: entry.primaryReading,
       questionMode: questionMode,
       practiceMode: PracticeMode.jmdict,
     );

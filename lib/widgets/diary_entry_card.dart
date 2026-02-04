@@ -18,10 +18,10 @@ import 'package:jpn_learning_diary/widgets/ruby_text.dart';
 
 /// Card widget for displaying a single diary entry.
 ///
-/// This widget presents a learned phrase or word with its Japanese text,
-/// furigana reading, romaji transliteration, English meaning, and optional
-/// notes. Users can tap to copy the text, double-tap for custom actions, or
-/// long-press to edit the entry.
+/// This widget presents a learned phrase or word with its Japanese text
+/// (with inline ruby patterns for furigana), romaji transliteration, English
+/// meaning, and optional notes. Users can tap to copy the text, double-tap
+/// for custom actions, or long-press to edit the entry.
 ///
 /// * [entry]: The diary entry data object containing text and meanings.
 /// * [onEntryUpdated]: Callback with updated entry when the entry is modified.
@@ -133,10 +133,8 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
 
   /// Builds the Japanese text display with optional inline furigana.
   ///
-  /// Priority order for furigana display:
-  /// 1. Legacy furigana field - if set and different from Japanese text, use it
-  /// 2. Inline ruby patterns - parse `[kanji](reading)` or `「kanji」（reading）`
-  /// 3. No furigana - display Japanese text as-is
+  /// Uses inline ruby patterns like `[kanji](reading)` for furigana display.
+  /// When showFurigana is false, strips the patterns and shows plain text.
   ///
   /// Applies a hover color effect when in minimal style mode.
   Widget _buildJapaneseText(
@@ -157,28 +155,7 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
     // Check if text contains ruby patterns [kanji](reading)
     final hasRubyPattern = RubyText.containsRubyPattern(widget.entry.japanese);
 
-    // Priority 1: Use legacy furigana field if available
-    if (_hasFurigana) {
-      // Strip any ruby patterns from display text when using legacy furigana
-      final displayText = hasRubyPattern
-          ? RubyText.stripRubyPatterns(widget.entry.japanese)
-          : widget.entry.japanese;
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (showFurigana) _buildFurigana(context),
-          Text(
-            displayText,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: textStyle,
-          ),
-        ],
-      );
-    }
-
-    // Priority 2: Use inline ruby patterns if present
+    // Show with furigana if enabled and has ruby patterns
     if (showFurigana && hasRubyPattern) {
       return RubyText(
         text: widget.entry.japanese,
@@ -191,7 +168,7 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
       );
     }
 
-    // Priority 3: No furigana - display text as-is (strip patterns if present)
+    // No furigana or disabled - display text as-is (strip patterns if present)
     final displayText = hasRubyPattern
         ? RubyText.stripRubyPatterns(widget.entry.japanese)
         : widget.entry.japanese;
@@ -201,19 +178,6 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
       style: textStyle,
-    );
-  }
-
-  /// Builds the small furigana reading text positioned above the Japanese.
-  Widget _buildFurigana(BuildContext context) {
-    return Text(
-      widget.entry.furigana!,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: TextStyle(
-        fontSize: 11,
-        color: Theme.of(context).colorScheme.primary,
-      ),
     );
   }
 
@@ -255,11 +219,6 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
       ),
     );
   }
-
-  /// Returns true if the entry has furigana that differs from the Japanese text.
-  bool get _hasFurigana =>
-      widget.entry.furigana != null &&
-      widget.entry.furigana != widget.entry.japanese;
 
   /// Returns true if the entry has non-empty notes.
   bool get _hasNotes =>

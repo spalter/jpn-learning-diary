@@ -13,15 +13,15 @@ import 'package:equatable/equatable.dart';
 ///
 /// This is a data model representing a vocabulary entry with no business logic.
 /// Immutable and value-comparable for use in state management.
+///
+/// Japanese text can include inline furigana using ruby patterns like
+/// `[漢字](かんじ)` which will be parsed and displayed appropriately.
 class DiaryEntry extends Equatable {
   /// Unique identifier for the entry.
   final int? id;
 
-  /// Japanese text (kanji/kana).
+  /// Japanese text (kanji/kana), may include inline ruby patterns for furigana.
   final String japanese;
-
-  /// Furigana/reading guide (hiragana above kanji).
-  final String? furigana;
 
   /// Romanized version (romaji).
   final String romaji;
@@ -38,7 +38,6 @@ class DiaryEntry extends Equatable {
   const DiaryEntry({
     this.id,
     required this.japanese,
-    this.furigana,
     required this.romaji,
     required this.meaning,
     this.notes,
@@ -50,7 +49,6 @@ class DiaryEntry extends Equatable {
     return DiaryEntry(
       id: map['id'] as int?,
       japanese: map['japanese'] as String,
-      furigana: map['furigana'] as String?,
       romaji: map['romaji'] as String,
       meaning: map['meaning'] as String,
       notes: map['notes'] as String?,
@@ -60,13 +58,11 @@ class DiaryEntry extends Equatable {
 
   /// Creates a copy of this entry with the given fields replaced.
   ///
-  /// For nullable fields (furigana, notes), use [clearFurigana] or [clearNotes]
-  /// to explicitly set them to null, since passing null preserves the old value.
+  /// For nullable field (notes), use [clearNotes] to explicitly set it to null,
+  /// since passing null preserves the old value.
   DiaryEntry copyWith({
     int? id,
     String? japanese,
-    String? furigana,
-    bool clearFurigana = false,
     String? romaji,
     String? meaning,
     String? notes,
@@ -76,7 +72,6 @@ class DiaryEntry extends Equatable {
     return DiaryEntry(
       id: id ?? this.id,
       japanese: japanese ?? this.japanese,
-      furigana: clearFurigana ? null : (furigana ?? this.furigana),
       romaji: romaji ?? this.romaji,
       meaning: meaning ?? this.meaning,
       notes: clearNotes ? null : (notes ?? this.notes),
@@ -85,15 +80,7 @@ class DiaryEntry extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
-        id,
-        japanese,
-        furigana,
-        romaji,
-        meaning,
-        notes,
-        dateAdded,
-      ];
+  List<Object?> get props => [id, japanese, romaji, meaning, notes, dateAdded];
 
   @override
   bool get stringify => true;

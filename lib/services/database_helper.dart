@@ -86,7 +86,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -98,7 +98,6 @@ class DatabaseHelper {
       CREATE TABLE diary_entries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         japanese TEXT NOT NULL,
-        furigana TEXT,
         romaji TEXT NOT NULL,
         meaning TEXT NOT NULL,
         notes TEXT,
@@ -112,7 +111,32 @@ class DatabaseHelper {
 
   /// Upgrades the database schema when version changes.
   Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
-    // Reserved for future schema migrations
+    // Migration from version 2 to 3: Remove furigana column
+    // SQLite doesn't support DROP COLUMN directly, so we recreate the table
+    if (oldVersion < 3) {
+      // Create new table without furigana column
+      await db.execute('''
+        CREATE TABLE diary_entries_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          japanese TEXT NOT NULL,
+          romaji TEXT NOT NULL,
+          meaning TEXT NOT NULL,
+          notes TEXT,
+          date_added INTEGER NOT NULL
+        )
+      ''');
+
+      // Copy data from old table (excluding furigana)
+      await db.execute('''
+        INSERT INTO diary_entries_new (id, japanese, romaji, meaning, notes, date_added)
+        SELECT id, japanese, romaji, meaning, notes, date_added
+        FROM diary_entries
+      ''');
+
+      // Drop old table and rename new one
+      await db.execute('DROP TABLE diary_entries');
+      await db.execute('ALTER TABLE diary_entries_new RENAME TO diary_entries');
+    }
   }
 
   /// Inserts initial dummy data into the database.
@@ -120,12 +144,11 @@ class DatabaseHelper {
   /// This provides example entries for new users to demonstrate
   /// the application's features. Includes common Japanese phrases,
   /// vocabulary, and usage examples with timestamps spread across
-  /// the last week.
+  /// the last week. Uses inline ruby patterns for furigana like [漢字](かんじ).
   Future<void> _insertDummyData(Database db) async {
     final dummyEntries = [
       {
         'japanese': 'こんにちは',
-        'furigana': 'こんにちは',
         'romaji': 'konnichiwa',
         'meaning': 'Hello (daytime greeting)',
         'notes': 'Formal greeting used during the day',
@@ -134,8 +157,7 @@ class DatabaseHelper {
             .millisecondsSinceEpoch,
       },
       {
-        'japanese': '食べる',
-        'furigana': 'たべる',
+        'japanese': '[食](た)べる',
         'romaji': 'taberu',
         'meaning': 'to eat',
         'notes': 'Ichidan verb (ru-verb)',
@@ -144,8 +166,7 @@ class DatabaseHelper {
             .millisecondsSinceEpoch,
       },
       {
-        'japanese': '図書館',
-        'furigana': 'としょかん',
+        'japanese': '[図書館](としょかん)',
         'romaji': 'toshokan',
         'meaning': 'library',
         'notes': 'Compound word: 図書 (books) + 館 (building)',
@@ -155,7 +176,6 @@ class DatabaseHelper {
       },
       {
         'japanese': 'ありがとう',
-        'furigana': 'ありがとう',
         'romaji': 'arigatou',
         'meaning': 'Thank you',
         'notes': 'Casual way to say thank you',
@@ -164,8 +184,7 @@ class DatabaseHelper {
             .millisecondsSinceEpoch,
       },
       {
-        'japanese': '勉強する',
-        'furigana': 'べんきょうする',
+        'japanese': '[勉強](べんきょう)する',
         'romaji': 'benkyou suru',
         'meaning': 'to study',
         'notes': 'Suru verb - attach する to the noun 勉強',
@@ -174,8 +193,7 @@ class DatabaseHelper {
             .millisecondsSinceEpoch,
       },
       {
-        'japanese': '美味しい',
-        'furigana': 'おいしい',
+        'japanese': '[美味](おい)しい',
         'romaji': 'oishii',
         'meaning': 'delicious',
         'notes': 'I-adjective describing food taste',
@@ -184,8 +202,7 @@ class DatabaseHelper {
             .millisecondsSinceEpoch,
       },
       {
-        'japanese': 'お願いします',
-        'furigana': 'おねがいします',
+        'japanese': 'お[願](ねが)いします',
         'romaji': 'onegai shimasu',
         'meaning': 'please',
         'notes': 'Polite request form',
@@ -194,8 +211,7 @@ class DatabaseHelper {
             .millisecondsSinceEpoch,
       },
       {
-        'japanese': '明日',
-        'furigana': 'あした',
+        'japanese': '[明日](あした)',
         'romaji': 'ashita',
         'meaning': 'tomorrow',
         'notes': 'Time expression',
@@ -230,7 +246,6 @@ class DatabaseHelper {
     final db = await database;
     final id = await db.insert('diary_entries', {
       'japanese': entry.japanese,
-      'furigana': entry.furigana,
       'romaji': entry.romaji,
       'meaning': entry.meaning,
       'notes': entry.notes,
@@ -258,7 +273,6 @@ class DatabaseHelper {
       'diary_entries',
       {
         'japanese': entry.japanese,
-        'furigana': entry.furigana,
         'romaji': entry.romaji,
         'meaning': entry.meaning,
         'notes': entry.notes,

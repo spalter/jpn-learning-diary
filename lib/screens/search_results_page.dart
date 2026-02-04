@@ -230,7 +230,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   /// Performs a comprehensive search across diary entries and kanji.
   ///
   /// Searches through:
-  /// - Diary entries: Japanese text, furigana, romaji, meaning, and notes
+  /// - Diary entries: Japanese text (with inline furigana stripped), romaji, meaning, and notes
   /// - Kanji database: character, meanings, and readings
   ///
   /// Returns a [_SearchResults] object containing all matching results.
@@ -248,7 +248,6 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         entry.japanese,
       ).toLowerCase();
       return strippedJapanese.contains(query) ||
-          (entry.furigana?.toLowerCase().contains(query) ?? false) ||
           entry.romaji.toLowerCase().contains(query) ||
           entry.meaning.toLowerCase().contains(query) ||
           (entry.notes?.toLowerCase().contains(query) ?? false);
