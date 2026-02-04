@@ -148,24 +148,43 @@ class StudySearchResultsPanel extends StatelessWidget {
   }
 
   Widget _buildNoResults(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.search_off,
-            size: 48,
-            color: Theme.of(context).colorScheme.primary.withAlpha(100),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No results for "$selectedWord"',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            selectedWord!,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
-        ],
-      ),
+        ),
+        _buildAnnotationInput(context),
+        const SizedBox(height: 12),
+        Expanded(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.search_off,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.primary.withAlpha(100),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No results for "$selectedWord"',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
