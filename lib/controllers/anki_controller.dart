@@ -116,9 +116,6 @@ class AnkiController extends ChangeNotifier {
   int get knownPercentage =>
       _ratings.isEmpty ? 0 : (knownCount / _ratings.length * 100).round();
 
-  /// Count of cards reviewed so far.
-  int get reviewedCount => _ratings.length;
-
   /// Loads flashcards from an APKG file path.
   ///
   /// [filePath] - Full path to the APKG file

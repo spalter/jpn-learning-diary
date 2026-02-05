@@ -93,7 +93,7 @@ class AnkiService {
   ///
   /// Only extracts the SQLite database and media JSON mapping.
   /// Media files (audio/images) are NOT extracted upfront — they are
-  /// extracted on-demand via [extractAudioFile] when playback is requested.
+  /// extracted on-demand via [extractMediaFile] when requested.
   ///
   /// Throws [Exception] if the file cannot be read or parsed.
   static Future<AnkiDeckData> loadFromFile(String filePath) async {
@@ -288,7 +288,6 @@ class AnkiService {
         : 'SELECT id, flds, tags FROM notes';
     final result = db.select(query);
 
-    int skipped = 0;
     for (final row in result) {
       final noteId = row['id'] as int;
       final flds = row['flds'] as String;
@@ -312,24 +311,8 @@ class AnkiService {
 
       if (card.isValid) {
         cards.add(card);
-      } else {
-        skipped++;
-        if (skipped <= 3) {
-          final fieldPreview =
-              flds.length > 200 ? '${flds.substring(0, 200)}...' : flds;
-          debugPrint(
-            '[AnkiService] Skipped note $noteId '
-            '(front="${card.front}", back="${card.back}"). '
-            'Raw fields: $fieldPreview',
-          );
-        }
       }
     }
-
-    debugPrint(
-      '[AnkiService] Result: ${cards.length} valid cards, '
-      '$skipped skipped',
-    );
 
     return cards;
   }
@@ -386,12 +369,6 @@ class AnkiService {
 
         if (fieldNames.isEmpty) continue;
 
-        debugPrint(
-          '[AnkiService] Model $modelId '
-          '(${model['name'] ?? 'unnamed'}): '
-          'fields=${fieldNames.join(", ")}',
-        );
-
         final indices = _pickFrontBackIndices(fieldNames);
         result[modelId] = _NoteModelInfo(
           frontIndex: indices.$1,
@@ -399,8 +376,8 @@ class AnkiService {
           fieldNames: fieldNames,
         );
       }
-    } catch (e) {
-      debugPrint('[AnkiService] Failed to parse models: $e');
+    } catch (_) {
+      // Failed to parse models — fall back to default field indices
     }
 
     return result;
@@ -408,7 +385,7 @@ class AnkiService {
 
   /// Field name patterns that indicate a sort/index field (not content).
   static final _sortFieldPatterns = RegExp(
-    r'^(#|number|index|sort|order|seq|id|no\.?|nr\.?|pos)$',
+    r'^(#|number|index|sort|order|seq|id|no\.?|nr\.?|pos|item)$',
     caseSensitive: false,
   );
 

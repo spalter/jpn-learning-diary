@@ -146,8 +146,6 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            _buildApkgInfo(context),
-            const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () => Navigator.of(context).pop(),
               icon: const Icon(Icons.arrow_back),
@@ -190,53 +188,6 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  /// Builds the APKG format info card.
-  Widget _buildApkgInfo(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      constraints: const BoxConstraints(maxWidth: 600),
-      decoration: BoxDecoration(
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withAlpha(100),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withAlpha(50),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.lightbulb_outline,
-                size: 20,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'About APKG Files',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'APKG files are exported Anki flashcard decks. You can export '
-            'them from Anki Desktop (File > Export) or download shared decks '
-            'from AnkiWeb.',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
       ),
     );
   }
@@ -460,7 +411,6 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
         ? {...card.backImages, ...card.frontImages, ...card.extraImages}.toList()
         : [...card.frontImages, ...card.extraImages];
     if (images.isEmpty) return [];
-    debugPrint('Card ${card.noteId} images: $images');
 
     return [
       const SizedBox(height: 12),
@@ -771,7 +721,6 @@ class _AnkiImageState extends State<_AnkiImage> {
   }
 
   Future<void> _extractImage() async {
-    debugPrint('_AnkiImage extracting: ${widget.fileName}');
     try {
       final path = await widget.controller.getMediaFilePath(widget.fileName);
       if (mounted) {
