@@ -113,19 +113,19 @@ class AppTheme {
   /// Uses off-black surfaces and warm grays for a sophisticated,
   /// easier-on-the-eyes dark mode experience.
   static ThemeData getBlackTheme() {
-    const primary = Color(0xFFF5F5F5);
+    const primary = Color(0xFFE8E8E8);
     return ThemeData(
       brightness: Brightness.dark,
       colorScheme: ColorScheme.dark(
-        surface: const Color(0xFF121212), // Soft black
-        onSurface: const Color(0xFFB0B0B0), // Muted gray text
-        primary: primary, // Off-white
-        onPrimary: const Color(0xFF1A1A1A), // Near black
-        secondary: const Color(0xFF9E9E9E), // Medium gray
+        surface: const Color(0xFF1A1A1A),
+        onSurface: const Color(0xFFBDBDBD),
+        primary: primary,
+        onPrimary: const Color(0xFF1A1A1A),
+        secondary: const Color(0xFFB0B0B0),
         onSecondary: const Color(0xFF1A1A1A),
-        tertiary: const Color(0xFF757575), // Muted gray accent
-        error: const Color(0xFFCF6679), // Soft red
-        surfaceTint: const Color(0xFF2C2C2C), // Subtle surface tint
+        tertiary: const Color(0xFF909090),
+        error: const Color(0xFFCF6679),
+        surfaceTint: const Color(0xFF383838),
       ),
       splashColor: primary.withAlpha(20),
       highlightColor: primary.withAlpha(15),
@@ -142,15 +142,15 @@ class AppTheme {
     return ThemeData(
       brightness: Brightness.light,
       colorScheme: ColorScheme.light(
-        surface: const Color(0xFFFAFAFA), // Warm off-white
-        onSurface: const Color(0xFF525252), // Muted dark gray text
-        primary: primary, // Near black
-        onPrimary: const Color(0xFFF5F5F5), // Off-white
-        secondary: const Color(0xFF616161), // Medium gray
+        surface: const Color(0xFFFAFAFA),
+        onSurface: const Color(0xFF525252),
+        primary: primary,
+        onPrimary: const Color(0xFFF5F5F5),
+        secondary: const Color(0xFF616161),
         onSecondary: const Color(0xFFF5F5F5),
-        tertiary: const Color(0xFF9E9E9E), // Muted gray accent
-        error: const Color(0xFFB00020), // Material red
-        surfaceTint: const Color(0xFFE0E0E0), // Subtle surface tint
+        tertiary: const Color(0xFF9E9E9E),
+        error: const Color(0xFFB00020),
+        surfaceTint: const Color(0xFFE0E0E0),
       ),
       splashColor: primary.withAlpha(20),
       highlightColor: primary.withAlpha(15),
@@ -160,19 +160,19 @@ class AppTheme {
 
   /// Returns a pink-tinted dark mono theme.
   static ThemeData getPinkDarkTheme() {
-    const primary = Color(0xFFE91E63);
+    const primary = Color(0xFFF48FB1);
     return ThemeData(
       brightness: Brightness.dark,
       colorScheme: ColorScheme.dark(
-        surface: const Color(0xFF1A1218), // Dark pink-black
-        onSurface: const Color(0xFFD6A9C4), // Muted pink
-        primary: primary, // Pink
+        surface: const Color(0xFF231A20),
+        onSurface: const Color(0xFFE8BFD4),
+        primary: primary,
         onPrimary: const Color(0xFF1A1218),
-        secondary: const Color(0xFFF48FB1), // Light pink
+        secondary: const Color(0xFFF8BBD0),
         onSecondary: const Color(0xFF1A1218),
-        tertiary: const Color(0xFFAD1457), // Dark pink
+        tertiary: const Color(0xFFE91E63),
         error: const Color(0xFFCF6679),
-        surfaceTint: const Color(0xFF2D1F28),
+        surfaceTint: const Color(0xFF3D2A35),
       ),
       splashColor: primary.withAlpha(30),
       highlightColor: primary.withAlpha(20),
@@ -186,13 +186,13 @@ class AppTheme {
     return ThemeData(
       brightness: Brightness.light,
       colorScheme: ColorScheme.light(
-        surface: const Color(0xFFFCF4F7), // Light pink-white
-        onSurface: const Color(0xFF9B6180), // Muted dark pink
-        primary: primary, // Pink
+        surface: const Color(0xFFFCF4F7),
+        onSurface: const Color(0xFF9B6180),
+        primary: primary,
         onPrimary: const Color(0xFFFCF4F7),
-        secondary: const Color(0xFF880E4F), // Dark pink
+        secondary: const Color(0xFF880E4F),
         onSecondary: const Color(0xFFFCF4F7),
-        tertiary: const Color(0xFFE91E63), // Medium pink
+        tertiary: const Color(0xFFE91E63),
         error: const Color(0xFFB00020),
         surfaceTint: const Color(0xFFF8E1EA),
       ),
@@ -204,19 +204,19 @@ class AppTheme {
 
   /// Returns an orange-tinted dark mono theme.
   static ThemeData getOrangeDarkTheme() {
-    const primary = Color(0xFFFF9800);
+    const primary = Color(0xFFFFB74D);
     return ThemeData(
       brightness: Brightness.dark,
       colorScheme: ColorScheme.dark(
-        surface: const Color(0xFF1A1510), // Dark orange-black
-        onSurface: const Color(0xFFD6B9A9), // Muted orange
-        primary: primary, // Orange
+        surface: const Color(0xFF231D15),
+        onSurface: const Color(0xFFE8CFBB),
+        primary: primary,
         onPrimary: const Color(0xFF1A1510),
-        secondary: const Color(0xFFFFCC80), // Light orange
+        secondary: const Color(0xFFFFE0B2),
         onSecondary: const Color(0xFF1A1510),
-        tertiary: const Color(0xFFE65100), // Dark orange
+        tertiary: const Color(0xFFFF9800),
         error: const Color(0xFFCF6679),
-        surfaceTint: const Color(0xFF2D261D),
+        surfaceTint: const Color(0xFF3D3325),
       ),
       splashColor: primary.withAlpha(30),
       highlightColor: primary.withAlpha(20),
@@ -230,13 +230,13 @@ class AppTheme {
     return ThemeData(
       brightness: Brightness.light,
       colorScheme: ColorScheme.light(
-        surface: const Color(0xFFFFFAF5), // Light orange-white
-        onSurface: const Color(0xFF8B6B52), // Muted dark orange
-        primary: primary, // Orange
+        surface: const Color(0xFFFFFAF5),
+        onSurface: const Color(0xFF8B6B52),
+        primary: primary,
         onPrimary: const Color(0xFFFFFAF5),
-        secondary: const Color(0xFFBF360C), // Dark orange
+        secondary: const Color(0xFFBF360C),
         onSecondary: const Color(0xFFFFFAF5),
-        tertiary: const Color(0xFFFF9800), // Medium orange
+        tertiary: const Color(0xFFFF9800),
         error: const Color(0xFFB00020),
         surfaceTint: const Color(0xFFFFF0E0),
       ),
@@ -248,19 +248,19 @@ class AppTheme {
 
   /// Returns a green-tinted dark mono theme.
   static ThemeData getGreenDarkTheme() {
-    const primary = Color(0xFF4CAF50);
+    const primary = Color(0xFF81C784);
     return ThemeData(
       brightness: Brightness.dark,
       colorScheme: ColorScheme.dark(
-        surface: const Color(0xFF101A14), // Dark green-black
-        onSurface: const Color(0xFFA9D6B1), // Muted green
-        primary: primary, // Green
+        surface: const Color(0xFF18231B),
+        onSurface: const Color(0xFFBBE8C0),
+        primary: primary,
         onPrimary: const Color(0xFF101A14),
-        secondary: const Color(0xFFA5D6A7), // Light green
+        secondary: const Color(0xFFC8E6C9),
         onSecondary: const Color(0xFF101A14),
-        tertiary: const Color(0xFF2E7D32), // Dark green
+        tertiary: const Color(0xFF4CAF50),
         error: const Color(0xFFCF6679),
-        surfaceTint: const Color(0xFF1D2D22),
+        surfaceTint: const Color(0xFF2A3D2E),
       ),
       splashColor: primary.withAlpha(30),
       highlightColor: primary.withAlpha(20),
@@ -274,13 +274,13 @@ class AppTheme {
     return ThemeData(
       brightness: Brightness.light,
       colorScheme: ColorScheme.light(
-        surface: const Color(0xFFF5FCF6), // Light green-white
-        onSurface: const Color(0xFF527258), // Muted dark green
-        primary: primary, // Green
+        surface: const Color(0xFFF5FCF6),
+        onSurface: const Color(0xFF527258),
+        primary: primary,
         onPrimary: const Color(0xFFF5FCF6),
-        secondary: const Color(0xFF1B5E20), // Dark green
+        secondary: const Color(0xFF1B5E20),
         onSecondary: const Color(0xFFF5FCF6),
-        tertiary: const Color(0xFF4CAF50), // Medium green
+        tertiary: const Color(0xFF4CAF50),
         error: const Color(0xFFB00020),
         surfaceTint: const Color(0xFFE0F2E1),
       ),
