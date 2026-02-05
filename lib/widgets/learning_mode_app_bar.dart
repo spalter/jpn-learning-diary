@@ -33,10 +33,18 @@ class LearningModeAppBar extends StatelessWidget
   /// the navigation stack using Navigator.pop().
   final VoidCallback? onBack;
 
+  /// Optional action widgets displayed before the window controls.
+  final List<Widget>? actions;
+
   /// Creates a learning mode app bar.
   ///
   /// The [title] parameter is required and will be displayed in the center.
-  const LearningModeAppBar({super.key, required this.title, this.onBack});
+  const LearningModeAppBar({
+    super.key,
+    required this.title,
+    this.onBack,
+    this.actions,
+  });
 
   /// Returns the standard toolbar height as the preferred size for this app bar.
   @override
@@ -72,6 +80,9 @@ class LearningModeAppBar extends StatelessWidget
 
             // Spacer to balance the layout
             const Spacer(),
+
+            // Custom action buttons
+            if (actions != null) ...actions!,
 
             // Window control buttons
             ..._buildWindowControls(context),

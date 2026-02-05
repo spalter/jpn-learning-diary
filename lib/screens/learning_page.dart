@@ -10,6 +10,7 @@
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/controllers/learning_controller.dart';
+import 'package:jpn_learning_diary/screens/anki_deck_selection_page.dart';
 import 'package:jpn_learning_diary/screens/practice_mode_page.dart';
 import 'package:jpn_learning_diary/screens/quiz_selection_page.dart';
 import 'package:jpn_learning_diary/screens/study_mode_page.dart';
@@ -292,6 +293,17 @@ class _LearningPageState extends State<LearningPage> {
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => const QuizSelectionPage()),
+          );
+        },
+      ),
+      _LearningModeData(
+        title: 'Flashcards',
+        icon: Icons.style,
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const AnkiDeckSelectionPage(),
+            ),
           );
         },
       ),

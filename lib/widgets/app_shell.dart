@@ -298,7 +298,7 @@ class _AppShellState extends State<AppShell> {
           child: _buildCurrentPage(),
         ),
       ),
-      floatingActionButton: _currentPage != AppPage.settings
+      floatingActionButton: _currentPage != AppPage.settings && _currentPage != AppPage.dashboard
           ? BirdFab(onEntryCreated: (_) => _refreshCurrentPage())
           : null,
     );
