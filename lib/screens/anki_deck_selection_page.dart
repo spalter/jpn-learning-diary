@@ -14,7 +14,6 @@ import 'package:jpn_learning_diary/screens/anki_flashcard_page.dart';
 import 'package:jpn_learning_diary/services/anki_service.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/widgets/app_card.dart';
-import 'package:jpn_learning_diary/widgets/bird_fab.dart';
 import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -126,7 +125,6 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
     return Scaffold(
       appBar: const LearningModeAppBar(title: 'Flashcards'),
       backgroundColor: AppTheme.scaffoldBackground(context),
-      floatingActionButton: const BirdFab(),
       body: _buildBody(context),
     );
   }

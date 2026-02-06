@@ -14,7 +14,6 @@ import 'package:jpn_learning_diary/screens/custom_quiz_page.dart';
 import 'package:jpn_learning_diary/services/custom_quiz_service.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/widgets/app_card.dart';
-import 'package:jpn_learning_diary/widgets/bird_fab.dart';
 import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
 
 /// Page for selecting a custom quiz from the quizzes folder.
@@ -125,7 +124,6 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
     return Scaffold(
       appBar: const LearningModeAppBar(title: 'My Quizzes'),
       backgroundColor: AppTheme.scaffoldBackground(context),
-      floatingActionButton: const BirdFab(),
       body: _buildBody(context),
     );
   }

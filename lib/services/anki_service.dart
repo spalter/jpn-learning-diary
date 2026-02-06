@@ -181,7 +181,7 @@ class AnkiService {
           mediaMap: mediaMap,
         );
       } finally {
-        db.dispose();
+        db.close();
       }
     } finally {
       if (tempDbFile.existsSync()) {
@@ -296,17 +296,17 @@ class AnkiService {
 
       // Look up field indices and names for this note's model
       final info = mid != null ? modelInfo[mid] : null;
-      final frontIdx = info?.frontIndex ?? 0;
-      final backIdx = info?.backIndex ?? 1;
-      final fieldNames = info?.fieldNames ?? const [];
+      final fieldNames = info?.fieldNames ?? const <String>[];
 
       final card = AnkiCard.fromAnkiNote(
         noteId: noteId,
         fieldsString: flds,
         tagsString: tags,
-        frontIndex: frontIdx,
-        backIndex: backIdx,
+        frontIndex: info?.frontIndex ?? 0,
+        backIndex: info?.backIndex ?? 1,
         fieldNames: fieldNames,
+        frontIndices: info?.frontFieldIndices,
+        backIndices: info?.backFieldIndices,
       );
 
       if (card.isValid) {
@@ -329,8 +329,11 @@ class AnkiService {
 
   /// Parses note models from the database to determine front/back field indices.
   ///
+  /// Reads card templates (`tmpls`) from each model to determine which fields
+  /// belong on the question vs answer side. Falls back to field-name heuristics
+  /// when templates are unavailable.
+  ///
   /// Returns a map of model ID -> [_NoteModelInfo].
-  /// Uses field names to identify content fields vs. sort/index fields.
   static Map<int, _NoteModelInfo> _parseNoteModels(
     Database db,
     List<String> tables,
@@ -363,24 +366,125 @@ class AnkiService {
         final fieldNames = <String>[];
         for (final f in flds) {
           if (f is Map && f['name'] is String) {
-            fieldNames.add((f['name'] as String).toLowerCase().trim());
+            fieldNames.add((f['name'] as String).trim());
           }
         }
 
         if (fieldNames.isEmpty) continue;
 
-        final indices = _pickFrontBackIndices(fieldNames);
-        result[modelId] = _NoteModelInfo(
-          frontIndex: indices.$1,
-          backIndex: indices.$2,
-          fieldNames: fieldNames,
+        // Try template-based field grouping first
+        final templateResult = _parseTemplateFields(
+          model, fieldNames,
         );
+
+        if (templateResult != null) {
+          result[modelId] = _NoteModelInfo(
+            frontIndex: templateResult.$1.isNotEmpty
+                ? templateResult.$1.first : 0,
+            backIndex: templateResult.$2.isNotEmpty
+                ? templateResult.$2.first : 1,
+            fieldNames: fieldNames.map((n) => n.toLowerCase()).toList(),
+            frontFieldIndices: templateResult.$1,
+            backFieldIndices: templateResult.$2,
+          );
+        } else {
+          // Fall back to name-based heuristics
+          final lowerNames = fieldNames.map((n) => n.toLowerCase()).toList();
+          final indices = _pickFrontBackIndices(lowerNames);
+          result[modelId] = _NoteModelInfo(
+            frontIndex: indices.$1,
+            backIndex: indices.$2,
+            fieldNames: lowerNames,
+          );
+        }
       }
     } catch (_) {
       // Failed to parse models — fall back to default field indices
     }
 
     return result;
+  }
+
+  /// Regex to extract field references from Anki card templates.
+  ///
+  /// Matches `{{FieldName}}`, `{{type:FieldName}}`, `{{hint:FieldName}}`,
+  /// `{{text:FieldName}}`, and conditional tags `{{#Field}}`/`{{/Field}}`.
+  static final _templateFieldRegex = RegExp(
+    r'\{\{(?:#|\/|\^)?(?:type:|hint:|text:)?(.+?)\}\}',
+  );
+
+  /// Special template variables that are not actual field references.
+  static const _specialTemplateVars = {
+    'frontside', 'tags', 'type', 'deck', 'card', 'subdeck',
+    'cardfalg', 'flag',
+  };
+
+  /// Parses the first card template (`tmpls[0]`) from a model to determine
+  /// which field indices belong on the question vs answer side.
+  ///
+  /// Returns `(frontIndices, backIndices)` or null if templates are missing.
+  static (List<int>, List<int>)? _parseTemplateFields(
+    Map model,
+    List<String> fieldNames,
+  ) {
+    final tmpls = model['tmpls'];
+    if (tmpls is! List || tmpls.isEmpty) return null;
+
+    // Use the first template (ord=0)
+    final tmpl = tmpls[0];
+    if (tmpl is! Map) return null;
+
+    final qfmt = tmpl['qfmt'] as String?;
+    final afmt = tmpl['afmt'] as String?;
+    if (qfmt == null || afmt == null) return null;
+
+    // Build a case-insensitive name->index lookup
+    final nameToIndex = <String, int>{};
+    for (int i = 0; i < fieldNames.length; i++) {
+      nameToIndex[fieldNames[i].toLowerCase()] = i;
+    }
+
+    // Extract field names from each template
+    final qFields = _extractTemplateFieldNames(qfmt);
+    final aFields = _extractTemplateFieldNames(afmt);
+
+    // Map to indices
+    final frontIndices = <int>{};
+    for (final name in qFields) {
+      final idx = nameToIndex[name.toLowerCase()];
+      if (idx != null) frontIndices.add(idx);
+    }
+
+    // Answer-side fields = referenced in afmt but NOT on the front side
+    final backIndices = <int>{};
+    for (final name in aFields) {
+      final idx = nameToIndex[name.toLowerCase()];
+      if (idx != null && !frontIndices.contains(idx)) {
+        backIndices.add(idx);
+      }
+    }
+
+    // Only return if we found at least one field on each side
+    if (frontIndices.isEmpty && backIndices.isEmpty) return null;
+
+    // If one side is empty, fall back to null to let heuristics handle it
+    if (frontIndices.isEmpty || backIndices.isEmpty) return null;
+
+    return (frontIndices.toList(), backIndices.toList());
+  }
+
+  /// Extracts field name references from a template string.
+  ///
+  /// Filters out special variables like `FrontSide`, `Tags`, etc.
+  static Set<String> _extractTemplateFieldNames(String template) {
+    final names = <String>{};
+    for (final match in _templateFieldRegex.allMatches(template)) {
+      final name = match.group(1)!.trim();
+      if (!_specialTemplateVars.contains(name.toLowerCase())) {
+        names.add(name);
+      }
+    }
+    return names;
   }
 
   /// Field name patterns that indicate a sort/index field (not content).
@@ -534,9 +638,19 @@ class _NoteModelInfo {
   final int backIndex;
   final List<String> fieldNames;
 
+  /// Field indices belonging to the question side (from template parsing).
+  /// Null when templates were not available and heuristics were used.
+  final List<int>? frontFieldIndices;
+
+  /// Field indices belonging to the answer side (from template parsing).
+  /// Null when templates were not available and heuristics were used.
+  final List<int>? backFieldIndices;
+
   const _NoteModelInfo({
     required this.frontIndex,
     required this.backIndex,
     required this.fieldNames,
+    this.frontFieldIndices,
+    this.backFieldIndices,
   });
 }

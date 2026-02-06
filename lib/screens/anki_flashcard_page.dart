@@ -10,6 +10,7 @@
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/controllers/anki_controller.dart';
 import 'package:jpn_learning_diary/models/anki_card.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
@@ -42,11 +43,18 @@ class AnkiFlashcardPage extends StatefulWidget {
 class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
   late AnkiController _controller;
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final FocusNode _focusNode = FocusNode();
+
+  /// Tracks the last auto-played state to avoid replaying on rebuilds.
+  int? _lastAutoPlayNoteId;
+  bool? _lastAutoPlayFlipped;
+  bool? _lastAutoPlayReversed;
 
   @override
   void initState() {
     super.initState();
     _controller = AnkiController();
+    _controller.addListener(_onControllerChanged);
     _loadDeck();
   }
 
@@ -58,9 +66,79 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
 
   @override
   void dispose() {
+    _controller.removeListener(_onControllerChanged);
+    _focusNode.dispose();
     _audioPlayer.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  /// Listens for controller changes and auto-plays audio when the
+  /// visible card side changes.
+  void _onControllerChanged() {
+    final card = _controller.currentCard;
+    if (card == null || _controller.isCompleted) return;
+
+    final noteId = card.noteId;
+    final flipped = _controller.isFlipped;
+    final reversed = _controller.isCurrentCardReversed;
+
+    // Only auto-play when the visible side actually changed
+    if (noteId == _lastAutoPlayNoteId &&
+        flipped == _lastAutoPlayFlipped &&
+        reversed == _lastAutoPlayReversed) {
+      return;
+    }
+
+    _lastAutoPlayNoteId = noteId;
+    _lastAutoPlayFlipped = flipped;
+    _lastAutoPlayReversed = reversed;
+
+    _autoPlayCurrentSideAudio(card);
+  }
+
+  /// Plays the first audio file for the currently visible card side.
+  void _autoPlayCurrentSideAudio(AnkiCard card) {
+    if (!_controller.hasMedia) return;
+
+    final isReversed = _controller.isCurrentCardReversed;
+    // Each side's sounds follow their content
+    final List<String> sounds;
+    if (_controller.isFlipped) {
+      // Answer side: back content (normal) or front content (reversed)
+      sounds = isReversed
+          ? [...card.frontSounds, ...card.extraSounds]
+          : [...card.backSounds, ...card.extraSounds];
+    } else {
+      // Question side: front content (normal) or back content (reversed)
+      sounds = isReversed ? [...card.backSounds] : [...card.frontSounds];
+    }
+    if (sounds.isEmpty) return;
+
+    _playAudio(sounds.first);
+  }
+
+  /// Handles keyboard shortcuts for the flashcard session.
+  void _handleKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent) return;
+
+    if (event.logicalKey == LogicalKeyboardKey.space) {
+      if (!_controller.isFlipped &&
+          !_controller.isCompleted &&
+          _controller.hasCards) {
+        _controller.flipCard();
+      }
+    } else if (_controller.isFlipped) {
+      if (event.logicalKey == LogicalKeyboardKey.digit1) {
+        _controller.rateCard(CardRating.again);
+      } else if (event.logicalKey == LogicalKeyboardKey.digit2) {
+        _controller.rateCard(CardRating.hard);
+      } else if (event.logicalKey == LogicalKeyboardKey.digit3) {
+        _controller.rateCard(CardRating.good);
+      } else if (event.logicalKey == LogicalKeyboardKey.digit4) {
+        _controller.rateCard(CardRating.easy);
+      }
+    }
   }
 
   /// Plays an audio file, extracting it from the APKG on-demand.
@@ -86,10 +164,15 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
       value: _controller,
       child: Consumer<AnkiController>(
         builder: (context, controller, child) {
-          return Scaffold(
-            appBar: LearningModeAppBar(title: widget.sourceName),
-            backgroundColor: AppTheme.scaffoldBackground(context),
-            body: _buildBody(context, controller),
+          return KeyboardListener(
+            focusNode: _focusNode,
+            autofocus: true,
+            onKeyEvent: _handleKeyEvent,
+            child: Scaffold(
+              appBar: LearningModeAppBar(title: widget.sourceName),
+              backgroundColor: AppTheme.scaffoldBackground(context),
+              body: _buildBody(context, controller),
+            ),
           );
         },
       ),
@@ -223,32 +306,33 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
     );
   }
 
-  /// Builds the progress indicator row.
+  /// Builds the progress indicator showing new / reviewing / completed counts.
   Widget _buildProgressIndicator(
     BuildContext context,
     AnkiController controller,
   ) {
+    final style = Theme.of(context).textTheme.titleMedium?.copyWith(
+      color: Theme.of(context).colorScheme.onSurface,
+      fontWeight: FontWeight.bold,
+    );
+    final separatorStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
+      color: Theme.of(context).colorScheme.onSurface.withAlpha(120),
+    );
+
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          'Card ${controller.currentIndex + 1} of ${controller.totalCards}',
-          style: Theme.of(context).textTheme.titleMedium,
+        Text('${controller.newCards}', style: style),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: Text('/', style: separatorStyle),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Text(
-            'Known: ${controller.knownCount}',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+        Text('${controller.reviewingCards}', style: style),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: Text('/', style: separatorStyle),
         ),
+        Text('${controller.completedCards}', style: style),
       ],
     );
   }
@@ -310,13 +394,56 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
               ],
             ),
             const SizedBox(height: 20),
-            // Card content
-            Text(
-              controller.isFlipped ? card.back : card.front,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.left,
+            // Card content — show text or a listen hint for audio-only sides
+            Builder(
+              builder: (context) {
+                final text = controller.isFlipped
+                    ? (controller.isCurrentCardReversed
+                        ? card.front
+                        : card.back)
+                    : (controller.isCurrentCardReversed
+                        ? card.back
+                        : card.front);
+                if (text.isNotEmpty) {
+                  return Text(
+                    text,
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.left,
+                  );
+                }
+                // Audio-only side — show a listen prompt
+                return Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.headphones,
+                        size: 48,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withAlpha(120),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Listen',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withAlpha(120),
+                              fontStyle: FontStyle.italic,
+                            ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
             // Images for the current side
             ..._buildCardImages(context, controller, card),
@@ -375,11 +502,18 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
   ) {
     if (!controller.hasMedia) return [];
 
-    // Show front sounds on the question side, all sounds on the answer side
-    // (many decks put audio in dedicated fields that end up in extraSounds)
-    final sounds = controller.isFlipped
-        ? {...card.backSounds, ...card.frontSounds, ...card.extraSounds}.toList()
-        : [...card.frontSounds, ...card.extraSounds];
+    // Each side's sounds follow their content
+    final isReversed = controller.isCurrentCardReversed;
+    final List<String> sounds;
+    if (controller.isFlipped) {
+      // Answer side: back content (normal) or front content (reversed)
+      sounds = isReversed
+          ? [...card.frontSounds, ...card.extraSounds]
+          : [...card.backSounds, ...card.extraSounds];
+    } else {
+      // Question side: front content (normal) or back content (reversed)
+      sounds = isReversed ? [...card.backSounds] : [...card.frontSounds];
+    }
     if (sounds.isEmpty) return [];
 
     return sounds.map((soundFile) {
@@ -405,9 +539,18 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
   ) {
     if (!controller.hasMedia) return [];
 
-    final images = controller.isFlipped
-        ? {...card.backImages, ...card.frontImages, ...card.extraImages}.toList()
-        : [...card.frontImages, ...card.extraImages];
+    // Each side's images follow their content
+    final isReversed = controller.isCurrentCardReversed;
+    final List<String> images;
+    if (controller.isFlipped) {
+      // Answer side: back content (normal) or front content (reversed)
+      images = isReversed
+          ? [...card.frontImages, ...card.extraImages]
+          : [...card.backImages, ...card.extraImages];
+    } else {
+      // Question side: front content (normal) or back content (reversed)
+      images = isReversed ? [...card.backImages] : [...card.frontImages];
+    }
     if (images.isEmpty) return [];
 
     return [
@@ -555,7 +698,7 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              '${controller.totalCards} cards reviewed',
+              '${controller.selectedCardCount} cards completed',
               style: Theme.of(context).textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
@@ -593,15 +736,10 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
     BuildContext context,
     AnkiController controller,
   ) {
-    final ratings = controller.ratings;
-    final againCount =
-        ratings.values.where((r) => r == CardRating.again).length;
-    final hardCount =
-        ratings.values.where((r) => r == CardRating.hard).length;
-    final goodCount =
-        ratings.values.where((r) => r == CardRating.good).length;
-    final easyCount =
-        ratings.values.where((r) => r == CardRating.easy).length;
+    final againCount = controller.againCount;
+    final hardCount = controller.hardCount;
+    final goodCount = controller.goodCount;
+    final easyCount = controller.easyCount;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -755,7 +893,7 @@ class _AnkiImageState extends State<_AnkiImage> {
         child: Image.file(
           File(_filePath!),
           fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          errorBuilder: (_, _, _) => const SizedBox.shrink(),
         ),
       ),
     );

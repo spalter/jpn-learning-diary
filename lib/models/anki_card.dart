@@ -78,7 +78,10 @@ class AnkiCard extends Equatable {
   ///
   /// Anki stores note fields separated by the unit separator character (0x1F).
   /// [frontIndex] and [backIndex] specify which field indices to use for
-  /// the front and back of the card. Remaining fields become [extraFields].
+  /// the front and back of the card. If [frontIndices] or [backIndices] are
+  /// provided (from template parsing), they take precedence and fields at
+  /// those indices are concatenated for each side. Remaining fields become
+  /// [extraFields].
   factory AnkiCard.fromAnkiNote({
     required int noteId,
     required String fieldsString,
@@ -86,6 +89,8 @@ class AnkiCard extends Equatable {
     int frontIndex = 0,
     int backIndex = 1,
     List<String> fieldNames = const [],
+    List<int>? frontIndices,
+    List<int>? backIndices,
   }) {
     final fields = fieldsString.split('\x1F');
 
@@ -96,17 +101,46 @@ class AnkiCard extends Equatable {
     // Strip HTML tags and media references for clean text display
     final cleanFields = fields.map(_stripHtmlAndMedia).toList();
 
-    // Determine front and back indices, clamping to available fields
-    final fi = frontIndex < cleanFields.length ? frontIndex : 0;
-    final bi = backIndex < cleanFields.length
-        ? backIndex
-        : (cleanFields.length > 1 ? 1 : 0);
+    // Build effective front/back index sets
+    final Set<int> frontSet;
+    final Set<int> backSet;
 
-    // Collect extra fields (everything that isn't front or back),
+    if (frontIndices != null && backIndices != null) {
+      // Template-based grouping
+      frontSet = frontIndices
+          .where((i) => i < cleanFields.length)
+          .toSet();
+      backSet = backIndices
+          .where((i) => i < cleanFields.length && !frontSet.contains(i))
+          .toSet();
+    } else {
+      // Legacy single-index fallback
+      final fi = frontIndex < cleanFields.length ? frontIndex : 0;
+      final bi = backIndex < cleanFields.length
+          ? backIndex
+          : (cleanFields.length > 1 ? 1 : 0);
+      frontSet = {fi};
+      backSet = {bi};
+    }
+
+    // Build front/back text by concatenating fields, filtering empties
+    final frontParts = frontSet
+        .map((i) => cleanFields[i])
+        .where((s) => s.isNotEmpty)
+        .toList();
+    final backParts = backSet
+        .map((i) => cleanFields[i])
+        .where((s) => s.isNotEmpty)
+        .toList();
+    final frontText = frontParts.join('\n');
+    final backText = backParts.join('\n');
+
+    // Collect extra fields (everything not in front or back set),
     // filtering out empty values, pure numbers, and metadata fields.
+    final usedIndices = {...frontSet, ...backSet};
     final extras = <String>[];
     for (int i = 0; i < cleanFields.length; i++) {
-      if (i == fi || i == bi) continue;
+      if (usedIndices.contains(i)) continue;
       final value = cleanFields[i];
       if (value.isEmpty) continue;
       // Skip pure numeric values (sort indices, frequency counts, etc.)
@@ -116,33 +150,40 @@ class AnkiCard extends Equatable {
       extras.add(value);
     }
 
-    // Collect sounds and images from extra fields
+    // Collect sounds and images grouped by side
+    final allFrontSounds = <String>[];
+    final allBackSounds = <String>[];
     final allExtraSounds = <String>[];
+    final allFrontImages = <String>[];
+    final allBackImages = <String>[];
     final allExtraImages = <String>[];
-    for (int i = 0; i < soundRefs.length; i++) {
-      if (i != fi && i != bi) {
-        allExtraSounds.addAll(soundRefs[i]);
-      }
-    }
-    for (int i = 0; i < imageRefs.length; i++) {
-      if (i != fi && i != bi) {
-        allExtraImages.addAll(imageRefs[i]);
+
+    for (int i = 0; i < fields.length; i++) {
+      if (frontSet.contains(i)) {
+        if (i < soundRefs.length) allFrontSounds.addAll(soundRefs[i]);
+        if (i < imageRefs.length) allFrontImages.addAll(imageRefs[i]);
+      } else if (backSet.contains(i)) {
+        if (i < soundRefs.length) allBackSounds.addAll(soundRefs[i]);
+        if (i < imageRefs.length) allBackImages.addAll(imageRefs[i]);
+      } else {
+        if (i < soundRefs.length) allExtraSounds.addAll(soundRefs[i]);
+        if (i < imageRefs.length) allExtraImages.addAll(imageRefs[i]);
       }
     }
 
     return AnkiCard(
       noteId: noteId,
-      front: cleanFields.isNotEmpty ? cleanFields[fi] : '',
-      back: cleanFields.length > 1 ? cleanFields[bi] : '',
+      front: frontText,
+      back: backText,
       extraFields: extras,
       tags: tagsString.trim().isEmpty
           ? const []
           : tagsString.trim().split(RegExp(r'\s+')),
-      frontSounds: fi < soundRefs.length ? soundRefs[fi] : const [],
-      backSounds: bi < soundRefs.length ? soundRefs[bi] : const [],
+      frontSounds: allFrontSounds,
+      backSounds: allBackSounds,
       extraSounds: allExtraSounds,
-      frontImages: fi < imageRefs.length ? imageRefs[fi] : const [],
-      backImages: bi < imageRefs.length ? imageRefs[bi] : const [],
+      frontImages: allFrontImages,
+      backImages: allBackImages,
       extraImages: allExtraImages,
     );
   }
@@ -210,7 +251,11 @@ class AnkiCard extends Equatable {
   }
 
   /// Whether this card has meaningful content on both sides.
-  bool get isValid => front.isNotEmpty && back.isNotEmpty;
+  ///
+  /// The front is valid if it has text, audio, or images (for listening
+  /// exercises). The back must have text.
+  bool get isValid =>
+      (front.isNotEmpty || hasAudio || hasImages) && back.isNotEmpty;
 
   @override
   List<Object?> get props => [noteId, front, back, extraFields, tags, frontSounds, backSounds, extraSounds, frontImages, backImages, extraImages];
