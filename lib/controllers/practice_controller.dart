@@ -242,30 +242,44 @@ class QuizQuestion {
   }
 }
 
+/// Self-assessment rating for practice questions.
+enum PracticeRating {
+  /// Did not know the answer at all.
+  again,
+
+  /// Knew the answer but it was difficult.
+  hard,
+
+  /// Knew the answer well.
+  good,
+
+  /// Knew the answer perfectly / too easy.
+  easy,
+}
+
 /// Controller for the practice/quiz mode.
 ///
 /// Manages quiz state including loading questions, tracking answers,
 /// scoring, and navigation between questions.
+///
+/// Questions are presented one at a time. The user taps to reveal the
+/// correct answer, then self-assesses with Again/Hard/Good/Easy.
+/// Again, Hard, and Good move the question to the end of the deck.
+/// Easy removes it. The session ends when the deck is empty.
 class PracticeController extends ChangeNotifier {
   final DiaryRepository _diaryRepository;
   final KanjiRepository _kanjiRepository;
   final JMdictRepository _jmdictRepository;
   final PracticeMode mode;
 
-  /// The list of quiz questions for the current session.
-  List<QuizQuestion> _questions = [];
+  /// The active review deck (queue of questions to review).
+  List<QuizQuestion> _deck = [];
 
-  /// Index of the currently displayed question (0-based).
-  int _currentIndex = 0;
+  /// Total number of entries initially in the deck.
+  int _initialDeckSize = 0;
 
-  /// The index of the answer the user selected, or -1 if none.
-  int _selectedAnswerIndex = -1;
-
-  /// Whether the user has answered the current question.
-  bool _hasAnswered = false;
-
-  /// Count of questions answered correctly.
-  int _correctCount = 0;
+  /// Whether the current question is showing its answer.
+  bool _isRevealed = false;
 
   /// Whether the practice session has been completed.
   bool _isCompleted = false;
@@ -275,6 +289,15 @@ class PracticeController extends ChangeNotifier {
 
   /// Error message if loading failed.
   String? _errorMessage;
+
+  /// Cumulative count of each rating during the session.
+  int _againCount = 0;
+  int _hardCount = 0;
+  int _goodCount = 0;
+  int _easyCount = 0;
+
+  /// Whether each question has been seen at least once.
+  final Set<int> _seenIndices = {};
 
   PracticeController({
     required this.mode,
@@ -286,34 +309,38 @@ class PracticeController extends ChangeNotifier {
        _jmdictRepository = jmdictRepository ?? JMdictRepository();
 
   // Getters
-  List<QuizQuestion> get questions => _questions;
-  int get currentIndex => _currentIndex;
-  int get selectedAnswerIndex => _selectedAnswerIndex;
-  bool get hasAnswered => _hasAnswered;
-  int get correctCount => _correctCount;
+  bool get isRevealed => _isRevealed;
   bool get isCompleted => _isCompleted;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
   /// Whether there are enough questions to run a quiz.
-  bool get hasQuestions => _questions.isNotEmpty;
+  bool get hasQuestions => _deck.isNotEmpty;
 
   /// The current question being displayed, or null if none.
   QuizQuestion? get currentQuestion =>
-      _questions.isNotEmpty && _currentIndex < _questions.length
-      ? _questions[_currentIndex]
-      : null;
+      _deck.isNotEmpty ? _deck[0] : null;
 
-  /// Total number of questions in the quiz.
-  int get totalQuestions => _questions.length;
+  /// Total number of entries in the session.
+  int get totalCards => _initialDeckSize;
 
-  /// Whether the current question is the last one.
-  bool get isLastQuestion => _currentIndex >= _questions.length - 1;
+  /// Number of entries remaining in the deck.
+  int get remainingCards => _deck.length;
 
-  /// The percentage score (0-100).
-  int get percentageScore => _questions.isEmpty
-      ? 0
-      : (_correctCount / _questions.length * 100).round();
+  /// Number of new (unseen) entries still in the deck.
+  int get newCards => _deck.where((q) => !_seenIndices.contains(q.hashCode)).length;
+
+  /// Number of entries that have been rated but are still in the deck.
+  int get reviewingCards => _deck.where((q) => _seenIndices.contains(q.hashCode)).length;
+
+  /// Number of entries completed (removed via Easy).
+  int get completedCards => _easyCount;
+
+  /// Rating count getters for the completion summary.
+  int get againCount => _againCount;
+  int get hardCount => _hardCount;
+  int get goodCount => _goodCount;
+  int get easyCount => _easyCount;
 
   /// Loads quiz questions based on the selected mode.
   ///
@@ -340,13 +367,11 @@ class PracticeController extends ChangeNotifier {
 
             for (int i = 0; i < questionCount; i++) {
               final entry = shuffled[i];
-              // Get 3 distractors (different from current entry)
               final distractors =
                   allEntries.where((e) => e.id != entry.id).toList()
                     ..shuffle(random);
               final selectedDistractors = distractors.take(3).toList();
 
-              // Randomly choose question mode
               final questionMode = random.nextBool()
                   ? QuizQuestionMode.meaningToJapanese
                   : QuizQuestionMode.japaneseToMeaning;
@@ -364,7 +389,7 @@ class PracticeController extends ChangeNotifier {
 
         case PracticeMode.kanji:
           final kanjiList = await _kanjiRepository.getRandomKanjiFromDiary(
-            count: maxQuestions * 4, // Get more to have enough distractors
+            count: maxQuestions * 4,
           );
 
           if (kanjiList.length >= 4) {
@@ -373,13 +398,11 @@ class PracticeController extends ChangeNotifier {
 
             for (int i = 0; i < questionCount; i++) {
               final kanji = shuffled[i];
-              // Get 3 distractors (different from current kanji)
               final distractors =
                   kanjiList.where((k) => k.kanji != kanji.kanji).toList()
                     ..shuffle(random);
               final selectedDistractors = distractors.take(3).toList();
 
-              // Randomly choose question mode
               final questionMode = random.nextBool()
                   ? QuizQuestionMode.meaningToJapanese
                   : QuizQuestionMode.japaneseToMeaning;
@@ -397,7 +420,7 @@ class PracticeController extends ChangeNotifier {
 
         case PracticeMode.jmdict:
           final jmdictEntries = await _jmdictRepository.getRandomCommonEntries(
-            count: maxQuestions * 4, // Get more to have enough distractors
+            count: maxQuestions * 4,
           );
 
           if (jmdictEntries.length >= 4) {
@@ -407,13 +430,11 @@ class PracticeController extends ChangeNotifier {
 
             for (int i = 0; i < questionCount; i++) {
               final entry = shuffled[i];
-              // Get 3 distractors (different from current entry)
               final distractors =
                   jmdictEntries.where((e) => e.entSeq != entry.entSeq).toList()
                     ..shuffle(random);
               final selectedDistractors = distractors.take(3).toList();
 
-              // Randomly choose question mode
               final questionMode = random.nextBool()
                   ? QuizQuestionMode.meaningToJapanese
                   : QuizQuestionMode.japaneseToMeaning;
@@ -430,77 +451,79 @@ class PracticeController extends ChangeNotifier {
           break;
       }
 
-      _questions = questions;
+      _deck = List<QuizQuestion>.from(questions);
+      _initialDeckSize = _deck.length;
+      _resetSessionState();
       _errorMessage = null;
     } catch (e) {
       _errorMessage = 'Failed to load questions: $e';
-      _questions = [];
+      _deck = [];
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  /// Whether the last committed answer was correct.
-  bool _lastAnswerCorrect = false;
+  /// Resets session state for a new review.
+  void _resetSessionState() {
+    _isRevealed = false;
+    _isCompleted = false;
+    _againCount = 0;
+    _hardCount = 0;
+    _goodCount = 0;
+    _easyCount = 0;
+    _seenIndices.clear();
+  }
 
-  /// Whether the last committed answer was correct.
-  bool get lastAnswerCorrect => _lastAnswerCorrect;
-
-  /// Whether an answer is currently selected (but not yet committed).
-  bool get hasSelection => _selectedAnswerIndex >= 0;
-
-  /// Handles when the user selects an answer option.
-  ///
-  /// This only selects the answer visually without committing it.
-  /// The user must call [commitAnswer] to finalize their choice.
-  void selectAnswer(int index) {
-    if (_hasAnswered || currentQuestion == null) return;
-
-    _selectedAnswerIndex = index;
+  /// Reveals the answer for the current question.
+  void revealAnswer() {
+    if (_isRevealed || currentQuestion == null) return;
+    _isRevealed = true;
     notifyListeners();
   }
 
-  /// Commits the currently selected answer.
+  /// Rates the current question.
   ///
-  /// This finalizes the user's choice:
-  /// - Marks the question as answered
-  /// - Checks if the answer is correct
-  /// - Increments correct count if correct
-  void commitAnswer() {
-    if (_hasAnswered || _selectedAnswerIndex < 0 || currentQuestion == null) {
-      return;
+  /// Easy removes the question from the deck. Again, Hard, and Good move
+  /// the question to the end of the deck. The session completes when the
+  /// deck is empty.
+  void rateQuestion(PracticeRating rating) {
+    if (!_isRevealed || _deck.isEmpty) return;
+
+    final question = _deck.removeAt(0);
+    _seenIndices.add(question.hashCode);
+
+    switch (rating) {
+      case PracticeRating.again:
+        _againCount++;
+        _deck.add(question);
+        break;
+      case PracticeRating.hard:
+        _hardCount++;
+        _deck.add(question);
+        break;
+      case PracticeRating.good:
+        _goodCount++;
+        _deck.add(question);
+        break;
+      case PracticeRating.easy:
+        _easyCount++;
+        break;
     }
 
-    _lastAnswerCorrect =
-        _selectedAnswerIndex == currentQuestion!.correctAnswerIndex;
-    _hasAnswered = true;
-    if (_lastAnswerCorrect) {
-      _correctCount++;
-    }
-    notifyListeners();
-  }
+    _isRevealed = false;
 
-  /// Moves to the next question or completes the quiz.
-  void moveToNext() {
-    if (_currentIndex < _questions.length - 1) {
-      _currentIndex++;
-      _selectedAnswerIndex = -1;
-      _hasAnswered = false;
-    } else {
+    if (_deck.isEmpty) {
       _isCompleted = true;
     }
+
     notifyListeners();
   }
 
   /// Resets and restarts the quiz with new random questions.
   Future<void> restart() async {
-    _currentIndex = 0;
-    _correctCount = 0;
-    _selectedAnswerIndex = -1;
-    _hasAnswered = false;
-    _isCompleted = false;
-    _questions = [];
+    _deck = [];
+    _resetSessionState();
     notifyListeners();
 
     await loadQuestions();

@@ -255,7 +255,7 @@ class _LearningPageState extends State<LearningPage> {
         },
       ),
       _LearningModeData(
-        title: 'Diary Quiz',
+        title: 'Diary Cards',
         icon: Icons.edit_note,
         onTap: () {
           Navigator.of(context).push(
@@ -264,7 +264,7 @@ class _LearningPageState extends State<LearningPage> {
         },
       ),
       _LearningModeData(
-        title: 'Kanji Quiz',
+        title: 'Kanji Cards',
         icon: Icons.history_edu,
         onTap: () {
           Navigator.of(context).push(
@@ -276,7 +276,7 @@ class _LearningPageState extends State<LearningPage> {
         },
       ),
       _LearningModeData(
-        title: 'Vocabulary Quiz',
+        title: 'Vocabulary Cards',
         icon: Icons.menu_book,
         onTap: () {
           Navigator.of(context).push(

@@ -8,13 +8,13 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/controllers/practice_controller.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/widgets/bird_fab.dart';
 import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
 import 'package:jpn_learning_diary/widgets/ruby_text.dart';
-import 'package:jpn_learning_diary/widgets/quiz_option_button.dart';
 import 'package:provider/provider.dart';
 
 // Re-export from controller for backwards compatibility
@@ -42,6 +42,7 @@ class PracticeModePage extends StatefulWidget {
 class _PracticeModePageState extends State<PracticeModePage> {
   late PracticeController _controller;
   bool _showFurigana = true;
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -62,8 +63,30 @@ class _PracticeModePageState extends State<PracticeModePage> {
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  /// Handles keyboard shortcuts: Space=reveal, 1-4=ratings.
+  void _handleKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent) return;
+
+    if (event.logicalKey == LogicalKeyboardKey.space) {
+      if (!_controller.isRevealed) {
+        _controller.revealAnswer();
+      }
+    } else if (_controller.isRevealed) {
+      if (event.logicalKey == LogicalKeyboardKey.digit1) {
+        _controller.rateQuestion(PracticeRating.again);
+      } else if (event.logicalKey == LogicalKeyboardKey.digit2) {
+        _controller.rateQuestion(PracticeRating.hard);
+      } else if (event.logicalKey == LogicalKeyboardKey.digit3) {
+        _controller.rateQuestion(PracticeRating.good);
+      } else if (event.logicalKey == LogicalKeyboardKey.digit4) {
+        _controller.rateQuestion(PracticeRating.easy);
+      }
+    }
   }
 
   @override
@@ -72,11 +95,16 @@ class _PracticeModePageState extends State<PracticeModePage> {
       value: _controller,
       child: Consumer<PracticeController>(
         builder: (context, controller, child) {
-          return Scaffold(
-            appBar: LearningModeAppBar(title: widget.mode.label),
-            backgroundColor: AppTheme.scaffoldBackground(context),
-            floatingActionButton: const BirdFab(),
-            body: _buildBody(context, controller),
+          return KeyboardListener(
+            focusNode: _focusNode,
+            autofocus: true,
+            onKeyEvent: _handleKeyEvent,
+            child: Scaffold(
+              appBar: LearningModeAppBar(title: widget.mode.label),
+              backgroundColor: AppTheme.scaffoldBackground(context),
+              floatingActionButton: const BirdFab(),
+              body: _buildBody(context, controller),
+            ),
           );
         },
       ),
@@ -93,7 +121,7 @@ class _PracticeModePageState extends State<PracticeModePage> {
       return Center(child: Text('Error: ${controller.errorMessage}'));
     }
 
-    if (!controller.hasQuestions) {
+    if (!controller.hasQuestions && !controller.isCompleted) {
       return _buildEmptyState(context);
     }
 
@@ -134,7 +162,7 @@ class _PracticeModePageState extends State<PracticeModePage> {
     );
   }
 
-  /// Builds the main quiz screen with question and answer buttons.
+  /// Builds the main quiz screen with question, answer reveal, and rating buttons.
   Widget _buildQuizScreen(BuildContext context, PracticeController controller) {
     final currentQuestion = controller.currentQuestion!;
 
@@ -150,11 +178,12 @@ class _PracticeModePageState extends State<PracticeModePage> {
               children: [
                 _buildProgressIndicator(context, controller),
                 const SizedBox(height: 16),
-                _buildQuestionCard(context, currentQuestion),
+                _buildQuestionCard(context, currentQuestion, controller),
                 const SizedBox(height: 32),
-                _buildAnswerButtons(context, controller, currentQuestion),
-                const SizedBox(height: 24),
-                _buildActionButton(context, controller),
+                if (controller.isRevealed)
+                  _buildRatingButtons(context, controller)
+                else
+                  _buildRevealButton(context, controller),
               ],
             ),
           ),
@@ -163,185 +192,208 @@ class _PracticeModePageState extends State<PracticeModePage> {
     );
   }
 
-  /// Builds the progress indicator row.
+  /// Builds the progress indicator showing new/reviewing/completed counts.
   Widget _buildProgressIndicator(
     BuildContext context,
     PracticeController controller,
   ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          'Question ${controller.currentIndex + 1} of ${controller.totalQuestions}',
-          style: Theme.of(context).textTheme.titleMedium,
+    return Center(
+      child: Text(
+        '${controller.newCards} / ${controller.reviewingCards} / ${controller.completedCards}',
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          color: Theme.of(context).colorScheme.onSurface,
+          fontWeight: FontWeight.bold,
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Text(
-            'Score: ${controller.correctCount}',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
-  /// Builds the question card with the prompt.
-  Widget _buildQuestionCard(BuildContext context, QuizQuestion question) {
+  /// Builds the question card with prompt and answer.
+  Widget _buildQuestionCard(
+    BuildContext context,
+    QuizQuestion question,
+    PracticeController controller,
+  ) {
     final isJapanesePrompt =
         question.questionMode == QuizQuestionMode.japaneseToMeaning;
 
-    // Determine if we should show furigana (only for Japanese prompts with ruby patterns)
-    final shouldShowFurigana =
+    final shouldShowPromptFurigana =
         _showFurigana &&
         isJapanesePrompt &&
         question.rawPrompt != null &&
         RubyText.containsRubyPattern(question.rawPrompt!);
 
-    final textStyle = Theme.of(context).textTheme.headlineMedium?.copyWith(
+    final promptStyle = Theme.of(context).textTheme.headlineMedium?.copyWith(
       fontWeight: FontWeight.bold,
       fontSize: isJapanesePrompt ? 36 : 24,
     );
 
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer.withAlpha(20),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withAlpha(80),
-          width: 1,
+    // Answer styling
+    final isJapaneseAnswer = !isJapanesePrompt;
+    final shouldShowAnswerFurigana =
+        _showFurigana &&
+        isJapaneseAnswer &&
+        question.rawAnswerOptions != null &&
+        question.rawAnswerOptions!.isNotEmpty &&
+        RubyText.containsRubyPattern(
+          question.rawAnswerOptions![question.correctAnswerIndex],
+        );
+
+    final answerStyle = Theme.of(context).textTheme.headlineMedium?.copyWith(
+      fontWeight: FontWeight.bold,
+      fontSize: isJapaneseAnswer ? 36 : 24,
+    );
+
+    return GestureDetector(
+      onTap: () {
+        if (!controller.isRevealed) {
+          controller.revealAnswer();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primaryContainer.withAlpha(20),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary.withAlpha(80),
+            width: 1,
+          ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (shouldShowFurigana)
-            RubyText(text: question.rawPrompt!, textStyle: textStyle)
-          else
-            Text(question.prompt, style: textStyle, textAlign: TextAlign.left),
-        ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Prompt
+            if (shouldShowPromptFurigana)
+              RubyText(text: question.rawPrompt!, textStyle: promptStyle)
+            else
+              Text(question.prompt, style: promptStyle),
+
+            // Divider and answer (shown after reveal)
+            if (controller.isRevealed) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Divider(
+                  color:
+                      Theme.of(context).colorScheme.primary.withAlpha(80),
+                ),
+              ),
+              if (shouldShowAnswerFurigana)
+                RubyText(
+                  text: question
+                      .rawAnswerOptions![question.correctAnswerIndex],
+                  textStyle: answerStyle,
+                )
+              else
+                Text(question.correctAnswer, style: answerStyle),
+            ],
+          ],
+        ),
       ),
     );
   }
 
-  /// Builds the 4 answer option buttons in a vertical list.
-  Widget _buildAnswerButtons(
+  /// Builds the "Tap to reveal" button.
+  Widget _buildRevealButton(
     BuildContext context,
     PracticeController controller,
-    QuizQuestion question,
+  ) {
+    return Center(
+      child: TextButton.icon(
+        onPressed: controller.revealAnswer,
+        icon: const Icon(Icons.visibility),
+        label: const Text('Show Answer'),
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Builds the rating buttons row (Again, Hard, Good, Easy).
+  Widget _buildRatingButtons(
+    BuildContext context,
+    PracticeController controller,
   ) {
     return Column(
       children: [
-        _buildAnswerButton(context, controller, question, 0),
+        Text(
+          'How well did you know this?',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+          ),
+        ),
         const SizedBox(height: 12),
-        _buildAnswerButton(context, controller, question, 1),
-        const SizedBox(height: 12),
-        _buildAnswerButton(context, controller, question, 2),
-        const SizedBox(height: 12),
-        _buildAnswerButton(context, controller, question, 3),
+        Row(
+          children: [
+            Expanded(
+              child: _buildRatingButton(
+                context,
+                label: 'Again',
+                color: Colors.red,
+                onTap: () => controller.rateQuestion(PracticeRating.again),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildRatingButton(
+                context,
+                label: 'Hard',
+                color: Colors.orange,
+                onTap: () => controller.rateQuestion(PracticeRating.hard),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildRatingButton(
+                context,
+                label: 'Good',
+                color: Colors.green,
+                onTap: () => controller.rateQuestion(PracticeRating.good),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildRatingButton(
+                context,
+                label: 'Easy',
+                color: Colors.blue,
+                onTap: () => controller.rateQuestion(PracticeRating.easy),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
 
-  /// Builds a single answer button with appropriate styling.
-  Widget _buildAnswerButton(
-    BuildContext context,
-    PracticeController controller,
-    QuizQuestion question,
-    int index,
-  ) {
-    return QuizOptionButton(
-      index: index,
-      text: question.answerOptions[index],
-      rawText: question.rawAnswerOptions?[index],
-      isSelected: controller.selectedAnswerIndex == index,
-      hasAnswered: controller.hasAnswered,
-      isCorrectAnswer: index == question.correctAnswerIndex,
-      isJapanese: question.questionMode == QuizQuestionMode.meaningToJapanese,
-      showFurigana: _showFurigana,
-      onTap: () => controller.selectAnswer(index),
-    );
-  }
-
-  /// Builds the action button that changes based on quiz state.
-  ///
-  /// - Before answering: "Check Answer" button (disabled until selection)
-  /// - After correct answer: Green "Next Question" button
-  /// - After wrong answer: Red "Next Question" button
-  /// - On last question after answering: "See Results" button
-  Widget _buildActionButton(
-    BuildContext context,
-    PracticeController controller,
-  ) {
-    final hasAnswered = controller.hasAnswered;
-    final hasSelection = controller.hasSelection;
-    final isLastQuestion = controller.isLastQuestion;
-    final isCorrect = controller.lastAnswerCorrect;
-
-    // Determine button properties based on state
-    String label;
-    IconData icon;
-    VoidCallback? onPressed;
-    Color? backgroundColor;
-    Color? foregroundColor;
-
-    if (!hasAnswered) {
-      // Before committing: show "Check Answer" button
-      label = 'Check Answer';
-      icon = Icons.check;
-      onPressed = hasSelection ? controller.commitAnswer : null;
-      backgroundColor = null; // Use default
-      foregroundColor = null;
-    } else if (isLastQuestion) {
-      // After answering the last question
-      label = 'See Results';
-      icon = Icons.flag;
-      onPressed = controller.moveToNext;
-      backgroundColor = isCorrect ? Colors.green[700] : Colors.red[700];
-      foregroundColor = Colors.white;
-    } else {
-      // After answering: show styled "Next Question" button
-      label = 'Next Question';
-      icon = Icons.arrow_forward;
-      onPressed = controller.moveToNext;
-      backgroundColor = isCorrect ? Colors.green[700] : Colors.red[700];
-      foregroundColor = Colors.white;
-    }
-
-    return Center(
-      child: TextButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon),
-        label: Text(label),
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          backgroundColor: backgroundColor,
-          foregroundColor: foregroundColor,
-          disabledBackgroundColor: Theme.of(
-            context,
-          ).colorScheme.primary.withAlpha(20),
-          disabledForegroundColor: Theme.of(
-            context,
-          ).colorScheme.primary.withAlpha(100),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: backgroundColor == null
-                ? BorderSide(
-                    color: hasSelection
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).colorScheme.primary.withAlpha(60),
-                  )
-                : BorderSide.none,
-          ),
+  /// Builds a single rating button.
+  Widget _buildRatingButton(
+    BuildContext context, {
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return TextButton(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        backgroundColor: color.withAlpha(20),
+        foregroundColor: color,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: color.withAlpha(100)),
         ),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -351,21 +403,26 @@ class _PracticeModePageState extends State<PracticeModePage> {
     BuildContext context,
     PracticeController controller,
   ) {
-    final percentage = controller.percentageScore;
-
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildCompletionIcon(context, percentage),
+            Icon(
+              Icons.emoji_events,
+              size: 80,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             const SizedBox(height: 24),
-            _buildCompletionTitle(context),
-            const SizedBox(height: 16),
-            _buildScoreText(context, controller),
-            const SizedBox(height: 8),
-            _buildPercentageText(context, percentage),
+            Text(
+              'Practice Complete!',
+              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 24),
+            _buildRatingSummary(context, controller),
             const SizedBox(height: 32),
             _buildCompletionButtons(context, controller),
           ],
@@ -374,54 +431,51 @@ class _PracticeModePageState extends State<PracticeModePage> {
     );
   }
 
-  /// Builds the completion screen icon based on score.
-  Widget _buildCompletionIcon(BuildContext context, int percentage) {
-    IconData icon;
-    Color color;
-
-    if (percentage >= 80) {
-      icon = Icons.emoji_events;
-      color = Theme.of(context).colorScheme.primary;
-    } else if (percentage >= 60) {
-      icon = Icons.celebration;
-      color = Theme.of(context).colorScheme.primary;
-    } else {
-      icon = Icons.thumb_up;
-      color = Theme.of(context).colorScheme.secondary;
-    }
-
-    return Icon(icon, size: 80, color: color);
-  }
-
-  /// Builds the completion title.
-  Widget _buildCompletionTitle(BuildContext context) {
-    return Text(
-      'Quiz Complete!',
-      style: Theme.of(
-        context,
-      ).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),
+  /// Builds the rating summary table for the completion screen.
+  Widget _buildRatingSummary(
+    BuildContext context,
+    PracticeController controller,
+  ) {
+    return Column(
+      children: [
+        _buildSummaryRow(context, 'Again', controller.againCount, Colors.red),
+        const SizedBox(height: 8),
+        _buildSummaryRow(context, 'Hard', controller.hardCount, Colors.orange),
+        const SizedBox(height: 8),
+        _buildSummaryRow(context, 'Good', controller.goodCount, Colors.green),
+        const SizedBox(height: 8),
+        _buildSummaryRow(context, 'Easy', controller.easyCount, Colors.blue),
+      ],
     );
   }
 
-  /// Builds the score text showing fraction.
-  Widget _buildScoreText(BuildContext context, PracticeController controller) {
-    return Text(
-      'You got ${controller.correctCount} out of ${controller.totalQuestions} correct',
-      style: Theme.of(context).textTheme.titleLarge,
-      textAlign: TextAlign.center,
-    );
-  }
-
-  /// Builds the large percentage display.
-  Widget _buildPercentageText(BuildContext context, int percentage) {
-    Color color = Theme.of(context).colorScheme.primary;
-
-    return Text(
-      '$percentage%',
-      style: Theme.of(context).textTheme.displayLarge?.copyWith(
-        color: color,
-        fontWeight: FontWeight.bold,
-      ),
+  /// Builds a single summary row.
+  Widget _buildSummaryRow(
+    BuildContext context,
+    String label,
+    int count,
+    Color color,
+  ) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: 60,
+          child: Text(
+            label,
+            style: TextStyle(color: color, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.right,
+          ),
+        ),
+        const SizedBox(width: 12),
+        SizedBox(
+          width: 30,
+          child: Text(
+            '$count',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
+      ],
     );
   }
 

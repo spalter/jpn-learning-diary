@@ -35,13 +35,15 @@ class HelpPage extends StatelessWidget {
         const SizedBox(height: 32),
         _buildNavigationSection(context),
         const SizedBox(height: 32),
+        _buildDiarySection(context),
+        const SizedBox(height: 32),
         if (!_isMobile) ...[
           _buildKeyboardShortcutsSection(context),
           const SizedBox(height: 32),
         ],
         _buildLearningModesSection(context),
         const SizedBox(height: 32),
-        _buildDiarySection(context),
+        _buildFlashcardSection(context),
         const SizedBox(height: 32),
         _buildSearchSection(context),
         const SizedBox(height: 32),
@@ -289,32 +291,108 @@ class HelpPage extends StatelessWidget {
           icon: Icons.edit_note,
           title: 'Diary Quiz',
           description:
-              'Selects random entries from your diary and presents them with multiple choice answers. '
-              'Great for reviewing what you\'ve learned.',
+              'Selects random entries from your diary and presents them as flashcards. '
+              'Reveal the answer and rate yourself from Again to Easy, just like the '
+              'flashcard decks. Great for reviewing what you\'ve learned.',
         ),
         _buildHelpItem(
           context,
           icon: Icons.history_edu,
           title: 'Kanji Quiz',
           description:
-              'Finds kanji characters in your diary entries and builds a quiz focused on kanji words only. '
-              'Perfect for reinforcing kanji recognition.',
+              'Finds kanji characters in your diary entries and presents them as flashcards '
+              'focused on kanji words only. Rate each card to cycle through the deck until '
+              'you feel confident. Perfect for reinforcing kanji recognition.',
         ),
         _buildHelpItem(
           context,
           icon: Icons.menu_book,
           title: 'Vocabulary Quiz',
           description:
-              'Practice with vocabulary from the Japanese dictionary, independent of your diary content. '
-              'Test yourself on a broader range of words.',
+              'Practice with vocabulary from the Japanese dictionary, independent of your diary '
+              'content. Cards are presented in the same reveal-and-rate style, letting you '
+              'work through a broader range of words at your own pace.',
         ),
         _buildHelpItem(
           context,
           icon: Icons.collections_bookmark,
           title: 'My Quizzes',
           description:
-              'Import custom quizzes from CSV files to practice with JLPT vocabulary or your own content.',
+              'Import custom quizzes from CSV files to practice with JLPT vocabulary or your '
+              'own content. Questions are presented with multiple choice answers.',
         ),
+        _buildHelpItem(
+          context,
+          icon: Icons.style,
+          title: 'Flashcard Decks',
+          description:
+              'Import Anki-compatible APKG decks and study them with a spaced-repetition '
+              'style workflow. See the Flashcard Decks section below for details.',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFlashcardSection(BuildContext context) {
+    final textStyle = Theme.of(context).textTheme.bodyMedium;
+
+    return _buildSectionCard(
+      context: context,
+      title: 'Flashcard Overview',
+      icon: Icons.style,
+      children: [
+        Text(
+          'The app supports Anki-compatible flashcard decks in the APKG format. '
+          'You can export decks from Anki Desktop via File → Export, or browse '
+          'thousands of community-shared decks at ankiweb.net. Once you have an '
+          'APKG file, open it from the Learning section to add it to your collection.',
+          style: textStyle,
+        ),
+        const SizedBox(height: 16),
+        _buildSubsection(context, 'Study Modes'),
+        Text(
+          'Each deck offers two ways to study. "New Cards" presents cards you '
+          'have not yet reviewed, keeping them in the original deck order so you '
+          'can work through a course sequentially. "Review" gathers cards you '
+          'have studied before and shuffles them, giving you a randomized '
+          'refresher session. Cards you have already mastered are automatically '
+          'excluded from both modes.',
+          style: textStyle,
+        ),
+        const SizedBox(height: 16),
+        _buildSubsection(context, 'Rating Your Answers'),
+        Text(
+          'After revealing a card, you rate how well you knew the answer using '
+          'one of four options. "Again" means you did not recall it at all — the '
+          'card goes back into the current session so you see it once more. '
+          '"Hard" means you got it, but with difficulty — the card is also '
+          're-enqueued for another pass. "Good" means you knew the answer '
+          'comfortably — the card stays in the session for one more round of '
+          'reinforcement. "Easy" means you recalled it instantly, and the card '
+          'is removed from the current session right away.',
+          style: textStyle,
+        ),
+        const SizedBox(height: 16),
+        _buildSubsection(context, 'Progress & Mastery'),
+        Text(
+          'Your progress is tracked per card across sessions. A card is '
+          'considered mastered once you have rated it "Easy" and reviewed it at '
+          'least twice in total. The deck selection screen shows how far along '
+          'you are with a mastery percentage and a count of reviewed versus '
+          'total cards. This progress persists between sessions, so you can '
+          'pick up right where you left off.',
+          style: textStyle,
+        ),
+        if (!_isMobile) ...[
+          const SizedBox(height: 16),
+          _buildSubsection(context, 'Keyboard Shortcuts'),
+          Text(
+            'Press Space to reveal the answer, then use the number keys 1 '
+            'through 4 to rate: 1 for Again, 2 for Hard, 3 for Good, and 4 '
+            'for Easy.',
+            style: textStyle,
+          ),
+        ],
       ],
     );
   }
@@ -562,8 +640,33 @@ class HelpPage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
+        _buildSubsection(context, 'Data Sources'),
+        _buildHelpItem(
+          context,
+          icon: Icons.auto_stories,
+          title: 'kanjiapi.dev',
+          description:
+              'Provides kanji data including readings, meanings, and stroke information.',
+        ),
+        _buildHelpItem(
+          context,
+          icon: Icons.translate,
+          title: 'EDRDG (JMdict)',
+          description:
+              'The Electronic Dictionary Research and Development Group maintains '
+              'the JMdict Japanese-English dictionary used for word lookups and search.',
+        ),
+        _buildHelpItem(
+          context,
+          icon: Icons.style,
+          title: 'Anki',
+          description:
+              'Flashcard deck import uses the APKG format created by the Anki '
+              'spaced-repetition software. Decks can be exported from Anki Desktop '
+              'or downloaded from ankiweb.net.',
+        ),
+        const SizedBox(height: 12),
         Text(
-          'This app uses dictionary data from kanjiapi.dev and the EDRDG project. '
           'See Licenses in Settings for full attribution.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 fontStyle: FontStyle.italic,
