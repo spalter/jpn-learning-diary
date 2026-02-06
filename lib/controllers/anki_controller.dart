@@ -11,9 +11,19 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:jpn_learning_diary/models/anki_card.dart';
+import 'package:jpn_learning_diary/services/anki_progress_service.dart';
 import 'package:jpn_learning_diary/services/anki_service.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:path/path.dart' as path;
+
+/// The study mode for a flashcard session.
+enum StudyMode {
+  /// New cards: picks cards in deck order, skipping mastered ones.
+  newCards,
+
+  /// Review: picks previously-reviewed cards, shuffled.
+  review,
+}
 
 /// Represents the user's self-assessment of how well they knew a card.
 enum CardRating {
@@ -91,6 +101,12 @@ class AnkiController extends ChangeNotifier {
   /// Path to the temp cache directory for extracted audio files.
   String? _audioCacheDir;
 
+  /// Deck progress loaded from disk.
+  DeckProgress _progress = DeckProgress();
+
+  /// The study mode for this session.
+  StudyMode _studyMode = StudyMode.newCards;
+
   /// Whether this deck has any audio media.
   bool get hasMedia => _mediaMap.isNotEmpty;
 
@@ -161,9 +177,14 @@ class AnkiController extends ChangeNotifier {
   ///
   /// [filePath] - Full path to the APKG file
   /// [sourceName] - A display name for the deck
-  Future<void> loadFromFile(String filePath, {String? sourceName}) async {
+  Future<void> loadFromFile(
+    String filePath, {
+    String? sourceName,
+    StudyMode mode = StudyMode.newCards,
+  }) async {
     _isLoading = true;
     _errorMessage = null;
+    _studyMode = mode;
     _sourceName = sourceName ?? filePath.split('/').last.split('\\').last;
     notifyListeners();
 
@@ -171,6 +192,14 @@ class AnkiController extends ChangeNotifier {
       final deckData = await AnkiService.loadFromFile(filePath);
       _apkgPath = deckData.apkgPath;
       _mediaMap = deckData.mediaMap;
+      _progress = await AnkiProgressService.loadProgress(filePath);
+
+      // Store total card count on first open
+      if (_progress.totalCards == null && deckData.cards.isNotEmpty) {
+        _progress.totalCards = deckData.cards.length;
+        await AnkiProgressService.saveProgress(filePath, _progress);
+      }
+
       await _processCards(deckData.cards);
     } catch (e) {
       _errorMessage = 'Failed to load deck: $e';
@@ -203,8 +232,8 @@ class AnkiController extends ChangeNotifier {
 
   /// Processes loaded cards into a session.
   ///
-  /// Cards are presented in order. Each card appears twice: once in normal
-  /// orientation and once with front/back swapped.
+  /// Cards are sorted by progress so unreviewed and weaker cards come first.
+  /// Each card appears twice: once normal and once with front/back swapped.
   Future<void> _processCards(List<AnkiCard> cards) async {
     _loadedCards = cards;
 
@@ -217,8 +246,26 @@ class AnkiController extends ChangeNotifier {
 
     final maxCards = await AppPreferences.getQuizQuestionCount();
 
-    // Take cards in order up to the configured limit
-    _cards = cards.take(min(maxCards, cards.length)).toList();
+    List<AnkiCard> selected;
+    if (_studyMode == StudyMode.review) {
+      // Review mode: only cards that have been reviewed before, shuffled.
+      final reviewed = cards.where((card) {
+        final cp = _progress.cards[card.noteId.toString()];
+        return cp != null;
+      }).toList();
+      reviewed.shuffle();
+      selected = reviewed.take(min(maxCards, reviewed.length)).toList();
+    } else {
+      // New cards mode: keep deck order, skip mastered cards.
+      final filtered = cards.where((card) {
+        final cp = _progress.cards[card.noteId.toString()];
+        if (cp == null) return true;
+        return !(cp.lastRating == 'easy' && cp.reviewCount >= 2);
+      }).toList();
+      selected = filtered.take(min(maxCards, filtered.length)).toList();
+    }
+
+    _cards = selected;
 
     // Build deck: normal cards first, then reversed copies
     _deck = [];
@@ -261,6 +308,9 @@ class AnkiController extends ChangeNotifier {
     final entry = _deck.removeAt(0);
     entry.seen = true;
 
+    // Record the review in progress
+    _progress.recordReview(entry.card.noteId, rating.name);
+
     switch (rating) {
       case CardRating.again:
         _againCount++;
@@ -283,12 +333,21 @@ class AnkiController extends ChangeNotifier {
 
     if (_deck.isEmpty) {
       _isCompleted = true;
+      // Save progress when session completes
+      _saveProgress();
     }
 
     notifyListeners();
   }
 
-  /// Restarts the session with the same deck, reshuffled.
+  /// Saves progress to disk.
+  Future<void> _saveProgress() async {
+    if (_apkgPath != null) {
+      await AnkiProgressService.saveProgress(_apkgPath!, _progress);
+    }
+  }
+
+  /// Restarts the session with the same deck, re-sorted by progress.
   Future<void> restart() async {
     await _processCards(_loadedCards);
     notifyListeners();
@@ -296,6 +355,10 @@ class AnkiController extends ChangeNotifier {
 
   @override
   void dispose() {
+    // Save progress if session was in progress (not completed yet)
+    if (!_isCompleted && _cards.isNotEmpty) {
+      _saveProgress();
+    }
     // Clean up extracted audio cache
     AnkiService.cleanupMediaDirectory(_audioCacheDir);
     super.dispose();

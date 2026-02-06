@@ -30,10 +30,14 @@ class AnkiFlashcardPage extends StatefulWidget {
   /// Display name for the deck.
   final String sourceName;
 
+  /// The study mode for this session.
+  final StudyMode studyMode;
+
   const AnkiFlashcardPage({
     super.key,
     this.filePath,
     this.sourceName = 'Flashcards',
+    this.studyMode = StudyMode.newCards,
   });
 
   @override
@@ -60,7 +64,11 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
 
   void _loadDeck() {
     if (widget.filePath != null) {
-      _controller.loadFromFile(widget.filePath!, sourceName: widget.sourceName);
+      _controller.loadFromFile(
+        widget.filePath!,
+        sourceName: widget.sourceName,
+        mode: widget.studyMode,
+      );
     }
   }
 
@@ -801,14 +809,6 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
       runSpacing: 12,
       alignment: WrapAlignment.center,
       children: [
-        ElevatedButton.icon(
-          onPressed: controller.restart,
-          icon: const Icon(Icons.refresh),
-          label: const Text('Study Again'),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          ),
-        ),
         OutlinedButton.icon(
           onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.arrow_back),

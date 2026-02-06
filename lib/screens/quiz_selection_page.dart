@@ -478,7 +478,7 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
         ).colorScheme.surfaceContainerHighest.withAlpha(100),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withAlpha(50),
+          color: Theme.of(context).colorScheme.primary.withAlpha(50),
         ),
       ),
       child: Column(
