@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/controllers/anki_controller.dart';
 import 'package:jpn_learning_diary/models/anki_card.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
-import 'package:jpn_learning_diary/widgets/bird_fab.dart';
 import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
 import 'package:provider/provider.dart';
 
@@ -90,7 +89,6 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
           return Scaffold(
             appBar: LearningModeAppBar(title: widget.sourceName),
             backgroundColor: AppTheme.scaffoldBackground(context),
-            floatingActionButton: const BirdFab(),
             body: _buildBody(context, controller),
           );
         },

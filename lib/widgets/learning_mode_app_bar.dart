@@ -76,7 +76,14 @@ class LearningModeAppBar extends StatelessWidget
             const Spacer(),
 
             // Title
-            Text(title, style: Theme.of(context).textTheme.titleLarge),
+            Flexible(
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.titleLarge,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
 
             // Spacer to balance the layout
             const Spacer(),
