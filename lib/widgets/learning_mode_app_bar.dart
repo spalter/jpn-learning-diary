@@ -72,21 +72,16 @@ class LearningModeAppBar extends StatelessWidget
             // Back button
             _buildBackButton(context),
 
-            // Spacer to center the title
-            const Spacer(),
-
-            // Title
-            Flexible(
+            // Title — centered within the available space, truncates if too long
+            Expanded(
               child: Text(
                 title,
                 style: Theme.of(context).textTheme.titleLarge,
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
+                textAlign: TextAlign.center,
               ),
             ),
-
-            // Spacer to balance the layout
-            const Spacer(),
 
             // Custom action buttons
             if (actions != null) ...actions!,
