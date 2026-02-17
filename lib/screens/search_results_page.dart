@@ -223,6 +223,16 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     );
   }
 
+  /// Normalizes text for search by converting to lowercase and replacing 
+  /// German umlauts with their digraph equivalents (e.g., ä -> ae).
+  String _normalizeText(String text) {
+    return text.toLowerCase()
+      .replaceAll('ä', 'ae')
+      .replaceAll('ö', 'oe')
+      .replaceAll('ü', 'ue')
+      .replaceAll('ß', 'ss');
+  }
+
   /// Performs a comprehensive search across diary entries and kanji.
   ///
   /// Searches through:
@@ -239,14 +249,15 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     // Strip ruby patterns from Japanese text so searching for "何歳" finds "[何](なん)[歳](さい)"
     final allEntries = await diaryRepository.getAllEntries();
     final diaryResults = allEntries.where((entry) {
-      final query = widget.searchQuery.toLowerCase();
-      final strippedJapanese = JapaneseTextUtils.stripRubyPatterns(
+      final query = _normalizeText(widget.searchQuery);
+      final strippedJapanese = _normalizeText(JapaneseTextUtils.stripRubyPatterns(
         entry.japanese,
-      ).toLowerCase();
+      ));
+      
       return strippedJapanese.contains(query) ||
-          entry.romaji.toLowerCase().contains(query) ||
-          entry.meaning.toLowerCase().contains(query) ||
-          (entry.notes?.toLowerCase().contains(query) ?? false);
+          _normalizeText(entry.romaji).contains(query) ||
+          _normalizeText(entry.meaning).contains(query) ||
+          (_normalizeText(entry.notes ?? '').contains(query));
     }).toList();
 
     // Search kanji database using dedicated search method.
