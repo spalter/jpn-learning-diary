@@ -84,7 +84,7 @@ class WordData extends Equatable {
           id: id,
           written: written,
           meanings: meanings,
-          pronunciations: [if (pronounced != null) pronounced],
+          pronunciations: [?pronounced],
           priorities: priorities,
         );
       }
