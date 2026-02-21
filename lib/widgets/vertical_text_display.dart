@@ -175,7 +175,13 @@ class VerticalTextDisplay extends StatelessWidget {
     const double tokenWidth = 22.0;
 
     if (isPunctuation) {
-      return Text(token, style: style);
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final char in token.characters)
+            VerticalCharacter(character: char, style: style),
+        ],
+      );
     }
 
     return ClickableVerticalWord(
@@ -188,6 +194,55 @@ class VerticalTextDisplay extends StatelessWidget {
       fixedWidth: tokenWidth,
       isMobile: isMobile,
     );
+  }
+}
+
+class VerticalCharacter extends StatelessWidget {
+  final String character;
+  final TextStyle? style;
+
+  const VerticalCharacter({
+    super.key,
+    required this.character,
+    this.style,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final needsRotationPattern = RegExp(r'[「」『』（）〈〉《》【】〔〕…―ー～：；]');
+    final needsTranslationPattern = RegExp(r'[、。，．]');
+
+    if (needsRotationPattern.hasMatch(character)) {
+      Widget rotated = RotatedBox(
+        quarterTurns: 1,
+        child: Text(character, style: style),
+      );
+
+      // The chouonpu (ー) and similar characters often appear off-center to the left 
+      // when rotated because they sit on the horizontal baseline. We translate them 
+      // slightly to the right to center them visually in the vertical text line.
+      // Using Transform.translate ensures the layout box doesn't change, keeping
+      // ruby annotations perfectly aligned.
+      if (character == 'ー' || character == '―' || character == '…' || character == '～') {
+        final fontSize = style?.fontSize ?? 23.0;
+        return Transform.translate(
+          offset: Offset(fontSize * 0.15, 0),
+          child: rotated,
+        );
+      }
+
+      return rotated;
+    } else if (needsTranslationPattern.hasMatch(character)) {
+      // In vertical text, commas and periods are placed at the top right
+      // of the character cell. We translate them slightly to approximate this.
+      final fontSize = style?.fontSize ?? 23.0;
+      return Transform.translate(
+        offset: Offset(fontSize * 0.5, -fontSize * 0.5),
+        child: Text(character, style: style),
+      );
+    }
+
+    return Text(character, style: style);
   }
 }
 
@@ -294,10 +349,9 @@ class _ClickableVerticalWordState extends State<ClickableVerticalWord> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 for (final char in widget.word.characters)
-                  Text(
-                    char,
-                    style:
-                        widget.style?.copyWith(
+                  VerticalCharacter(
+                    character: char,
+                    style: widget.style?.copyWith(
                           color: textColor,
                           fontWeight: widget.isSelected ? FontWeight.bold : null,
                         ) ??
@@ -319,8 +373,8 @@ class _ClickableVerticalWordState extends State<ClickableVerticalWord> {
       mainAxisSize: MainAxisSize.min,
       children: [
         for (final char in widget.annotation!.characters)
-          Text(
-            char,
+          VerticalCharacter(
+            character: char,
             style: TextStyle(
               fontSize: 12,
               height: 1.0,
