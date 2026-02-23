@@ -193,13 +193,14 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
   /// Builds a diary entry card.
   Widget _buildDiaryEntryCard(DiaryEntry entry, bool useBorderedStyle) {
+    final strippedText = JapaneseTextUtils.stripRubyPatterns(entry.japanese);
     return DiaryEntryCard(
       key: ValueKey(entry.id),
       entry: entry,
       onEntryUpdated: (_) => _performSearch(),
       onEntryDeleted: (_) => _performSearch(),
       onTap: widget.onSearchTextSet != null
-          ? () => widget.onSearchTextSet!(entry.japanese)
+          ? () => widget.onSearchTextSet!(strippedText)
           : null,
       useBorderedStyle: useBorderedStyle,
     );
