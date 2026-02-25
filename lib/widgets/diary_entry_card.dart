@@ -101,7 +101,7 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeaderRow(context, showFurigana: showFurigana),
-                if (showRomaji) ...[
+                if (showRomaji && widget.entry.romaji.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   _buildRomaji(context),
                 ],
