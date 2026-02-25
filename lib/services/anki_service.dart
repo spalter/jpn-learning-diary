@@ -10,6 +10,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:archive/archive.dart';
+import 'package:archive/archive_io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:jpn_learning_diary/models/anki_card.dart';
 import 'package:path/path.dart' as path;
@@ -116,25 +117,28 @@ class AnkiService {
   /// Iterates the ZIP entries but only decompresses the SQLite database
   /// and the media JSON file. All numbered media files (images, audio) are
   /// skipped for fast loading. Audio can be extracted later on-demand.
+  ///
+  /// Uses streaming decompression to write the DB directly to a temp file,
+  /// avoiding holding the full decompressed database in Dart heap memory.
   static AnkiDeckData _parseApkg(String filePath) {
     final inputStream = InputFileStream(filePath);
     final archive = ZipDecoder().decodeStream(inputStream);
 
-    // Scan entries — only decompress DB + media JSON
-    List<int>? dbBytes;
-    List<int>? dbBytesLegacy21;
-    List<int>? dbBytesLegacy2;
+    // Scan entries — find DB and media JSON without decompressing media
+    ArchiveFile? dbEntry;
+    ArchiveFile? dbEntryLegacy21;
+    ArchiveFile? dbEntryLegacy2;
     Map<String, String> mediaMap = {};
 
     for (final file in archive) {
       final name = file.name.toLowerCase();
 
       if (name == 'collection.anki21b' || name.endsWith('.anki21b')) {
-        dbBytes = file.content as List<int>;
+        dbEntry = file;
       } else if (name == 'collection.anki21' || name.endsWith('.anki21')) {
-        dbBytesLegacy21 = file.content as List<int>;
+        dbEntryLegacy21 = file;
       } else if (name == 'collection.anki2' || name.endsWith('.anki2')) {
-        dbBytesLegacy2 = file.content as List<int>;
+        dbEntryLegacy2 = file;
       } else if (name == 'media') {
         try {
           final mediaJson = utf8.decode(file.content as List<int>);
@@ -151,26 +155,31 @@ class AnkiService {
       // Skip all other files (numbered media) — no decompression cost
     }
 
-    inputStream.closeSync();
-
     // Priority: anki21b > anki21 > anki2
-    final selectedDbBytes = dbBytes ?? dbBytesLegacy21 ?? dbBytesLegacy2;
+    final selectedDbEntry = dbEntry ?? dbEntryLegacy21 ?? dbEntryLegacy2;
 
-    if (selectedDbBytes == null) {
+    if (selectedDbEntry == null) {
+      _closeArchive(archive, inputStream);
       throw Exception(
         'Invalid APKG file: no Anki database found.',
       );
     }
 
-    // Write the SQLite DB to a temporary file so sqlite3 can open it
+    // Stream-decompress the DB directly to a temp file instead of
+    // holding the full decompressed bytes in Dart heap memory.
     final tempDbPath = path.join(
       Directory.systemTemp.path,
       'anki_temp_${DateTime.now().millisecondsSinceEpoch}.db',
     );
-    final tempDbFile = File(tempDbPath);
 
     try {
-      tempDbFile.writeAsBytesSync(selectedDbBytes);
+      final outputStream = OutputFileStream(tempDbPath);
+      selectedDbEntry.writeContent(outputStream);
+      outputStream.closeSync();
+
+      // Free archive memory before opening the DB
+      _closeArchive(archive, inputStream);
+
       final db = sqlite3.open(tempDbPath);
 
       try {
@@ -184,10 +193,19 @@ class AnkiService {
         db.close();
       }
     } finally {
+      final tempDbFile = File(tempDbPath);
       if (tempDbFile.existsSync()) {
         tempDbFile.deleteSync();
       }
     }
+  }
+
+  /// Closes all archive entries and the input stream to free memory.
+  static void _closeArchive(Archive archive, InputFileStream inputStream) {
+    for (final entry in archive) {
+      entry.closeSync();
+    }
+    inputStream.closeSync();
   }
 
   /// Extracts a single media file (audio or image) from an APKG on-demand.
@@ -224,21 +242,28 @@ class AnkiService {
 
     if (archiveIndex == null) return null;
 
-    // Open the APKG and extract just this one file
+    // Open the APKG and extract just this one file.
+    // Uses streaming decompression to write directly to disk instead of
+    // holding the full decompressed media bytes in Dart heap memory.
     final inputStream = InputFileStream(apkgPath);
     final archive = ZipDecoder().decodeStream(inputStream);
 
-    for (final file in archive) {
-      if (file.name == archiveIndex) {
-        Directory(cacheDir).createSync(recursive: true);
-        File(targetPath).writeAsBytesSync(file.content as List<int>);
-        inputStream.closeSync();
-        return targetPath;
+    try {
+      for (final file in archive) {
+        if (file.name == archiveIndex) {
+          Directory(cacheDir).createSync(recursive: true);
+          final output = OutputFileStream(targetPath);
+          file.writeContent(output);
+          output.closeSync();
+          return targetPath;
+        }
       }
+      return null;
+    } finally {
+      // Always close all entries and the input stream to free memory,
+      // even when we only needed one file from the archive.
+      _closeArchive(archive, inputStream);
     }
-
-    inputStream.closeSync();
-    return null;
   }
 
   /// Cleans up a temporary media directory.

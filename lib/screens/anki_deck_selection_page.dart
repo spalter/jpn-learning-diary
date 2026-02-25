@@ -74,11 +74,12 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
   }
 
   /// Imports an APKG file from the device using the file picker.
+  /// Uses stream-based copying to avoid loading the entire file into memory,
   Future<void> _importDeckFile() async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.any,
-        withData: true,
+        withData: false,
       );
 
       if (result == null || result.files.isEmpty) {
@@ -86,7 +87,6 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
       }
 
       final pickedFile = result.files.first;
-      final bytes = pickedFile.bytes;
       final fileName = pickedFile.name;
 
       // Validate file extension
@@ -101,7 +101,8 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
         return;
       }
 
-      if (bytes == null) {
+      final sourcePath = pickedFile.path;
+      if (sourcePath == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Failed to read file')),
@@ -110,10 +111,10 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
         return;
       }
 
-      // Get the flashcards directory and save the file
+      // Stream-copy the file to the flashcards directory
       final flashcardsDir = await AnkiService.getFlashcardsDirectory();
-      final targetFile = File('${flashcardsDir.path}/$fileName');
-      await targetFile.writeAsBytes(bytes);
+      final targetPath = '${flashcardsDir.path}/$fileName';
+      await File(sourcePath).copy(targetPath);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
