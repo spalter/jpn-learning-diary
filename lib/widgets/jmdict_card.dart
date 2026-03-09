@@ -22,16 +22,9 @@ import 'package:url_launcher/url_launcher.dart';
 /// metadata badges.
 ///
 /// * [entry]: The JMdict data object containing the dictionary entry details.
-/// * [useBorderedStyle]: Whether to render the card with a visible border (default false).
 class JMdictCard extends StatefulWidget {
   /// The JMdict entry data to display.
   final JMdictEntry entry;
-
-  /// Controls whether the card uses a bordered style with visible edges.
-  ///
-  /// When false (the default), the card uses a minimal flat appearance that
-  /// works well in list views. When true, adds borders and hover effects.
-  final bool useBorderedStyle;
 
   /// Global key to access the navigation bar for inserting search text.
   final GlobalKey<AppNavigationBarState>? navigationBarKey;
@@ -46,7 +39,6 @@ class JMdictCard extends StatefulWidget {
   const JMdictCard({
     super.key,
     required this.entry,
-    this.useBorderedStyle = false,
     this.navigationBarKey,
     this.onSearchTextSet,
   });
@@ -70,8 +62,8 @@ class _JMdictCardState extends State<JMdictCard> {
   /// enable tap-to-copy, double-tap-to-search, and long-press-to-lookup.
   @override
   Widget build(BuildContext context) {
-    // Apply hover color effect only in list mode (minimal style)
-    final useHoverColor = !widget.useBorderedStyle && _isHovering;
+    // Apply hover color effect to minimal style (now default)
+    final useHoverColor = _isHovering;
     final primaryColor = useHoverColor
         ? Theme.of(context).colorScheme.primary
         : null;
@@ -80,9 +72,7 @@ class _JMdictCardState extends State<JMdictCard> {
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
       child: AppCard(
-        style: widget.useBorderedStyle
-            ? AppCardStyle.bordered
-            : AppCardStyle.minimal,
+        style: AppCardStyle.minimal,
         margin: const EdgeInsets.only(bottom: 12, right: 16),
         padding: const EdgeInsets.all(16),
         onTap: () => _handleCopyToClipboard(context),
@@ -173,15 +163,6 @@ class _JMdictCardState extends State<JMdictCard> {
         ..._buildSenses(context),
       ],
     );
-
-    // For bordered style (card view), use scrolling with max height constraint
-    // For minimal style (list view), let the content grow naturally
-    if (widget.useBorderedStyle) {
-      return ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 400),
-        child: SingleChildScrollView(child: content),
-      );
-    }
 
     return content;
   }

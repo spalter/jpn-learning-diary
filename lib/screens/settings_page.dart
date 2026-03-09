@@ -38,7 +38,6 @@ class _SettingsPageState extends State<SettingsPage> {
       children: [
         _buildInfoSection(context),
         _buildThemeStyleSetting(context),
-        _buildViewModeSetting(context),
         _buildDisplaySettingsSection(context),
         _buildDatabaseFileSetting(context),
         _buildCloudSyncSetting(context),
@@ -53,54 +52,6 @@ class _SettingsPageState extends State<SettingsPage> {
     required Widget child,
   }) {
     return child;
-  }
-
-  /// Builds the view mode setting row.
-  Widget _buildViewModeSetting(BuildContext context) {
-    if (_isMobile) {
-      return const SizedBox.shrink();
-    }
-    return _buildSettingRow(
-      context: context,
-      child: ListTile(
-        title: const Text('Preferred View Mode'),
-        subtitle: const Text('Grid or list layout for Diary, Search, and Study pages'),
-        trailing: FutureBuilder<String>(
-          future: AppPreferences.getViewMode(),
-          builder: (context, snapshot) {
-            final currentMode = snapshot.data ?? 'list';
-            return SegmentedButton<String>(
-              style: SegmentedButton.styleFrom(
-                selectedBackgroundColor: Theme.of(
-                  context,
-                ).colorScheme.onSurface,
-                selectedForegroundColor: Theme.of(context).colorScheme.surface,
-                side: BorderSide(
-                  color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
-                ),
-              ),
-              segments: const [
-                ButtonSegment<String>(
-                  value: 'list',
-                  icon: Icon(Icons.view_list),
-                  label: Text('List'),
-                ),
-                ButtonSegment<String>(
-                  value: 'grid',
-                  icon: Icon(Icons.grid_view),
-                  label: Text('Grid'),
-                ),
-              ],
-              selected: {currentMode},
-              onSelectionChanged: (Set<String> selection) async {
-                await AppPreferences.setViewMode(selection.first);
-                setState(() {}); // Refresh to show updated selection
-              },
-            );
-          },
-        ),
-      ),
-    );
   }
 
   /// Builds the display settings section.

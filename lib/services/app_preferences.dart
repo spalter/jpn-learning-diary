@@ -17,7 +17,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// methods for each application setting to ensure type safety and consistency.
 class AppPreferences {
   static const String _keyCustomDbPath = 'custom_db_path';
-  static const String _keyViewMode = 'view_mode';
   static const String _keyShowRomaji = 'show_romaji';
   static const String _keyShowFurigana = 'show_furigana';
   static const String _keyQuizQuestionCount = 'quiz_question_count';
@@ -58,22 +57,6 @@ class AppPreferences {
   static Future<bool> hasCustomDatabasePath() async {
     final path = await getCustomDatabasePath();
     return path != null && path.isNotEmpty;
-  }
-
-  /// Gets the preferred view mode (grid or list).
-  ///
-  /// Returns 'grid' or 'list'. Defaults to 'list' if not set.
-  static Future<String> getViewMode() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyViewMode) ?? 'list';
-  }
-
-  /// Sets the preferred view mode.
-  ///
-  /// [mode] should be either 'grid' or 'list'.
-  static Future<void> setViewMode(String mode) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyViewMode, mode);
   }
 
   /// Gets whether to show romaji in diary entries.

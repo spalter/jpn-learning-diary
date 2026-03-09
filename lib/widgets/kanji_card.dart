@@ -22,16 +22,9 @@ import 'package:url_launcher/url_launcher.dart';
 /// and JLPT levels.
 ///
 /// * [kanji]: The kanji data object containing character details.
-/// * [useBorderedStyle]: Whether to render the card with a visible border (default false).
 class KanjiCard extends StatefulWidget {
   /// The kanji data to display.
   final KanjiData kanji;
-
-  /// Controls whether the card uses a bordered style with visible edges.
-  ///
-  /// When false (the default), the card uses a minimal flat appearance that
-  /// works well in list views. When true, adds borders and hover effects.
-  final bool useBorderedStyle;
 
   /// Global key to access the navigation bar for inserting search text.
   final GlobalKey<AppNavigationBarState>? navigationBarKey;
@@ -43,7 +36,6 @@ class KanjiCard extends StatefulWidget {
   const KanjiCard({
     super.key,
     required this.kanji,
-    this.useBorderedStyle = false,
     this.navigationBarKey,
   });
 
@@ -66,15 +58,15 @@ class _KanjiCardState extends State<KanjiCard> {
   /// enable tap-to-copy, double-tap-to-search, and long-press-to-lookup.
   @override
   Widget build(BuildContext context) {
-    // Apply hover color effect only in list mode (minimal style)
-    final useHoverColor = !widget.useBorderedStyle && _isHovering;
+    // Apply hover color effect to minimal style (now default)
+    final useHoverColor = _isHovering;
     final kanjiColor = useHoverColor ? Theme.of(context).colorScheme.primary : null;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
       child: AppCard(
-        style: widget.useBorderedStyle ? AppCardStyle.bordered : AppCardStyle.minimal,
+        style: AppCardStyle.minimal,
         margin: const EdgeInsets.only(bottom: 12, right: 16),
         padding: const EdgeInsets.all(16),
         onTap: () => _handleCopyToClipboard(context),

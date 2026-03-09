@@ -39,12 +39,6 @@ class DiaryEntryCard extends StatefulWidget {
   /// Callback when the card is tapped.
   final VoidCallback? onTap;
 
-  /// Controls whether the card uses a bordered style with visible edges.
-  ///
-  /// When false (the default), the card uses a minimal flat appearance that
-  /// works well in list views. When true, adds borders and hover effects.
-  final bool useBorderedStyle;
-
   /// Creates a diary entry card.
   ///
   /// The [entry] parameter is required and contains all the information
@@ -55,7 +49,6 @@ class DiaryEntryCard extends StatefulWidget {
     this.onEntryUpdated,
     this.onEntryDeleted,
     this.onTap,
-    this.useBorderedStyle = false,
   });
 
   @override
@@ -89,9 +82,7 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
           onEnter: (_) => setState(() => _isHovering = true),
           onExit: (_) => setState(() => _isHovering = false),
           child: AppCard(
-            style: widget.useBorderedStyle
-                ? AppCardStyle.bordered
-                : AppCardStyle.minimal,
+            style: AppCardStyle.minimal,
             margin: const EdgeInsets.only(bottom: 12, right: 16),
             padding: const EdgeInsets.all(16),
             onTap: () => _handleCopyToClipboard(context),
@@ -141,8 +132,7 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
     BuildContext context, {
     required bool showFurigana,
   }) {
-    // Apply hover color effect only in list mode (minimal style)
-    final useHoverColor = !widget.useBorderedStyle && _isHovering;
+    final useHoverColor = _isHovering;
     final textColor = useHoverColor
         ? Theme.of(context).colorScheme.primary
         : null;

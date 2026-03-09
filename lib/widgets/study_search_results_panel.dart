@@ -88,8 +88,7 @@ class StudySearchResultsPanel extends StatelessWidget {
             itemCount: results.length,
             itemBuilder: (context, index) {
               return JMdictCard(
-                entry: results[index],
-                useBorderedStyle: false,
+                entry: results[index]
               );
             },
           ),
