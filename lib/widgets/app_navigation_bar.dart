@@ -205,12 +205,11 @@ class AppNavigationBarState extends State<AppNavigationBar> {
   List<Widget> _buildActionButtons(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final defaultColor = Theme.of(context).colorScheme.onSurface;
-    final isMac = Platform.isMacOS;
 
     return [
       ExcludeFocus(
         child: StyledTooltip(
-          message: 'Search (${isMac ? "Cmd" : "Ctrl"}+K)',
+          message: 'Search',
           child: IconButton(
             icon: const Icon(Icons.search),
             onPressed: widget.onSearch,

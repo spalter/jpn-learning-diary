@@ -243,6 +243,7 @@ class HelpPage extends StatelessWidget {
       children: [
         _buildSubsection(context, 'General'),
         _buildShortcutItem(context, '$modKey + N', 'New diary entry'),
+        _buildShortcutItem(context, '$modKey + F', 'Search diary entries'),
         _buildShortcutItem(context, '$modKey + ,', 'Open settings'),
         _buildShortcutItem(context, '?', 'Open help (this page)'),
         _buildShortcutItem(context, 'Escape', 'Unfocus / close dialogs'),

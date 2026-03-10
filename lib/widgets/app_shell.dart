@@ -328,7 +328,8 @@ class _AppShellState extends State<AppShell> {
         null;
     if (!isFocusedOnTextField) {
       final isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
-      if (key == LogicalKeyboardKey.slash && isShiftPressed) {
+      if ((key == LogicalKeyboardKey.slash && isShiftPressed) ||
+          key == LogicalKeyboardKey.f1) {
         _openHelp();
         return true;
       }
