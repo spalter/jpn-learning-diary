@@ -61,6 +61,7 @@ class LearningModeAppBar extends StatelessWidget
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      scrolledUnderElevation: 0,
       automaticallyImplyLeading: false,
       titleSpacing: 0,
       title: DragOnlyMoveArea(

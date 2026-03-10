@@ -234,6 +234,12 @@ class _AppCardState extends State<AppCard> {
   /// Builds a minimal card decoration without visible borders.
   BoxDecoration _buildMinimalDecoration(BuildContext context) {
     return BoxDecoration(
+      color: widget.isSelected
+          ? Theme.of(context).colorScheme.primary.withAlpha(20)
+          : (_isHovering
+              ? Theme.of(context).colorScheme.primary.withAlpha(15)
+              : null),
+      borderRadius: BorderRadius.circular(12),
       border: Border(
         bottom: BorderSide(
           color: Theme.of(context).colorScheme.primary.withAlpha(0),

@@ -56,6 +56,7 @@ class HelpPage extends StatelessWidget {
         children: [
           AppBar(
             title: const Text('Help'),
+            scrolledUnderElevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.close),
               onPressed: () => Navigator.of(context).pop(),

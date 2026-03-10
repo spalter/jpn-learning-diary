@@ -86,6 +86,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      scrolledUnderElevation: 0,
       // Show menu button on mobile to open the drawer
       leading: _isMobile
           ? IconButton(
