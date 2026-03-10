@@ -35,6 +35,9 @@ class JMdictCard extends StatefulWidget {
   /// Optional callback for tap action. overrides default copy behavior.
   final VoidCallback? onTap;
 
+  /// Optional callback for double-tap action.
+  final VoidCallback? onDoubleTap;
+
   /// Creates a JMdict card.
   ///
   /// The [entry] parameter is required and contains all the information
@@ -45,6 +48,7 @@ class JMdictCard extends StatefulWidget {
     this.navigationBarKey,
     this.onSearchTextSet,
     this.onTap,
+    this.onDoubleTap,
   });
 
   @override
@@ -80,7 +84,7 @@ class _JMdictCardState extends State<JMdictCard> {
         margin: const EdgeInsets.only(bottom: 12, right: 16),
         padding: const EdgeInsets.all(16),
         onTap: widget.onTap ?? () => _handleCopyToClipboard(context),
-        // onDoubleTap: () => _handleInsertIntoSearch(context),
+        onDoubleTap: widget.onDoubleTap,
         onLongPress: () => _handleOpenDictionary(context),
         child: _buildCardContent(context, primaryColor),
       ),

@@ -193,8 +193,21 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     return DiaryEntryCard(
       key: ValueKey(entry.id),
       entry: entry,
+      onDoubleTap: () => _openSearchForEntry(entry),
       onEntryUpdated: (_) => _performSearch(),
       onEntryDeleted: (_) => _performSearch(),
+    );
+  }
+
+  /// Opens the search results page for the given entry's Japanese text.
+  void _openSearchForEntry(DiaryEntry entry) {
+    if (!mounted) return;
+
+    final query = JapaneseTextUtils.stripRubyPatterns(entry.japanese);
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SearchResultsPage(searchQuery: query),
+      ),
     );
   }
 
@@ -202,6 +215,17 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   Widget _buildKanjiCard(KanjiData kanji) {
     return KanjiCard(
       kanji: kanji,
+      onDoubleTap: () => _openSearchForKanji(kanji),
+    );
+  }
+
+  void _openSearchForKanji(KanjiData kanji) {
+    if (!mounted) return;
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SearchResultsPage(searchQuery: kanji.kanji),
+      ),
     );
   }
 
@@ -209,7 +233,18 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   Widget _buildJmdictCard(JMdictEntry entry) {
     return JMdictCard(
       entry: entry,
+      onDoubleTap: () => _openSearchForJmdict(entry),
       // onSearchTextSet: widget.onSearchTextSet,
+    );
+  }
+
+  void _openSearchForJmdict(JMdictEntry entry) {
+    if (!mounted) return;
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SearchResultsPage(searchQuery: entry.primaryForm),
+      ),
     );
   }
 
