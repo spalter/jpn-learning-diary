@@ -45,8 +45,6 @@ class HelpPage extends StatelessWidget {
         const SizedBox(height: 32),
         _buildFlashcardSection(context),
         const SizedBox(height: 32),
-        _buildSearchSection(context),
-        const SizedBox(height: 32),
         _buildSettingsSection(context),
         const SizedBox(height: 32),
         _buildCreditsSection(context),
@@ -243,7 +241,6 @@ class HelpPage extends StatelessWidget {
       icon: Icons.keyboard,
       children: [
         _buildSubsection(context, 'General'),
-        _buildShortcutItem(context, '$modKey + F', 'Focus search field'),
         _buildShortcutItem(context, '$modKey + N', 'New diary entry'),
         _buildShortcutItem(context, '$modKey + ,', 'Open settings'),
         _buildShortcutItem(context, '?', 'Open help (this page)'),
@@ -423,12 +420,6 @@ class HelpPage extends StatelessWidget {
         ),
         _buildHelpItem(
           context,
-          icon: Icons.ads_click,
-          title: 'Double Tap',
-          description: 'Search for the entry in the dictionary.',
-        ),
-        _buildHelpItem(
-          context,
           icon: Icons.pan_tool,
           title: 'Long Press',
           description: 'Open the entry for editing.',
@@ -441,29 +432,6 @@ class HelpPage extends StatelessWidget {
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontFamily: 'monospace',
               ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSearchSection(BuildContext context) {
-    return _buildSectionCard(
-      context: context,
-      title: 'Search',
-      icon: Icons.search,
-      children: [
-        Text(
-          'The search bar finds matches across:',
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        const SizedBox(height: 8),
-        _buildBulletPoint(context, 'Your diary entries (Japanese, romaji, meaning, notes)'),
-        _buildBulletPoint(context, 'Kanji database with readings and meanings'),
-        _buildBulletPoint(context, 'JMdict Japanese-English dictionary'),
-        const SizedBox(height: 12),
-        Text(
-          'Search is tokenized, so searching "食べる" will also find entries containing that word within longer text.',
-          style: Theme.of(context).textTheme.bodyMedium,
         ),
       ],
     );

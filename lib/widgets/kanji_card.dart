@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/widgets/app_card.dart';
-import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Card widget for displaying a single kanji character entry.
@@ -26,18 +25,11 @@ class KanjiCard extends StatefulWidget {
   /// The kanji data to display.
   final KanjiData kanji;
 
-  /// Global key to access the navigation bar for inserting search text.
-  final GlobalKey<AppNavigationBarState>? navigationBarKey;
-
   /// Creates a kanji card.
   ///
   /// The [kanji] parameter is required and contains all the information
   /// to be displayed in the card.
-  const KanjiCard({
-    super.key,
-    required this.kanji,
-    this.navigationBarKey,
-  });
+  const KanjiCard({super.key, required this.kanji});
 
   @override
   State<KanjiCard> createState() => _KanjiCardState();
@@ -55,12 +47,14 @@ class _KanjiCardState extends State<KanjiCard> {
   ///
   /// The card adapts its appearance based on the style setting, applying a
   /// subtle color change on hover when in minimal mode. Gesture handlers
-  /// enable tap-to-copy, double-tap-to-search, and long-press-to-lookup.
+  /// enable tap-to-copy, and long-press-to-lookup.
   @override
   Widget build(BuildContext context) {
     // Apply hover color effect to minimal style (now default)
     final useHoverColor = _isHovering;
-    final kanjiColor = useHoverColor ? Theme.of(context).colorScheme.primary : null;
+    final kanjiColor = useHoverColor
+        ? Theme.of(context).colorScheme.primary
+        : null;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
@@ -70,7 +64,6 @@ class _KanjiCardState extends State<KanjiCard> {
         margin: const EdgeInsets.only(bottom: 12, right: 16),
         padding: const EdgeInsets.all(16),
         onTap: () => _handleCopyToClipboard(context),
-        onDoubleTap: () => _handleInsertIntoSearch(context),
         onLongPress: () => _handleOpenDictionary(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,7 +105,11 @@ class _KanjiCardState extends State<KanjiCard> {
                           Icons.flag,
                         ),
                       if (widget.kanji.freq != null)
-                        _buildBadge(context, '#${widget.kanji.freq}', Icons.trending_up),
+                        _buildBadge(
+                          context,
+                          '#${widget.kanji.freq}',
+                          Icons.trending_up,
+                        ),
                     ],
                   ),
                 ),
@@ -121,7 +118,12 @@ class _KanjiCardState extends State<KanjiCard> {
             const SizedBox(height: 16),
 
             // Meanings
-            _buildSection(context, 'Meanings', widget.kanji.meanings, Icons.translate),
+            _buildSection(
+              context,
+              'Meanings',
+              widget.kanji.meanings,
+              Icons.translate,
+            ),
             const SizedBox(height: 12),
 
             // On readings
@@ -155,7 +157,9 @@ class _KanjiCardState extends State<KanjiCard> {
                   Text(
                     'WaniKani Level ${widget.kanji.wkLevel}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary.withAlpha(179),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withAlpha(179),
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -176,23 +180,6 @@ class _KanjiCardState extends State<KanjiCard> {
         SnackBar(
           content: Text('Copied: ${widget.kanji.kanji}'),
           duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
-  /// Inserts the kanji into the navigation bar's search field for quick lookup.
-  ///
-  /// Falls back to showing a message if the navigation bar reference is unavailable.
-  void _handleInsertIntoSearch(BuildContext context) {
-    if (widget.navigationBarKey?.currentState != null) {
-      widget.navigationBarKey!.currentState!.insertSearchText(widget.kanji.kanji);
-    } else {
-      // Fallback: show a message if navigation bar is not available
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Search field not available'),
-          duration: Duration(seconds: 2),
         ),
       );
     }

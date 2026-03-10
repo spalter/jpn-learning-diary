@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/models/word_data.dart';
 import 'package:jpn_learning_diary/widgets/app_card.dart';
-import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Card widget for displaying a single Japanese word entry.
@@ -31,9 +30,6 @@ class WordCard extends StatefulWidget {
   /// Defaults to false for a minimal appearance.
   final bool useBorderedStyle;
 
-  /// Global key to access the navigation bar for inserting search text.
-  final GlobalKey<AppNavigationBarState>? navigationBarKey;
-
   /// Creates a word card.
   ///
   /// The [word] parameter is required and contains all the information
@@ -42,7 +38,6 @@ class WordCard extends StatefulWidget {
     super.key,
     required this.word,
     this.useBorderedStyle = false,
-    this.navigationBarKey,
   });
 
   @override
@@ -61,24 +56,25 @@ class _WordCardState extends State<WordCard> {
   ///
   /// The card adapts its appearance based on the style setting, applying a
   /// subtle color change on hover when in minimal mode. Gesture handlers
-  /// enable tap-to-copy, double-tap-to-search, and long-press-to-lookup.
+  /// enable tap-to-copy, and long-press-to-lookup.
   @override
   Widget build(BuildContext context) {
     // Apply hover color effect only in list mode (minimal style)
     final useHoverColor = !widget.useBorderedStyle && _isHovering;
-    final writtenColor =
-        useHoverColor ? Theme.of(context).colorScheme.primary : null;
+    final writtenColor = useHoverColor
+        ? Theme.of(context).colorScheme.primary
+        : null;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
       child: AppCard(
-        style:
-            widget.useBorderedStyle ? AppCardStyle.bordered : AppCardStyle.minimal,
+        style: widget.useBorderedStyle
+            ? AppCardStyle.bordered
+            : AppCardStyle.minimal,
         margin: const EdgeInsets.only(bottom: 12, right: 16),
         padding: const EdgeInsets.all(16),
         onTap: () => _handleCopyToClipboard(context),
-        onDoubleTap: () => _handleInsertIntoSearch(context),
         onLongPress: () => _handleOpenDictionary(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,7 +142,9 @@ class _WordCardState extends State<WordCard> {
                     child: Text(
                       widget.word.priorities.join(', '),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.primary.withAlpha(179),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withAlpha(179),
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -168,23 +166,6 @@ class _WordCardState extends State<WordCard> {
         SnackBar(
           content: Text('Copied: ${widget.word.written}'),
           duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
-  /// Inserts the word into the navigation bar's search field for quick lookup.
-  ///
-  /// Falls back to showing a message if the navigation bar reference is unavailable.
-  void _handleInsertIntoSearch(BuildContext context) {
-    if (widget.navigationBarKey?.currentState != null) {
-      widget.navigationBarKey!.currentState!.insertSearchText(widget.word.written);
-    } else {
-      // Fallback: show a message if navigation bar is not available
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Search field not available'),
-          duration: Duration(seconds: 2),
         ),
       );
     }

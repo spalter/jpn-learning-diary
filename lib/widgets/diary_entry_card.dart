@@ -20,8 +20,8 @@ import 'package:jpn_learning_diary/widgets/ruby_text.dart';
 ///
 /// This widget presents a learned phrase or word with its Japanese text
 /// (with inline ruby patterns for furigana), romaji transliteration, English
-/// meaning, and optional notes. Users can tap to copy the text, double-tap
-/// for custom actions, or long-press to edit the entry.
+/// meaning, and optional notes. Users can tap to copy the text
+/// or long-press to edit the entry.
 ///
 /// * [entry]: The diary entry data object containing text and meanings.
 /// * [onEntryUpdated]: Callback with updated entry when the entry is modified.
@@ -36,9 +36,6 @@ class DiaryEntryCard extends StatefulWidget {
   /// Callback when the entry is deleted, passes the entry ID.
   final void Function(int entryId)? onEntryDeleted;
 
-  /// Callback when the card is tapped.
-  final VoidCallback? onTap;
-
   /// Creates a diary entry card.
   ///
   /// The [entry] parameter is required and contains all the information
@@ -48,7 +45,6 @@ class DiaryEntryCard extends StatefulWidget {
     required this.entry,
     this.onEntryUpdated,
     this.onEntryDeleted,
-    this.onTap,
   });
 
   @override
@@ -86,7 +82,6 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
             margin: const EdgeInsets.only(bottom: 12, right: 16),
             padding: const EdgeInsets.all(16),
             onTap: () => _handleCopyToClipboard(context),
-            onDoubleTap: widget.onTap,
             onLongPress: () => _handleEditEntry(context),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
