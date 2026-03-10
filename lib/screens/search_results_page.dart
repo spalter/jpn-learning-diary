@@ -365,7 +365,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   /// Builds the scrollable list of search results.
   Widget _buildResultsList(_SearchResults results) {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.only(left: 16, top: 16, bottom: 16),
       itemCount: _calculateItemCount(results),
       itemBuilder: (context, index) =>
           _buildResultItem(context, results, index),

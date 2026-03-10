@@ -217,10 +217,14 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                         child: ListView(
                           controller: _scrollController,
                           shrinkWrap: true,
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.only(
+                            left: 16,
+                            top: 16,
+                            bottom: 16,
+                          ),
                           children: [
-                          if (_diaryResults.isNotEmpty) ...[
-                            _buildSectionHeader('Diary Entries', Icons.book),
+                            if (_diaryResults.isNotEmpty) ...[
+                              _buildSectionHeader('Diary Entries', Icons.book),
                             ..._diaryResults.map((entry) => Padding(
                                   padding: const EdgeInsets.only(bottom: 8.0),
                                   child: DiaryEntryCard(
