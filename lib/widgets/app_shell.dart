@@ -296,8 +296,8 @@ class _AppShellState extends State<AppShell> {
       return true;
     }
 
-    // Cmd+K (Mac) / Ctrl+K (Win/Linux) - Global search
-    if (key == LogicalKeyboardKey.keyK) {
+    // Cmd+F (Mac) / Ctrl+F (Win/Linux) - Global search
+    if (key == LogicalKeyboardKey.keyF) {
       if ((Platform.isMacOS && isMetaPressed) ||
           (!Platform.isMacOS && isControlPressed)) {
         _showGlobalSearch();
