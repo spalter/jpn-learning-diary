@@ -53,6 +53,9 @@ class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
   /// Callback for navigating to dashboard page.
   final VoidCallback onNavigateToDashboard;
 
+  /// Callback for navigating to study mode page.
+  final VoidCallback onNavigateToStudyMode;
+
   /// Callback for navigating to settings page.
   final VoidCallback onNavigateToSettings;
 
@@ -74,6 +77,7 @@ class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
     required this.onNavigateToHiragana,
     required this.onNavigateToKatakana,
     required this.onNavigateToDashboard,
+    required this.onNavigateToStudyMode,
     required this.onNavigateToSettings,
     required this.onSearch,
     required this.onClearSearch,
@@ -177,8 +181,8 @@ class AppNavigationBarState extends State<AppNavigationBar> {
           child: IconButton(
             icon: Icon(
               Icons.menu_book,
-              // Also highlight when on search results (index 5)
-              color: (widget.currentPageIndex == 0 || widget.currentPageIndex == 5)
+              // Also highlight when on search results (index 6)
+              color: (widget.currentPageIndex == 0 || widget.currentPageIndex == 6)
                   ? primaryColor
                   : defaultColor,
             ),
@@ -220,11 +224,23 @@ class AppNavigationBarState extends State<AppNavigationBar> {
       ),
       ExcludeFocus(
         child: StyledTooltip(
+          message: 'Study Mode',
+          child: IconButton(
+            icon: Icon(
+              Icons.auto_stories,
+              color: widget.currentPageIndex == 3 ? primaryColor : defaultColor,
+            ),
+            onPressed: widget.onNavigateToStudyMode,
+          ),
+        ),
+      ),
+      ExcludeFocus(
+        child: StyledTooltip(
           message: 'Learning',
           child: IconButton(
             icon: Icon(
               Icons.school,
-              color: widget.currentPageIndex == 3 ? primaryColor : defaultColor,
+              color: widget.currentPageIndex == 4 ? primaryColor : defaultColor,
             ),
             onPressed: widget.onNavigateToDashboard,
           ),
@@ -312,7 +328,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
           child: IconButton(
             icon: Icon(
               Icons.settings,
-              color: widget.currentPageIndex == 4 ? primaryColor : defaultColor,
+              color: widget.currentPageIndex == 5 ? primaryColor : defaultColor,
             ),
             onPressed: widget.onNavigateToSettings,
           ),
@@ -382,6 +398,9 @@ class AppNavigationDrawer extends StatelessWidget {
   /// Callback for navigating to dashboard page.
   final VoidCallback onNavigateToDashboard;
 
+  /// Callback for navigating to study mode page.
+  final VoidCallback onNavigateToStudyMode;
+
   /// Callback for navigating to settings page.
   final VoidCallback onNavigateToSettings;
 
@@ -391,6 +410,7 @@ class AppNavigationDrawer extends StatelessWidget {
     required this.onNavigateToHiragana,
     required this.onNavigateToKatakana,
     required this.onNavigateToDashboard,
+    required this.onNavigateToStudyMode,
     required this.onNavigateToSettings,
   });
 
@@ -453,6 +473,15 @@ class AppNavigationDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.pop(context);
                     onNavigateToKatakana();
+                  },
+                ),
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.auto_stories,
+                  title: 'Study Mode',
+                  onTap: () {
+                    Navigator.pop(context);
+                    onNavigateToStudyMode();
                   },
                 ),
                 _buildDrawerItem(

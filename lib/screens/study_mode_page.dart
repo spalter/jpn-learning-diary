@@ -12,9 +12,6 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/models/jmdict_entry.dart';
 import 'package:jpn_learning_diary/repositories/jmdict_repository.dart';
-import 'package:jpn_learning_diary/theme/app_theme.dart';
-import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
-import 'package:jpn_learning_diary/widgets/bird_fab.dart';
 import 'package:jpn_learning_diary/widgets/collapsible_section.dart';
 import 'package:jpn_learning_diary/widgets/vertical_text_display.dart';
 import 'package:jpn_learning_diary/widgets/study_search_results_panel.dart';
@@ -146,31 +143,26 @@ class _StudyModePageState extends State<StudyModePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.scaffoldBackground(context),
-      appBar: const LearningModeAppBar(title: 'Study Mode'),
-      floatingActionButton: const BirdFab(),
-      body: GestureDetector(
-        // Clear selection when tapping empty space
-        onTap: _clearSelection,
-        behavior: HitTestBehavior.translucent,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Collapsible text input area
-              _buildTextInputArea(context),
-              const SizedBox(height: 12),
+    return GestureDetector(
+      // Clear selection when tapping empty space
+      onTap: _clearSelection,
+      behavior: HitTestBehavior.translucent,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Collapsible text input area
+            _buildTextInputArea(context),
+            const SizedBox(height: 12),
 
-              // Main content area - adapts to platform
-              Expanded(
-                child: _isMobile
-                    ? _buildMobileLayout(context)
-                    : _buildDesktopLayout(context),
-              ),
-            ],
-          ),
+            // Main content area - adapts to platform
+            Expanded(
+              child: _isMobile
+                  ? _buildMobileLayout(context)
+                  : _buildDesktopLayout(context),
+            ),
+          ],
         ),
       ),
     );

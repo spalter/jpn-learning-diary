@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:jpn_learning_diary/screens/learning_page.dart';
+import 'package:jpn_learning_diary/screens/study_mode_page.dart';
 import 'package:jpn_learning_diary/screens/kana_page.dart';
 import 'package:jpn_learning_diary/screens/diary_page.dart';
 import 'package:jpn_learning_diary/screens/help_page.dart';
@@ -46,6 +47,7 @@ enum AppPage {
   phrasesWords,
   hiragana,
   katakana,
+  studyMode,
   dashboard,
   settings,
   searchResults,
@@ -235,6 +237,8 @@ class _AppShellState extends State<AppShell> {
         return const KanaPage(type: KanaType.hiragana);
       case AppPage.katakana:
         return const KanaPage(type: KanaType.katakana);
+      case AppPage.studyMode:
+        return const StudyModePage();
       case AppPage.dashboard:
         return LearningPage(key: _pageKey);
       case AppPage.settings:
@@ -261,6 +265,7 @@ class _AppShellState extends State<AppShell> {
         onNavigateToPhrasesWords: () => _navigateToPage(AppPage.phrasesWords),
         onNavigateToHiragana: () => _navigateToPage(AppPage.hiragana),
         onNavigateToKatakana: () => _navigateToPage(AppPage.katakana),
+        onNavigateToStudyMode: () => _navigateToPage(AppPage.studyMode),
         onNavigateToDashboard: () => _navigateToPage(AppPage.dashboard),
         onNavigateToSettings: () => _navigateToPage(AppPage.settings),
         onSearch: _handleSearch,
@@ -274,6 +279,7 @@ class _AppShellState extends State<AppShell> {
                   _navigateToPage(AppPage.phrasesWords),
               onNavigateToHiragana: () => _navigateToPage(AppPage.hiragana),
               onNavigateToKatakana: () => _navigateToPage(AppPage.katakana),
+              onNavigateToStudyMode: () => _navigateToPage(AppPage.studyMode),
               onNavigateToDashboard: () => _navigateToPage(AppPage.dashboard),
               onNavigateToSettings: () => _navigateToPage(AppPage.settings),
             )
@@ -298,7 +304,7 @@ class _AppShellState extends State<AppShell> {
           child: _buildCurrentPage(),
         ),
       ),
-      floatingActionButton: _currentPage != AppPage.settings && _currentPage != AppPage.dashboard
+      floatingActionButton: _currentPage != AppPage.settings && _currentPage != AppPage.dashboard && _currentPage != AppPage.studyMode
           ? BirdFab(onEntryCreated: (_) => _refreshCurrentPage())
           : null,
     );
@@ -368,8 +374,14 @@ class _AppShellState extends State<AppShell> {
       return true;
     }
 
-    // Cmd+4 (Mac) / Ctrl+4 (Win/Linux) - Learning/Dashboard page
+    // Cmd+4 (Mac) / Ctrl+4 (Win/Linux) - Study Mode page
     if (key == LogicalKeyboardKey.digit4 && isNavModifierPressed) {
+      _navigateToPage(AppPage.studyMode);
+      return true;
+    }
+
+    // Cmd+5 (Mac) / Ctrl+5 (Win/Linux) - Learning/Dashboard page
+    if (key == LogicalKeyboardKey.digit5 && isNavModifierPressed) {
       _navigateToPage(AppPage.dashboard);
       return true;
     }
