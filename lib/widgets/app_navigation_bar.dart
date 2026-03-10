@@ -47,6 +47,9 @@ class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
   /// Callback for navigating to settings page.
   final VoidCallback onNavigateToSettings;
 
+  /// Callback for opening global search.
+  final VoidCallback onSearch;
+
   /// Callback when exit button is pressed.
   final VoidCallback onExit;
 
@@ -59,6 +62,7 @@ class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
     required this.onNavigateToDashboard,
     required this.onNavigateToStudyMode,
     required this.onNavigateToSettings,
+    required this.onSearch,
     required this.onExit,
   });
 
@@ -197,12 +201,21 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     ];
   }
 
-  /// Creates the right-side action buttons for settings, window controls, and exit.
   List<Widget> _buildActionButtons(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final defaultColor = Theme.of(context).colorScheme.onSurface;
+    final isMac = Platform.isMacOS;
 
     return [
+      ExcludeFocus(
+        child: StyledTooltip(
+          message: 'Search (${isMac ? "Cmd" : "Ctrl"}+K)',
+          child: IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: widget.onSearch,
+          ),
+        ),
+      ),
       ExcludeFocus(
         child: StyledTooltip(
           message: 'Settings',

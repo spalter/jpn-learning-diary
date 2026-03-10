@@ -36,6 +36,12 @@ class DiaryEntryCard extends StatefulWidget {
   /// Callback when the entry is deleted, passes the entry ID.
   final void Function(int entryId)? onEntryDeleted;
 
+  /// Optional callback for tap action. overrides default copy behavior.
+  final VoidCallback? onTap;
+
+  /// Optional callback for double tap action.
+  final VoidCallback? onDoubleTap;
+
   /// Creates a diary entry card.
   ///
   /// The [entry] parameter is required and contains all the information
@@ -45,6 +51,8 @@ class DiaryEntryCard extends StatefulWidget {
     required this.entry,
     this.onEntryUpdated,
     this.onEntryDeleted,
+    this.onTap,
+    this.onDoubleTap,
   });
 
   @override
@@ -81,7 +89,8 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
             style: AppCardStyle.minimal,
             margin: const EdgeInsets.only(bottom: 12, right: 16),
             padding: const EdgeInsets.all(16),
-            onTap: () => _handleCopyToClipboard(context),
+            onTap: widget.onTap ?? () => _handleCopyToClipboard(context),
+            onDoubleTap: widget.onDoubleTap,
             onLongPress: () => _handleEditEntry(context),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

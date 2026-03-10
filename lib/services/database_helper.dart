@@ -266,6 +266,19 @@ class DatabaseHelper {
     return result.map((json) => DiaryEntry.fromMap(json)).toList();
   }
 
+  /// Searches for diary entries matching the query.
+  Future<List<DiaryEntry>> searchEntries(String query) async {
+    final db = await database;
+    final results = await db.query(
+      'diary_entries',
+      where: 'japanese LIKE ? OR romaji LIKE ? OR meaning LIKE ? OR notes LIKE ?',
+      whereArgs: ['%$query%', '%$query%', '%$query%', '%$query%'],
+      orderBy: 'date_added DESC',
+      limit: 50,
+    );
+    return results.map((json) => DiaryEntry.fromMap(json)).toList();
+  }
+
   /// Updates an existing diary entry.
   Future<int> updateEntry(DiaryEntry entry) async {
     final db = await database;

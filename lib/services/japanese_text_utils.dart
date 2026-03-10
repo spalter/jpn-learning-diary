@@ -54,6 +54,16 @@ class JapaneseTextUtils {
     return text.replaceAllMapped(rubyPattern, (match) => match.group(1)!);
   }
 
+  /// Normalizes text for search by converting to lowercase and replacing
+  /// German umlauts with their digraph equivalents (e.g., ä -> ae).
+  static String normalizeForSearch(String text) {
+    return text.toLowerCase()
+      .replaceAll('ä', 'ae')
+      .replaceAll('ö', 'oe')
+      .replaceAll('ü', 'ue')
+      .replaceAll('ß', 'ss');
+  }
+
   // ============================================================================
   // Particle Detection
   // ============================================================================

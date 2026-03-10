@@ -25,11 +25,14 @@ class KanjiCard extends StatefulWidget {
   /// The kanji data to display.
   final KanjiData kanji;
 
+  /// Optional callback for tap action. overrides default copy behavior.
+  final VoidCallback? onTap;
+
   /// Creates a kanji card.
   ///
   /// The [kanji] parameter is required and contains all the information
   /// to be displayed in the card.
-  const KanjiCard({super.key, required this.kanji});
+  const KanjiCard({super.key, required this.kanji, this.onTap});
 
   @override
   State<KanjiCard> createState() => _KanjiCardState();
@@ -63,7 +66,7 @@ class _KanjiCardState extends State<KanjiCard> {
         style: AppCardStyle.minimal,
         margin: const EdgeInsets.only(bottom: 12, right: 16),
         padding: const EdgeInsets.all(16),
-        onTap: () => _handleCopyToClipboard(context),
+        onTap: widget.onTap ?? () => _handleCopyToClipboard(context),
         onLongPress: () => _handleOpenDictionary(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

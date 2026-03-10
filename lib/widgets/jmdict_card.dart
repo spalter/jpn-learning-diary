@@ -32,6 +32,9 @@ class JMdictCard extends StatefulWidget {
   /// Callback to set search text directly (alternative to navigationBarKey).
   final void Function(String)? onSearchTextSet;
 
+  /// Optional callback for tap action. overrides default copy behavior.
+  final VoidCallback? onTap;
+
   /// Creates a JMdict card.
   ///
   /// The [entry] parameter is required and contains all the information
@@ -41,6 +44,7 @@ class JMdictCard extends StatefulWidget {
     required this.entry,
     this.navigationBarKey,
     this.onSearchTextSet,
+    this.onTap,
   });
 
   @override
@@ -75,7 +79,7 @@ class _JMdictCardState extends State<JMdictCard> {
         style: AppCardStyle.minimal,
         margin: const EdgeInsets.only(bottom: 12, right: 16),
         padding: const EdgeInsets.all(16),
-        onTap: () => _handleCopyToClipboard(context),
+        onTap: widget.onTap ?? () => _handleCopyToClipboard(context),
         // onDoubleTap: () => _handleInsertIntoSearch(context),
         onLongPress: () => _handleOpenDictionary(context),
         child: _buildCardContent(context, primaryColor),

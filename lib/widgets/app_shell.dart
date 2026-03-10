@@ -21,6 +21,8 @@ import 'package:jpn_learning_diary/screens/settings_page.dart';
 import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 import 'package:jpn_learning_diary/widgets/bird_fab.dart';
+import 'package:jpn_learning_diary/widgets/global_search_dialog.dart';
+import 'package:jpn_learning_diary/screens/search_results_page.dart';
 import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart'
     show EditDiaryEntryDialog, EditDiaryEntryResult;
 
@@ -141,6 +143,22 @@ class _AppShellState extends State<AppShell> {
     ).push(MaterialPageRoute(builder: (context) => const HelpPage()));
   }
 
+  /// Shows the global search dialog.
+  Future<void> _showGlobalSearch() async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => const GlobalSearchDialog(),
+    );
+
+    if (result != null && result.isNotEmpty && mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => SearchResultsPage(searchQuery: result),
+        ),
+      );
+    }
+  }
+
   /// Returns the widget for the currently selected page.
   Widget _buildCurrentPage() {
     switch (_currentPage) {
@@ -171,6 +189,7 @@ class _AppShellState extends State<AppShell> {
         onNavigateToStudyMode: () => _navigateToPage(AppPage.studyMode),
         onNavigateToDashboard: () => _navigateToPage(AppPage.dashboard),
         onNavigateToSettings: () => _navigateToPage(AppPage.settings),
+        onSearch: _showGlobalSearch,
         onExit: () => exit(0),
       ),
       // Show drawer on mobile platforms
@@ -277,6 +296,15 @@ class _AppShellState extends State<AppShell> {
       return true;
     }
 
+    // Cmd+K (Mac) / Ctrl+K (Win/Linux) - Global search
+    if (key == LogicalKeyboardKey.keyK) {
+      if ((Platform.isMacOS && isMetaPressed) ||
+          (!Platform.isMacOS && isControlPressed)) {
+        _showGlobalSearch();
+        return true;
+      }
+    }
+
     // Cmd+, on macOS, Ctrl+, on Windows/Linux - Settings
     if (key == LogicalKeyboardKey.comma) {
       if ((Platform.isMacOS && isMetaPressed) ||
@@ -309,7 +337,10 @@ class _AppShellState extends State<AppShell> {
     // Vim-like navigation: h/j/k/l map to arrow keys
     // Only when not typing in any text field and no modifiers pressed
     if (!isFocusedOnTextField && !isControlPressed && !isMetaPressed) {
-      final focus = FocusScope.of(context);
+      final primaryFocus = FocusManager.instance.primaryFocus;
+      final focus = primaryFocus?.context != null
+          ? FocusScope.of(primaryFocus!.context!)
+          : FocusScope.of(context);
 
       if (key == LogicalKeyboardKey.keyH) {
         // Move left

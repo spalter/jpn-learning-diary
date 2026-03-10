@@ -9,6 +9,7 @@
 
 import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/services/database_helper.dart';
+import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 
 /// Repository for diary entry operations.
 class DiaryRepository {
@@ -33,6 +34,35 @@ class DiaryRepository {
   /// Entries are ordered by date added (newest first).
   Future<List<DiaryEntry>> getAllEntries() async {
     return await _databaseHelper.getAllEntries();
+  }
+
+  /// Searches for diary entries matching the query.
+  ///
+  /// Searches in Japanese text, romaji, meaning, and notes.
+  /// Uses in-memory filtering to support fuzzy matching (e.g., German umlauts).
+  Future<List<DiaryEntry>> searchEntries(String query) async {
+    final allEntries = await getAllEntries();
+    final normalizedQuery = JapaneseTextUtils.normalizeForSearch(query);
+
+    if (normalizedQuery.isEmpty) return [];
+
+    return allEntries.where((entry) {
+      final matchesJapanese = JapaneseTextUtils.normalizeForSearch(
+        JapaneseTextUtils.stripRubyPatterns(entry.japanese),
+      ).contains(normalizedQuery);
+      
+      final matchesRomaji = JapaneseTextUtils.normalizeForSearch(entry.romaji)
+          .contains(normalizedQuery);
+      
+      final matchesMeaning = JapaneseTextUtils.normalizeForSearch(entry.meaning)
+          .contains(normalizedQuery);
+      
+      final matchesNotes = entry.notes != null && 
+          JapaneseTextUtils.normalizeForSearch(entry.notes!)
+              .contains(normalizedQuery);
+
+      return matchesJapanese || matchesRomaji || matchesMeaning || matchesNotes;
+    }).toList();
   }
 
   /// Updates an existing diary entry.
