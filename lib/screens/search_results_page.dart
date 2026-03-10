@@ -20,6 +20,7 @@ import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 import 'package:jpn_learning_diary/widgets/jmdict_card.dart';
 import 'package:jpn_learning_diary/widgets/kanji_card.dart';
 import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
+import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/widgets/section_header.dart';
 
 /// Search results page for displaying matches across all data sources.
@@ -268,6 +269,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.scaffoldBackground(context),
       appBar: LearningModeAppBar(
         title: 'Search Results: ${widget.searchQuery}',
       ),

@@ -128,125 +128,157 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
         _jmdictResults.isNotEmpty ||
         _kanjiResults.isNotEmpty;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mutedBorderColor =
+        Theme.of(context).colorScheme.onSurface.withAlpha(isDark ? 125 : 30);
+
     return Dialog(
       alignment: Alignment.topCenter,
-      insetPadding: const EdgeInsets.only(top: 100, left: 16, right: 16),
-      elevation: 8,
-      backgroundColor: Theme.of(context).canvasColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      insetPadding: const EdgeInsets.only(top: 80, left: 16, right: 16),
+      elevation: 0,
+      backgroundColor: Colors.transparent,
       child: CallbackShortcuts(
         bindings: {
           const SingleActivator(LogicalKeyboardKey.escape):
               () => Navigator.of(context).pop(),
         },
-        child: Container(
-          width: 800,
-          constraints: const BoxConstraints(maxHeight: 700),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _controller,
-                autofocus: true,
-                onSubmitted: (value) {
-                  Navigator.of(context).pop(value);
-                },
-                decoration: InputDecoration(
-                  hintText: 'Search diary, dictionary, kanji...',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        )
-                      : null,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.onSurface.withAlpha(77),
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 2,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              if (hasResults)
-                Flexible(
-                  child: ListView(
-                    controller: _scrollController,
-                    shrinkWrap: true,
-                    children: [
-                      if (_diaryResults.isNotEmpty) ...[
-                        _buildSectionHeader('Diary Entries', Icons.book),
-                        ..._diaryResults.map((entry) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: DiaryEntryCard(
-                                entry: entry,
-                                onTap: () => Navigator.of(context).pop(
-                                  JapaneseTextUtils.stripRubyPatterns(entry.japanese),
-                                ),
-                                onEntryUpdated: (updated) {
-                                  // Update local list if entry is edited
-                                  setState(() {
-                                    final index = _diaryResults.indexWhere(
-                                        (e) => e.id == updated.id);
-                                    if (index != -1) {
-                                      _diaryResults[index] = updated;
-                                    }
-                                  });
-                                },
-                              ),
-                            )),
-                      ],
-                      if (_jmdictResults.isNotEmpty) ...[
-                        _buildSectionHeader('Dictionary', Icons.translate),
-                        ..._jmdictResults.map((entry) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: JMdictCard(
-                                entry: entry,
-                                onTap: () => Navigator.of(context).pop(entry.kanji),
-                              ),
-                            )),
-                      ],
-                      if (_kanjiResults.isNotEmpty) ...[
-                        _buildSectionHeader('Kanji', Icons.edit),
-                        ..._kanjiResults.map((kanji) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: KanjiCard(
-                                kanji: kanji,
-                                onTap: () => Navigator.of(context).pop(kanji.kanji),
-                              ),
-                            )),
-                      ],
+        child: FocusScope(
+          autofocus: true,
+          child: Container(
+            width: 800,
+            constraints: const BoxConstraints(maxHeight: 700),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: mutedBorderColor),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(25),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
                     ],
                   ),
-                )
-              else if (_controller.text.isNotEmpty && !_isLoading)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Text('No results found'),
+                  child: TextField(
+                    controller: _controller,
+                    autofocus: true,
+                    onSubmitted: (value) {
+                      Navigator.of(context).pop(value);
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Search diary, dictionary, kanji...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
                 ),
+                if (hasResults ||
+                    (_controller.text.isNotEmpty && !_isLoading)) ...[
+                  const SizedBox(height: 16),
+                  Flexible(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      foregroundDecoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: mutedBorderColor),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Material(
+                        color: Theme.of(context).colorScheme.surface,
+                        child: ListView(
+                          controller: _scrollController,
+                          shrinkWrap: true,
+                          padding: const EdgeInsets.all(16),
+                          children: [
+                          if (_diaryResults.isNotEmpty) ...[
+                            _buildSectionHeader('Diary Entries', Icons.book),
+                            ..._diaryResults.map((entry) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 8.0),
+                                  child: DiaryEntryCard(
+                                    entry: entry,
+                                    onTap: () => Navigator.of(context).pop(
+                                      JapaneseTextUtils.stripRubyPatterns(entry.japanese),
+                                    ),
+                                    onEntryUpdated: (updated) {
+                                      // Update local list if entry is edited
+                                      setState(() {
+                                        final index = _diaryResults.indexWhere(
+                                            (e) => e.id == updated.id);
+                                        if (index != -1) {
+                                          _diaryResults[index] = updated;
+                                        }
+                                      });
+                                    },
+                                  ),
+                                )),
+                          ],
+                          if (_jmdictResults.isNotEmpty) ...[
+                            _buildSectionHeader('Dictionary', Icons.translate),
+                            ..._jmdictResults.map((entry) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 8.0),
+                                  child: JMdictCard(
+                                    entry: entry,
+                                    onTap: () => Navigator.of(context).pop(entry.kanji),
+                                  ),
+                                )),
+                          ],
+                          if (_kanjiResults.isNotEmpty) ...[
+                            _buildSectionHeader('Kanji', Icons.edit),
+                            ..._kanjiResults.map((kanji) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 8.0),
+                                  child: KanjiCard(
+                                    kanji: kanji,
+                                    onTap: () => Navigator.of(context).pop(kanji.kanji),
+                                  ),
+                                )),
+                          ],
+                          if (!hasResults &&
+                              _controller.text.isNotEmpty &&
+                              !_isLoading)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child:
+                                  Center(child: Text('No results found')),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
+      ),
       ),
     );
   }
