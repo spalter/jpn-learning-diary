@@ -20,6 +20,7 @@ JPN Learning Diary provides a dedicated space to manage your Japanese language j
 <img src="docs/jpn_screen_02.png" alt="Screenshot of the Kana Page" width="800">
 <img src="docs/jpn_screen_03.png" alt="Screenshot of the Learning Page" width="800">
 <img src="docs/jpn_screen_04.png" alt="Screenshot of the Study Page" width="800">
+<img src="docs/jpn_screen_05.png" alt="Screenshot of the Search Mode" width="800">
 </div>
 
 ## Installation
