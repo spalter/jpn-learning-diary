@@ -7,6 +7,7 @@
 //
 // ============================================================================
 
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
@@ -20,8 +21,8 @@ import 'package:jpn_learning_diary/widgets/ruby_text.dart';
 ///
 /// This widget presents a learned phrase or word with its Japanese text
 /// (with inline ruby patterns for furigana), romaji transliteration, English
-/// meaning, and optional notes. Users can tap to copy the text, double-tap
-/// for custom actions, or long-press to edit the entry.
+/// meaning, and optional notes. Users can tap to copy the text
+/// or long-press to edit the entry.
 ///
 /// * [entry]: The diary entry data object containing text and meanings.
 /// * [onEntryUpdated]: Callback with updated entry when the entry is modified.
@@ -36,8 +37,11 @@ class DiaryEntryCard extends StatefulWidget {
   /// Callback when the entry is deleted, passes the entry ID.
   final void Function(int entryId)? onEntryDeleted;
 
-  /// Callback when the card is tapped.
+  /// Optional callback for tap action. overrides default copy behavior.
   final VoidCallback? onTap;
+
+  /// Optional callback for double tap action.
+  final VoidCallback? onDoubleTap;
 
   /// Creates a diary entry card.
   ///
@@ -49,6 +53,7 @@ class DiaryEntryCard extends StatefulWidget {
     this.onEntryUpdated,
     this.onEntryDeleted,
     this.onTap,
+    this.onDoubleTap,
   });
 
   @override
@@ -85,8 +90,8 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
             style: AppCardStyle.minimal,
             margin: const EdgeInsets.only(bottom: 12, right: 16),
             padding: const EdgeInsets.all(16),
-            onTap: () => _handleCopyToClipboard(context),
-            onDoubleTap: widget.onTap,
+            onTap: widget.onTap ?? () => _handleCopyToClipboard(context),
+            onDoubleTap: widget.onDoubleTap,
             onLongPress: () => _handleEditEntry(context),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,7 +238,11 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
   Future<void> _handleEditEntry(BuildContext context) async {
     final result = await showDialog<EditDiaryEntryResult>(
       context: context,
-      builder: (context) => EditDiaryEntryDialog(entry: widget.entry),
+      barrierColor: Theme.of(context).colorScheme.surface.withAlpha(200),
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: EditDiaryEntryDialog(entry: widget.entry),
+      ),
     );
 
     if (result == null) return;

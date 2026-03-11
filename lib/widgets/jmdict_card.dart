@@ -32,6 +32,12 @@ class JMdictCard extends StatefulWidget {
   /// Callback to set search text directly (alternative to navigationBarKey).
   final void Function(String)? onSearchTextSet;
 
+  /// Optional callback for tap action. overrides default copy behavior.
+  final VoidCallback? onTap;
+
+  /// Optional callback for double-tap action.
+  final VoidCallback? onDoubleTap;
+
   /// Creates a JMdict card.
   ///
   /// The [entry] parameter is required and contains all the information
@@ -41,6 +47,8 @@ class JMdictCard extends StatefulWidget {
     required this.entry,
     this.navigationBarKey,
     this.onSearchTextSet,
+    this.onTap,
+    this.onDoubleTap,
   });
 
   @override
@@ -75,8 +83,8 @@ class _JMdictCardState extends State<JMdictCard> {
         style: AppCardStyle.minimal,
         margin: const EdgeInsets.only(bottom: 12, right: 16),
         padding: const EdgeInsets.all(16),
-        onTap: () => _handleCopyToClipboard(context),
-        onDoubleTap: () => _handleInsertIntoSearch(context),
+        onTap: widget.onTap ?? () => _handleCopyToClipboard(context),
+        onDoubleTap: widget.onDoubleTap,
         onLongPress: () => _handleOpenDictionary(context),
         child: _buildCardContent(context, primaryColor),
       ),
@@ -589,27 +597,6 @@ class _JMdictCardState extends State<JMdictCard> {
         SnackBar(
           content: Text('Copied: ${widget.entry.primaryForm}'),
           duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
-  /// Inserts the primary form into the navigation bar's search field.
-  ///
-  /// Uses onSearchTextSet callback if provided, falls back to navigationBarKey,
-  /// or shows a message if neither is available.
-  void _handleInsertIntoSearch(BuildContext context) {
-    if (widget.onSearchTextSet != null) {
-      widget.onSearchTextSet!(widget.entry.primaryForm);
-    } else if (widget.navigationBarKey?.currentState != null) {
-      widget.navigationBarKey!.currentState!.insertSearchText(
-        widget.entry.primaryForm,
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Search field not available'),
-          duration: Duration(seconds: 2),
         ),
       );
     }

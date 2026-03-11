@@ -13,6 +13,7 @@
 /// including hiragana, katakana, phrases, and words.
 library;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jpn_learning_diary/services/theme_notifier.dart';
@@ -56,6 +57,8 @@ class JapaneseLearningDiary extends StatefulWidget {
 
 /// Internal state for [JapaneseLearningDiary].
 class _JapaneseLearningDiaryState extends State<JapaneseLearningDiary> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
   /// Builds the MaterialApp with light and dark modes.
   ///
   /// The app starts with [SplashScreen] which handles initial loading and
@@ -63,17 +66,25 @@ class _JapaneseLearningDiaryState extends State<JapaneseLearningDiary> {
   /// when theme changes via [ThemeNotifier].
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: ThemeNotifier.instance,
-      builder: (context, child) {
-        return MaterialApp(
-          title: AppTheme.appTitle,
-          theme: ThemeNotifier.instance.getLightTheme(),
-          darkTheme: ThemeNotifier.instance.getDarkTheme(),
-          themeMode: ThemeMode.system,
-          home: const SplashScreen(),
-        );
+    return Listener(
+      onPointerDown: (event) {
+        if (event.buttons & kBackMouseButton != 0) {
+          _navigatorKey.currentState?.maybePop();
+        }
       },
+      child: ListenableBuilder(
+        listenable: ThemeNotifier.instance,
+        builder: (context, child) {
+          return MaterialApp(
+            navigatorKey: _navigatorKey,
+            title: AppTheme.appTitle,
+            theme: ThemeNotifier.instance.getLightTheme(),
+            darkTheme: ThemeNotifier.instance.getDarkTheme(),
+            themeMode: ThemeMode.system,
+            home: const SplashScreen(),
+          );
+        },
+      ),
     );
   }
 }

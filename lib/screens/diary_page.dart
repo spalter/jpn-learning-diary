@@ -10,6 +10,7 @@
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/controllers/diary_entries_controller.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
+import 'package:jpn_learning_diary/screens/search_results_page.dart';
 import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 import 'package:jpn_learning_diary/widgets/common_states.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
@@ -21,10 +22,7 @@ import 'package:provider/provider.dart';
 /// It provides a grid-based view of diary entries and allows for detailed management
 /// of the learning diary.
 class DiaryPage extends StatefulWidget {
-  /// Callback to set search text in the navigation bar.
-  final void Function(String)? onSearchTextSet;
-
-  const DiaryPage({super.key, this.onSearchTextSet});
+  const DiaryPage({super.key});
 
   @override
   State<DiaryPage> createState() => _DiaryPageState();
@@ -100,15 +98,24 @@ class _DiaryPageState extends State<DiaryPage> {
     DiaryEntry entry, {
     Key? key,
   }) {
-    final strippedText = JapaneseTextUtils.stripRubyPatterns(entry.japanese);
     return DiaryEntryCard(
       key: key,
       entry: entry,
+      onDoubleTap: () => _openSearchForEntry(entry),
       onEntryUpdated: _controller.updateEntry,
       onEntryDeleted: (id) => _controller.removeEntry(id),
-      onTap: widget.onSearchTextSet != null
-          ? () => widget.onSearchTextSet!(strippedText)
-          : null,
+    );
+  }
+
+  /// Opens the search results page for the given entry's Japanese text.
+  void _openSearchForEntry(DiaryEntry entry) {
+    if (!mounted) return;
+
+    final query = JapaneseTextUtils.stripRubyPatterns(entry.japanese);
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SearchResultsPage(searchQuery: query),
+      ),
     );
   }
 }

@@ -111,9 +111,8 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
       child: Focus(
         autofocus: true,
         child: AlertDialog(
-          title: Text(
-            isEditing ? 'Edit a Diary Entry' : 'Add a new Diary Entry',
-          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
           content: SingleChildScrollView(
             child: SizedBox(
               width: 500,

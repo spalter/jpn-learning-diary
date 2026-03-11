@@ -148,7 +148,7 @@ class _StudyModePageState extends State<StudyModePage> {
       onTap: _clearSelection,
       behavior: HitTestBehavior.translucent,
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 16.0),
+        padding: const EdgeInsets.only(bottom: 16.0, right: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

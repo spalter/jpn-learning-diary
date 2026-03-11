@@ -9,6 +9,7 @@
 
 import 'dart:math';
 
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
 import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart'
@@ -134,7 +135,11 @@ class _BirdFabState extends State<BirdFab> with SingleTickerProviderStateMixin {
   Future<void> _handleAddEntry(BuildContext context) async {
     final result = await showDialog<EditDiaryEntryResult>(
       context: context,
-      builder: (context) => const EditDiaryEntryDialog(),
+      barrierColor: Theme.of(context).colorScheme.surface.withAlpha(200),
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: const EditDiaryEntryDialog(),
+      ),
     );
 
     if (result?.updatedEntry != null && widget.onEntryCreated != null) {

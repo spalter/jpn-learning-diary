@@ -19,6 +19,8 @@ import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 import 'package:jpn_learning_diary/widgets/jmdict_card.dart';
 import 'package:jpn_learning_diary/widgets/kanji_card.dart';
+import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
+import 'package:jpn_learning_diary/theme/app_theme.dart';
 import 'package:jpn_learning_diary/widgets/section_header.dart';
 
 /// Search results page for displaying matches across all data sources.
@@ -188,15 +190,24 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
   /// Builds a diary entry card.
   Widget _buildDiaryEntryCard(DiaryEntry entry) {
-    final strippedText = JapaneseTextUtils.stripRubyPatterns(entry.japanese);
     return DiaryEntryCard(
       key: ValueKey(entry.id),
       entry: entry,
+      onDoubleTap: () => _openSearchForEntry(entry),
       onEntryUpdated: (_) => _performSearch(),
       onEntryDeleted: (_) => _performSearch(),
-      onTap: widget.onSearchTextSet != null
-          ? () => widget.onSearchTextSet!(strippedText)
-          : null,
+    );
+  }
+
+  /// Opens the search results page for the given entry's Japanese text.
+  void _openSearchForEntry(DiaryEntry entry) {
+    if (!mounted) return;
+
+    final query = JapaneseTextUtils.stripRubyPatterns(entry.japanese);
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SearchResultsPage(searchQuery: query),
+      ),
     );
   }
 
@@ -204,7 +215,17 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   Widget _buildKanjiCard(KanjiData kanji) {
     return KanjiCard(
       kanji: kanji,
-      navigationBarKey: widget.navigationBarKey,
+      onDoubleTap: () => _openSearchForKanji(kanji),
+    );
+  }
+
+  void _openSearchForKanji(KanjiData kanji) {
+    if (!mounted) return;
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SearchResultsPage(searchQuery: kanji.kanji),
+      ),
     );
   }
 
@@ -212,18 +233,19 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   Widget _buildJmdictCard(JMdictEntry entry) {
     return JMdictCard(
       entry: entry,
-      onSearchTextSet: widget.onSearchTextSet,
+      onDoubleTap: () => _openSearchForJmdict(entry),
+      // onSearchTextSet: widget.onSearchTextSet,
     );
   }
 
-  /// Normalizes text for search by converting to lowercase and replacing 
-  /// German umlauts with their digraph equivalents (e.g., ä -> ae).
-  String _normalizeText(String text) {
-    return text.toLowerCase()
-      .replaceAll('ä', 'ae')
-      .replaceAll('ö', 'oe')
-      .replaceAll('ü', 'ue')
-      .replaceAll('ß', 'ss');
+  void _openSearchForJmdict(JMdictEntry entry) {
+    if (!mounted) return;
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SearchResultsPage(searchQuery: entry.primaryForm),
+      ),
+    );
   }
 
   /// Performs a comprehensive search across diary entries and kanji.
@@ -242,15 +264,15 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     // Strip ruby patterns from Japanese text so searching for "何歳" finds "[何](なん)[歳](さい)"
     final allEntries = await diaryRepository.getAllEntries();
     final diaryResults = allEntries.where((entry) {
-      final query = _normalizeText(widget.searchQuery);
-      final strippedJapanese = _normalizeText(JapaneseTextUtils.stripRubyPatterns(
-        entry.japanese,
-      ));
+      final query = JapaneseTextUtils.normalizeForSearch(widget.searchQuery);
+      final strippedJapanese = JapaneseTextUtils.normalizeForSearch(
+        JapaneseTextUtils.stripRubyPatterns(entry.japanese),
+      );
       
       return strippedJapanese.contains(query) ||
-          _normalizeText(entry.romaji).contains(query) ||
-          _normalizeText(entry.meaning).contains(query) ||
-          (_normalizeText(entry.notes ?? '').contains(query));
+          JapaneseTextUtils.normalizeForSearch(entry.romaji).contains(query) ||
+          JapaneseTextUtils.normalizeForSearch(entry.meaning).contains(query) ||
+          (JapaneseTextUtils.normalizeForSearch(entry.notes ?? '').contains(query));
     }).toList();
 
     // Search kanji database using dedicated search method.
@@ -281,9 +303,12 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [Expanded(child: _buildSearchResults())],
+    return Scaffold(
+      backgroundColor: AppTheme.scaffoldBackground(context),
+      appBar: LearningModeAppBar(
+        title: 'Search Results: ${widget.searchQuery}',
+      ),
+      body: _buildSearchResults(),
     );
   }
 
@@ -340,6 +365,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   /// Builds the scrollable list of search results.
   Widget _buildResultsList(_SearchResults results) {
     return ListView.builder(
+      padding: const EdgeInsets.only(left: 16, top: 16, bottom: 16),
       itemCount: _calculateItemCount(results),
       itemBuilder: (context, index) =>
           _buildResultItem(context, results, index),

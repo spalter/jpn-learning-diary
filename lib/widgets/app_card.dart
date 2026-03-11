@@ -143,26 +143,33 @@ class _AppCardState extends State<AppCard> {
       content = Padding(padding: widget.padding!, child: content);
     }
 
-    // Wrap in InkWell if interactive
+    final decoration = _buildDecoration(context);
+
+    Widget card;
     if (hasInteraction) {
-      content = InkWell(
-        onTap: widget.onTap,
-        onDoubleTap: widget.onDoubleTap,
-        onLongPress: widget.onLongPress,
-        focusColor: Theme.of(context).colorScheme.primary.withAlpha(30),
-        hoverColor: widget.style == AppCardStyle.elevated
-            ? null
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
+      card = Material(
+        type: MaterialType.transparency,
+        child: Ink(
+          decoration: decoration,
+          child: InkWell(
+            onTap: widget.onTap,
+            onDoubleTap: widget.onDoubleTap,
+            onLongPress: widget.onLongPress,
+            focusColor: Theme.of(context).colorScheme.primary.withAlpha(30),
+            hoverColor: widget.style == AppCardStyle.elevated
+                ? null
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            child: content,
+          ),
+        ),
+      );
+    } else {
+      card = Container(
+        decoration: decoration,
         child: content,
       );
     }
-
-    // Apply card decoration based on style
-    Widget card = Container(
-      decoration: _buildDecoration(context),
-      child: content,
-    );
 
     // Wrap in MouseRegion for hover effects
     if (widget.enableHoverEffects) {
@@ -227,6 +234,12 @@ class _AppCardState extends State<AppCard> {
   /// Builds a minimal card decoration without visible borders.
   BoxDecoration _buildMinimalDecoration(BuildContext context) {
     return BoxDecoration(
+      color: widget.isSelected
+          ? Theme.of(context).colorScheme.primary.withAlpha(20)
+          : (_isHovering
+              ? Theme.of(context).colorScheme.primary.withAlpha(15)
+              : null),
+      borderRadius: BorderRadius.circular(12),
       border: Border(
         bottom: BorderSide(
           color: Theme.of(context).colorScheme.primary.withAlpha(0),
