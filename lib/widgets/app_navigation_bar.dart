@@ -87,27 +87,45 @@ class AppNavigationBarState extends State<AppNavigationBar> {
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       scrolledUnderElevation: 0,
-      // Show menu button on mobile to open the drawer
-      leading: _isMobile
-          ? IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-              tooltip: 'Menu',
-            )
-          : null,
       automaticallyImplyLeading: false,
       title: _isMobile
           ? _buildMobileTitle(context)
           : _buildDesktopTitle(context),
       actions: _isMobile
-          ? null
+          ? [..._buildMobileActionButtons(context), const SizedBox(width: 8)]
           : [..._buildActionButtons(context), const SizedBox(width: 16)],
     );
   }
 
-  /// Builds the mobile layout with title.
+  /// Builds the mobile layout with navigation buttons.
   Widget _buildMobileTitle(BuildContext context) {
-      return Text('JPN Learning Diary');
+    return Row(
+      children: [
+        ..._buildNavigationButtons(context),
+      ],
+    );
+  }
+
+  /// Creates the action buttons for mobile (search and settings only).
+  List<Widget> _buildMobileActionButtons(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final defaultColor = Theme.of(context).colorScheme.onSurface;
+
+    return [
+      IconButton(
+        icon: const Icon(Icons.search),
+        onPressed: widget.onSearch,
+        tooltip: 'Search',
+      ),
+      IconButton(
+        icon: Icon(
+          Icons.settings,
+          color: widget.currentPageIndex == 5 ? primaryColor : defaultColor,
+        ),
+        onPressed: widget.onNavigateToSettings,
+        tooltip: 'Settings',
+      ),
+    ];
   }
 
   /// Builds the desktop layout with navigation buttons.

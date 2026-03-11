@@ -192,18 +192,7 @@ class _AppShellState extends State<AppShell> {
         onSearch: _showGlobalSearch,
         onExit: () => exit(0),
       ),
-      // Show drawer on mobile platforms
-      drawer: _isMobile
-          ? AppNavigationDrawer(
-              onNavigateToPhrasesWords: () =>
-                  _navigateToPage(AppPage.phrasesWords),
-              onNavigateToHiragana: () => _navigateToPage(AppPage.hiragana),
-              onNavigateToKatakana: () => _navigateToPage(AppPage.katakana),
-              onNavigateToStudyMode: () => _navigateToPage(AppPage.studyMode),
-              onNavigateToDashboard: () => _navigateToPage(AppPage.dashboard),
-              onNavigateToSettings: () => _navigateToPage(AppPage.settings),
-            )
-          : null,
+
       backgroundColor: AppTheme.scaffoldBackground(context),
       body: MouseRegion(
         cursor: _hideMouseCursor ? SystemMouseCursors.none : MouseCursor.defer,
