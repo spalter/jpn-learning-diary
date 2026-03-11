@@ -8,6 +8,7 @@
 // ============================================================================
 
 import 'dart:io' show Platform, exit;
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -128,7 +129,11 @@ class _AppShellState extends State<AppShell> {
   Future<void> _showNewDiaryEntryDialog() async {
     final result = await showDialog<EditDiaryEntryResult>(
       context: context,
-      builder: (context) => const EditDiaryEntryDialog(),
+      barrierColor: Theme.of(context).colorScheme.surface.withAlpha(200),
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: const EditDiaryEntryDialog(),
+      ),
     );
 
     if (result?.updatedEntry != null) {
@@ -147,7 +152,11 @@ class _AppShellState extends State<AppShell> {
   Future<void> _showGlobalSearch() async {
     final result = await showDialog<String>(
       context: context,
-      builder: (context) => const GlobalSearchDialog(),
+      barrierColor: Theme.of(context).colorScheme.surface.withAlpha(200),
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: const GlobalSearchDialog(),
+      ),
     );
 
     if (result != null && result.isNotEmpty && mounted) {

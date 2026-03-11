@@ -7,6 +7,7 @@
 //
 // ============================================================================
 
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
@@ -237,7 +238,11 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
   Future<void> _handleEditEntry(BuildContext context) async {
     final result = await showDialog<EditDiaryEntryResult>(
       context: context,
-      builder: (context) => EditDiaryEntryDialog(entry: widget.entry),
+      barrierColor: Theme.of(context).colorScheme.surface.withAlpha(200),
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: EditDiaryEntryDialog(entry: widget.entry),
+      ),
     );
 
     if (result == null) return;

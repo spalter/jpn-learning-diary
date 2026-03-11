@@ -187,12 +187,9 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
         _jmdictResults.isNotEmpty ||
         _kanjiResults.isNotEmpty;
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final mutedBorderColor = Theme.of(context).colorScheme.surface.withAlpha(isDark ? 125 : 30);
-
     return Dialog(
       alignment: Alignment.topCenter,
-      insetPadding: const EdgeInsets.only(top: 80, left: 16, right: 16, bottom: 24),
+      insetPadding: const EdgeInsets.only(top: 24, left: 16, right: 16, bottom: 24),
       elevation: 0,
       backgroundColor: Colors.transparent,
       child: CallbackShortcuts(
@@ -208,11 +205,11 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildSearchInput(mutedBorderColor),
+                _buildSearchInput(),
                 if (hasResults ||
                     (_controller.text.isNotEmpty && !_isLoading)) ...[
                   const SizedBox(height: 16),
-                  _buildResultsContainer(mutedBorderColor, hasResults),
+                  _buildResultsContainer(hasResults),
                 ],
               ],
             ),
@@ -228,19 +225,12 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
   /// drop shadow. A spinning progress indicator replaces the suffix icon
   /// while a search is in flight. Submitting the field pops the dialog
   /// and returns the raw query string.
-  Widget _buildSearchInput(Color borderColor) {
+  Widget _buildSearchInput() {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: borderColor),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(50),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        border: Border.all(color: Theme.of(context).colorScheme.primary.withAlpha(80), width: 2),
       ),
       child: TextField(
         controller: _controller,
@@ -280,22 +270,15 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
   /// displays diary, dictionary, and kanji sections in order. When no results
   /// exist and a query has been entered, a centered "No results found"
   /// placeholder is shown instead.
-  Widget _buildResultsContainer(Color borderColor, bool hasResults) {
+  Widget _buildResultsContainer(bool hasResults) {
     return Flexible(
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(50),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
-            ),
-          ],
         ),
         foregroundDecoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor),
+          border: Border.all(color: Theme.of(context).colorScheme.primary.withAlpha(80), width: 2),
         ),
         clipBehavior: Clip.antiAlias,
         child: Material(
