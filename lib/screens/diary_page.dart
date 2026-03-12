@@ -15,6 +15,7 @@ import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 import 'package:jpn_learning_diary/widgets/common_states.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 import 'package:provider/provider.dart';
+import 'package:jpn_learning_diary/services/app_preferences.dart';
 
 /// Phrases and words tracking and management page.
 ///
@@ -50,11 +51,7 @@ class _DiaryPageState extends State<DiaryPage> {
       value: _controller,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: _buildEntriesList(),
-          ),
-        ],
+        children: [Expanded(child: _buildEntriesList())],
       ),
     );
   }
@@ -84,11 +81,27 @@ class _DiaryPageState extends State<DiaryPage> {
 
   /// Builds the scrollable list of diary entry cards.
   Widget _buildEntriesListView(List<DiaryEntry> entries) {
-    return ListView.builder(
-      itemCount: entries.length,
-      itemBuilder: (context, index) {
-        final entry = entries[index];
-        return _buildEntryCard(entry, key: ValueKey(entry.id));
+    return FutureBuilder<List<bool>>(
+      future: Future.wait([
+        AppPreferences.getShowRomaji(),
+        AppPreferences.getShowFurigana(),
+      ]),
+      builder: (context, snapshot) {
+        final showRomaji = snapshot.data?[0] ?? true;
+        final showFurigana = snapshot.data?[1] ?? true;
+
+        return ListView.builder(
+          itemCount: entries.length,
+          itemBuilder: (context, index) {
+            final entry = entries[index];
+            return _buildEntryCard(
+              entry,
+              key: ValueKey(entry.id),
+              showRomaji: showRomaji,
+              showFurigana: showFurigana,
+            );
+          },
+        );
       },
     );
   }
@@ -97,11 +110,15 @@ class _DiaryPageState extends State<DiaryPage> {
   Widget _buildEntryCard(
     DiaryEntry entry, {
     Key? key,
+    required bool showRomaji,
+    required bool showFurigana,
   }) {
     return DiaryEntryCard(
       key: key,
       entry: entry,
       onDoubleTap: () => _openSearchForEntry(entry),
+      showRomaji: showRomaji,
+      showFurigana: showFurigana,
       onEntryUpdated: _controller.updateEntry,
       onEntryDeleted: (id) => _controller.removeEntry(id),
     );

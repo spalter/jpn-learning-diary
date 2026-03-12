@@ -11,7 +11,6 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
-import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/widgets/app_card.dart';
 import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart'
     show EditDiaryEntryDialog, EditDiaryEntryResult;
@@ -43,6 +42,12 @@ class DiaryEntryCard extends StatefulWidget {
   /// Optional callback for double tap action.
   final VoidCallback? onDoubleTap;
 
+  /// User preference for showing romaji
+  final bool showRomaji;
+
+  /// User preference for showing furigana
+  final bool showFurigana;
+
   /// Creates a diary entry card.
   ///
   /// The [entry] parameter is required and contains all the information
@@ -54,6 +59,8 @@ class DiaryEntryCard extends StatefulWidget {
     this.onEntryDeleted,
     this.onTap,
     this.onDoubleTap,
+    this.showFurigana = false,
+    this.showRomaji = false,
   });
 
   @override
@@ -74,44 +81,30 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
   /// the card content accordingly, with gesture handlers for interactions.
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<bool>>(
-      future: Future.wait([
-        AppPreferences.getShowRomaji(),
-        AppPreferences.getShowFurigana(),
-      ]),
-      builder: (context, snapshot) {
-        final showRomaji = snapshot.data?[0] ?? true;
-        final showFurigana = snapshot.data?[1] ?? true;
-
-        return MouseRegion(
-          onEnter: (_) => setState(() => _isHovering = true),
-          onExit: (_) => setState(() => _isHovering = false),
-          child: AppCard(
-            style: AppCardStyle.minimal,
-            margin: const EdgeInsets.only(bottom: 12, right: 16),
-            padding: const EdgeInsets.all(16),
-            onTap: widget.onTap ?? () => _handleCopyToClipboard(context),
-            onDoubleTap: widget.onDoubleTap,
-            onLongPress: () => _handleEditEntry(context),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeaderRow(context, showFurigana: showFurigana),
-                if (showRomaji && widget.entry.romaji.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  _buildRomaji(context),
-                ],
-                const SizedBox(height: 8),
-                _buildMeaning(context),
-                if (_hasNotes) ...[
-                  const SizedBox(height: 8),
-                  _buildNotes(context),
-                ],
-              ],
-            ),
-          ),
-        );
-      },
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: AppCard(
+        style: AppCardStyle.minimal,
+        margin: const EdgeInsets.only(bottom: 12, right: 16),
+        padding: const EdgeInsets.all(16),
+        onTap: widget.onTap ?? () => _handleCopyToClipboard(context),
+        onDoubleTap: widget.onDoubleTap,
+        onLongPress: () => _handleEditEntry(context),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeaderRow(context, showFurigana: widget.showFurigana),
+            if (widget.showRomaji && widget.entry.romaji.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _buildRomaji(context),
+            ],
+            const SizedBox(height: 8),
+            _buildMeaning(context),
+            if (_hasNotes) ...[const SizedBox(height: 8), _buildNotes(context)],
+          ],
+        ),
+      ),
     );
   }
 
