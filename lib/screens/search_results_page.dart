@@ -14,6 +14,7 @@ import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 import 'package:jpn_learning_diary/repositories/jmdict_repository.dart';
 import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
+import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
@@ -123,6 +124,8 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         final entryIndex = index - currentIndex;
         return _buildDiaryEntryCard(
           results.diaryEntries[entryIndex],
+          results.showRomaji,
+          results.showFurigana,
         );
       }
       currentIndex += results.diaryEntries.length;
@@ -189,10 +192,12 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   }
 
   /// Builds a diary entry card.
-  Widget _buildDiaryEntryCard(DiaryEntry entry) {
+  Widget _buildDiaryEntryCard(DiaryEntry entry, bool showRomaji, bool showFurigana) {
     return DiaryEntryCard(
       key: ValueKey(entry.id),
       entry: entry,
+      showRomaji: showRomaji,
+      showFurigana: showFurigana,
       onDoubleTap: () => _openSearchForEntry(entry),
       onEntryUpdated: (_) => _performSearch(),
       onEntryDeleted: (_) => _performSearch(),
@@ -294,10 +299,17 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
       }
     }
 
+    final prefsFutures = await Future.wait([
+      AppPreferences.getShowRomaji(),
+      AppPreferences.getShowFurigana(),
+    ]);
+
     return _SearchResults(
       diaryEntries: diaryResults,
       kanji: kanjiResults,
       jmdictEntries: jmdictResults,
+      showRomaji: prefsFutures[0],
+      showFurigana: prefsFutures[1],
     );
   }
 
@@ -378,11 +390,15 @@ class _SearchResults {
   final List<DiaryEntry> diaryEntries;
   final List<KanjiData> kanji;
   final List<JMdictEntry> jmdictEntries;
+  final bool showRomaji;
+  final bool showFurigana;
 
   /// Creates a new instance of [_SearchResults].
   _SearchResults({
     required this.diaryEntries,
     required this.kanji,
     required this.jmdictEntries,
+    required this.showRomaji,
+    required this.showFurigana,
   });
 }

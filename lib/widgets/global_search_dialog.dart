@@ -16,6 +16,7 @@ import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
 import 'package:jpn_learning_diary/repositories/jmdict_repository.dart';
 import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
+import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
 import 'package:jpn_learning_diary/widgets/jmdict_card.dart';
@@ -317,24 +318,38 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
     if (_diaryResults.isEmpty) return [];
     return [
       _buildSectionHeader('Diary Entries', Icons.book),
-      ..._diaryResults.map((entry) => Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: DiaryEntryCard(
-              entry: entry,
-              onTap: () => Navigator.of(context).pop(
-                JapaneseTextUtils.stripRubyPatterns(entry.japanese),
-              ),
-              onEntryUpdated: (updated) {
-                setState(() {
-                  final index = _diaryResults.indexWhere(
-                      (e) => e.id == updated.id);
-                  if (index != -1) {
-                    _diaryResults[index] = updated;
-                  }
-                });
-              },
-            ),
-          )),
+      FutureBuilder<List<bool>>(
+        future: Future.wait([
+          AppPreferences.getShowRomaji(),
+          AppPreferences.getShowFurigana(),
+        ]),
+        builder: (context, snapshot) {
+          final showRomaji = snapshot.data?[0] ?? true;
+          final showFurigana = snapshot.data?[1] ?? true;
+          return Column(
+            children: _diaryResults.map((entry) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: DiaryEntryCard(
+                    entry: entry,
+                    showRomaji: showRomaji,
+                    showFurigana: showFurigana,
+                    onTap: () => Navigator.of(context).pop(
+                      JapaneseTextUtils.stripRubyPatterns(entry.japanese),
+                    ),
+                    onEntryUpdated: (updated) {
+                      setState(() {
+                        final index = _diaryResults.indexWhere(
+                            (e) => e.id == updated.id);
+                        if (index != -1) {
+                          _diaryResults[index] = updated;
+                        }
+                      });
+                    },
+                  ),
+                )).toList(),
+          );
+        },
+      ),
     ];
   }
 
