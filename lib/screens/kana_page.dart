@@ -38,8 +38,8 @@ class KanaPage extends StatelessWidget {
     return CharacterSetPage(
       characterTypeName: isHiragana ? 'hiragana' : 'katakana',
       baseCharacters: isHiragana 
-          ? HiraganaData.baseCharacters 
-          : KatakanaData.baseCharacters,
+          ? HiraganaData.gridBaseCharacters 
+          : KatakanaData.gridBaseCharacters,
       dakutenCharacters: isHiragana 
           ? HiraganaData.dakutenCharacters 
           : KatakanaData.dakutenCharacters,
@@ -49,6 +49,12 @@ class KanaPage extends StatelessWidget {
       combinations: isHiragana 
           ? HiraganaData.combinations 
           : KatakanaData.combinations,
+      dakutenCombinations: isHiragana
+          ? HiraganaData.dakutenCombinations
+          : KatakanaData.dakutenCombinations,
+      handakutenCombinations: isHiragana
+          ? HiraganaData.handakutenCombinations
+          : KatakanaData.handakutenCombinations,
     );
   }
 }

@@ -21,6 +21,12 @@ class CharacterData extends Equatable {
     this.description,
   });
 
+  /// Helper to create an empty/placeholder character.
+  static const empty = CharacterData(character: '', romanization: '');
+
+  /// Whether this is an empty/placeholder character.
+  bool get isEmpty => character.isEmpty && romanization.isEmpty;
+
   @override
   List<Object?> get props => [character, romanization, description];
 

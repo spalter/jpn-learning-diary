@@ -168,6 +168,21 @@ class _AppShellState extends State<AppShell> {
     }
   }
 
+  /// Calculates the padding for the current page.
+  ///
+  /// On mobile, Kana pages (Hiragana/Katakana) are displayed full-width.
+  /// Other pages retain standard padding.
+  EdgeInsets _getPaddingForCurrentPage() {
+    if (_isMobile) {
+      if (_currentPage == AppPage.hiragana || _currentPage == AppPage.katakana) {
+        return EdgeInsets.zero;
+      }
+      return const EdgeInsets.only(left: 16, top: 16, right: 0, bottom: 0);
+    }
+
+    return const EdgeInsets.only(left: 16, top: 16, right: 0, bottom: 0);
+  }
+
   /// Returns the widget for the currently selected page.
   Widget _buildCurrentPage() {
     switch (_currentPage) {
@@ -213,12 +228,7 @@ class _AppShellState extends State<AppShell> {
           }
         },
         child: Padding(
-          padding: const EdgeInsets.only(
-            left: 16,
-            top: 16,
-            right: 0,
-            bottom: 0,
-          ),
+          padding: _getPaddingForCurrentPage(),
           child: _buildCurrentPage(),
         ),
       ),

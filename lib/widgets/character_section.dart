@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/models/character_data.dart';
 import 'package:jpn_learning_diary/widgets/character_card.dart';
+import 'package:jpn_learning_diary/widgets/kana_table.dart';
 
 /// A reusable section widget that displays Japanese characters in a responsive grid.
 ///
@@ -32,20 +33,27 @@ class CharacterSection extends StatelessWidget {
   /// The name of the character type (e.g., "hiragana", "katakana") for clipboard notifications.
   final String characterTypeName;
 
+  /// Optional fixed column count for grid layout.
+  /// If null, uses a responsive wrap layout.
+  final int? crossAxisCount;
+
   const CharacterSection({
     super.key,
     required this.title,
     required this.characters,
     required this.characterTypeName,
+    this.crossAxisCount,
   });
 
   /// Builds the section with a title and responsive character grid.
   ///
-  /// Uses LayoutBuilder to calculate optimal card dimensions based on the
-  /// available width, ensuring cards fill the space while staying within
-  /// readable size bounds.
+  /// uses either a GridView (if [crossAxisCount] is provided) or a LayoutBuilder + Wrap.
   @override
   Widget build(BuildContext context) {
+    if (crossAxisCount != null) {
+      return _buildFixedGrid(context);
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -56,46 +64,61 @@ class CharacterSection extends StatelessWidget {
           ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            // Calculate responsive card size that adapts to window width.
-            // Base size: 70x100, Max size: 84x120 (20% bigger).
-            // This ensures characters remain readable at different window sizes.
-            final availableWidth = constraints.maxWidth;
-            const spacing = 8.0;
-
-            // Determine how many cards can fit in a row at base size.
-            int cardsPerRow = (availableWidth / (70 + spacing)).floor();
-            cardsPerRow = cardsPerRow < 1 ? 1 : cardsPerRow;
-
-            // Calculate optimal card width to fill available space.
-            double cardWidth =
-                (availableWidth - (cardsPerRow - 1) * spacing) / cardsPerRow;
-
-            // Constrain between min (70px) and max (84px) to maintain readability.
-            cardWidth = cardWidth.clamp(70.0, 84.0);
-
-            // Maintain aspect ratio (70:100 = 0.7) for proper card proportions.
-            double cardHeight = cardWidth / 0.7;
-
-            return Wrap(
-              spacing: spacing,
-              runSpacing: spacing,
-              children: characters.map((char) {
-                return SizedBox(
-                  width: cardWidth,
-                  height: cardHeight,
-                  child: CharacterCard(
-                    character: char.character,
-                    romanization: char.romanization,
-                    onTap: () => _copyToClipboard(context, char),
-                  ),
-                );
-              }).toList(),
-            );
-          },
-        ),
+        _buildResponsiveWrap(context),
       ],
+    );
+  }
+
+  Widget _buildFixedGrid(BuildContext context) {
+    // If a fixed column count is requested, use the table view for a cleaner overview.
+    // This provides the "minimal table" layout requested.
+    return KanaTable(
+      title: title,
+      characters: characters,
+      crossAxisCount: crossAxisCount!,
+    );
+  }
+
+  Widget _buildResponsiveWrap(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate responsive card size that adapts to window width.
+        // Base size: 50x71 (smaller for grid), or keep logic?
+        // Let's keep existing logic for Wrap.
+        final availableWidth = constraints.maxWidth;
+        const spacing = 8.0;
+
+        // Determine how many cards can fit in a row at base size.
+        int cardsPerRow = (availableWidth / (70 + spacing)).floor();
+        cardsPerRow = cardsPerRow < 1 ? 1 : cardsPerRow;
+
+        // Calculate optimal card width to fill available space.
+        double cardWidth =
+            (availableWidth - (cardsPerRow - 1) * spacing) / cardsPerRow;
+
+        // Constrain between min (70px) and max (84px) to maintain readability.
+        cardWidth = cardWidth.clamp(70.0, 84.0);
+
+        // Maintain aspect ratio (70:100 = 0.7) for proper card proportions.
+        double cardHeight = cardWidth / 0.7;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: characters.map((char) {
+            if (char.isEmpty) return SizedBox(width: cardWidth, height: cardHeight);
+            return SizedBox(
+              width: cardWidth,
+              height: cardHeight,
+              child: CharacterCard(
+                character: char.character,
+                romanization: char.romanization,
+                onTap: () => _copyToClipboard(context, char),
+              ),
+            );
+          }).toList(),
+        );
+      },
     );
   }
 

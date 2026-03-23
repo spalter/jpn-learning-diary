@@ -32,6 +32,12 @@ class CharacterSetPage extends StatelessWidget {
   /// The combination characters (Yōon).
   final List<CharacterData> combinations;
 
+  /// The dakuten combination characters (濁点拗音).
+  final List<CharacterData> dakutenCombinations;
+
+  /// The han-dakuten combination characters (半濁点拗音).
+  final List<CharacterData> handakutenCombinations;
+
   const CharacterSetPage({
     super.key,
     required this.characterTypeName,
@@ -39,24 +45,49 @@ class CharacterSetPage extends StatelessWidget {
     required this.dakutenCharacters,
     required this.hanDakutenCharacters,
     required this.combinations,
+    this.dakutenCombinations = const [],
+    this.handakutenCombinations = const [],
   });
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      primary: true,
-      child: Padding(
-        padding: const EdgeInsets.only(right: 16.0),
+    final isMobile =
+        Theme.of(context).platform == TargetPlatform.iOS ||
+        Theme.of(context).platform == TargetPlatform.android;
+
+    if (isMobile) {
+      return SingleChildScrollView(
+        primary: true,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildBaseCharactersSection(),
-            _buildSectionSpacer(),
             _buildDakutenSection(),
-            _buildSectionSpacer(),
             _buildHandakutenSection(),
-            _buildSectionSpacer(),
             _buildCombinationsSection(),
+            _buildDakutenCombinationsSection(),
+            _buildHandakutenCombinationsSection(),
+            const SizedBox(height: 32), // Bottom padding
+          ],
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      primary: true,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.only(right: 16.0, bottom: 16.0),
+        child: Wrap(
+          crossAxisAlignment: WrapCrossAlignment.start,
+          spacing: 32.0,
+          runSpacing: 32.0,
+          children: [
+            _buildBaseCharactersSection(),
+            _buildDakutenSection(),
+            _buildHandakutenSection(),
+            _buildCombinationsSection(),
+            _buildDakutenCombinationsSection(),
+            _buildHandakutenCombinationsSection(),
           ],
         ),
       ),
@@ -69,6 +100,7 @@ class CharacterSetPage extends StatelessWidget {
       title: 'Base Characters (Gojūon)',
       characters: baseCharacters,
       characterTypeName: characterTypeName,
+      crossAxisCount: 5,
     );
   }
 
@@ -78,6 +110,7 @@ class CharacterSetPage extends StatelessWidget {
       title: 'Dakuten (゛)',
       characters: dakutenCharacters,
       characterTypeName: characterTypeName,
+      crossAxisCount: 5,
     );
   }
 
@@ -87,6 +120,7 @@ class CharacterSetPage extends StatelessWidget {
       title: 'Han-dakuten (゜)',
       characters: hanDakutenCharacters,
       characterTypeName: characterTypeName,
+      crossAxisCount: 5,
     );
   }
 
@@ -96,11 +130,32 @@ class CharacterSetPage extends StatelessWidget {
       title: 'Combinations (Yōon)',
       characters: combinations,
       characterTypeName: characterTypeName,
+      crossAxisCount: 3,
+    );
+  }
+
+  /// Builds the dakuten combinations (濁点拗音) section.
+  Widget _buildDakutenCombinationsSection() {
+    return CharacterSection(
+      title: 'Dakuten Combinations',
+      characters: dakutenCombinations,
+      characterTypeName: characterTypeName,
+      crossAxisCount: 3,
+    );
+  }
+
+  /// Builds the handakuten combinations (半濁点拗音) section.
+  Widget _buildHandakutenCombinationsSection() {
+    return CharacterSection(
+      title: 'Handakuten Combinations',
+      characters: handakutenCombinations,
+      characterTypeName: characterTypeName,
+      crossAxisCount: 3,
     );
   }
 
   /// Builds the spacer between sections.
-  Widget _buildSectionSpacer() {
-    return const SizedBox(height: 32);
-  }
+  // Widget _buildSectionSpacer() {
+  //   return const SizedBox(height: 32);
+  // }
 }
