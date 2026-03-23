@@ -45,6 +45,10 @@ class _StudyModePageState extends State<StudyModePage> {
   /// Preserves text when navigating away and returning to the page.
   static String _sessionText = '';
 
+  /// Static storage for session persistence of token annotations.
+  /// Preserves user annotations when navigating away and returning to the page.
+  static Map<String, String> _sessionAnnotations = {};
+
   /// Current lines parsed from the input text.
   List<String> _lines = [];
 
@@ -76,12 +80,18 @@ class _StudyModePageState extends State<StudyModePage> {
     if (_sessionText.isNotEmpty) {
       _textController.text = _sessionText;
     }
+
+    // Restore annotations from session storage if available
+    if (_sessionAnnotations.isNotEmpty) {
+      _tokenAnnotations.addAll(_sessionAnnotations);
+    }
   }
 
   @override
   void dispose() {
     // Save text to session storage before disposing
     _sessionText = _textController.text;
+    _sessionAnnotations = Map.from(_tokenAnnotations);
 
     // Clean up listeners and controllers
     _textController.removeListener(_onTextChanged);
@@ -293,7 +303,7 @@ class _StudyModePageState extends State<StudyModePage> {
         focusNode: _textFocusNode,
         maxLines: _isInputCollapsed ? 1 : null,
         minLines: _isInputCollapsed ? 1 : 3,
-        readOnly: _isInputCollapsed && _isMobile,
+        readOnly: _isInputCollapsed,
         decoration: InputDecoration(
           border: OutlineInputBorder(
             borderRadius: BorderRadius.vertical(
