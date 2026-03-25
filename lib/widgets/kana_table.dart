@@ -60,7 +60,7 @@ class KanaTable extends StatelessWidget {
       ));
     }
 
-    final borderColor = Theme.of(context).colorScheme.onSurface.withOpacity(0.3);
+    final borderColor = Theme.of(context).colorScheme.onSurface.withAlpha(77);
     final borderRadius = BorderRadius.circular(8.0);
     final isMobile = Theme.of(context).platform == TargetPlatform.iOS || Theme.of(context).platform == TargetPlatform.android;
 

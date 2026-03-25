@@ -70,7 +70,7 @@ class AppNavigationBar extends StatefulWidget implements PreferredSizeWidget {
   State<AppNavigationBar> createState() => AppNavigationBarState();
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(46);
 }
 
 /// State for [AppNavigationBar].
