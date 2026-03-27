@@ -8,10 +8,13 @@
 // ============================================================================
 
 import 'dart:io' show Platform, exit;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:jpn_learning_diary/widgets/styled_tooltip.dart';
 import 'package:jpn_learning_diary/widgets/drag_to_move_area.dart';
+import 'package:jpn_learning_diary/widgets/global_search_dialog.dart';
+import 'package:jpn_learning_diary/screens/search_results_page.dart';
 
 /// Custom app bar designed for learning mode pages like practice and study.
 ///
@@ -48,7 +51,7 @@ class LearningModeAppBar extends StatelessWidget
 
   /// Returns the standard toolbar height as the preferred size for this app bar.
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(46);
 
   /// Whether the app is running on a mobile platform without window controls.
   bool get _isMobile => Platform.isAndroid || Platform.isIOS;
@@ -84,6 +87,17 @@ class LearningModeAppBar extends StatelessWidget
               ),
             ),
 
+            // Search button
+            ExcludeFocus(
+              child: StyledTooltip(
+                message: 'Search',
+                child: IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () => _showGlobalSearch(context),
+                ),
+              ),
+            ),
+
             // Custom action buttons
             if (actions != null) ...actions!,
 
@@ -110,6 +124,26 @@ class LearningModeAppBar extends StatelessWidget
         ),
       ),
     );
+  }
+
+  /// Shows the global search dialog.
+  Future<void> _showGlobalSearch(BuildContext context) async {
+    final result = await showDialog<String>(
+      context: context,
+      barrierColor: Theme.of(context).colorScheme.surface.withAlpha(200),
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: const GlobalSearchDialog(),
+      ),
+    );
+
+    if (result != null && result.isNotEmpty && context.mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => SearchResultsPage(searchQuery: result),
+        ),
+      );
+    }
   }
 
   /// Builds the minimize, maximize, and close buttons for desktop platforms.

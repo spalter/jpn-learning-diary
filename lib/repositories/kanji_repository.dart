@@ -69,6 +69,13 @@ class KanjiRepository {
     return await _databaseHelper.getRandomKanjiFromDiary(count: count);
   }
 
+  /// Gets all learned kanji found in diary entries.
+  ///
+  /// Returns a list of all unique kanji characters that the user has encountered.
+  Future<List<KanjiData>> getAllLearnedKanji() async {
+    return await _databaseHelper.getAllLearnedKanji();
+  }
+
   /// Gets JLPT level statistics for kanji found in diary entries.
   ///
   /// Returns a map with counts for each JLPT level:

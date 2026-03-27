@@ -423,6 +423,47 @@ class DatabaseHelper {
     return allKanji.take(min(count, allKanji.length)).toList();
   }
 
+  /// Gets all unique kanji data for practice from those found in diary entries.
+  ///
+  /// This method extracts all kanji characters that the user has encountered 
+  /// in their diary entries.
+  Future<List<KanjiData>> getAllLearnedKanji() async {
+    // Get all diary entries to extract kanji from
+    final allEntries = await getAllEntries();
+
+    if (allEntries.isEmpty) {
+      return [];
+    }
+
+    // Extract all unique kanji characters from diary entries
+    final kanjiPattern = RegExp(r'[\u4E00-\u9FFF\u3400-\u4DBF]');
+    final uniqueKanji = <String>{};
+
+    for (var entry in allEntries) {
+      final matches = kanjiPattern.allMatches(entry.japanese);
+      for (var match in matches) {
+        uniqueKanji.add(match.group(0)!);
+      }
+    }
+
+    if (uniqueKanji.isEmpty) {
+      return [];
+    }
+
+    // Query jpn.db for kanji data
+    final jpnDb = JpnDatabaseHelper.instance;
+    final allKanji = <KanjiData>[];
+
+    for (var kanjiChar in uniqueKanji) {
+      final result = await jpnDb.getKanji(kanjiChar);
+      if (result != null) {
+        allKanji.add(KanjiData.fromJpnDb(result));
+      }
+    }
+
+    return allKanji;
+  }
+
   /// Gets the full path to the database file.
   ///
   /// Returns the path based on platform and configuration:

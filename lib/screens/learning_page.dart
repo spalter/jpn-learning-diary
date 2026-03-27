@@ -11,6 +11,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/controllers/learning_controller.dart';
 import 'package:jpn_learning_diary/screens/anki_deck_selection_page.dart';
+import 'package:jpn_learning_diary/screens/kanji_stats_page.dart';
 import 'package:jpn_learning_diary/screens/practice_mode_page.dart';
 import 'package:jpn_learning_diary/screens/quiz_selection_page.dart';
 import 'package:jpn_learning_diary/widgets/app_card.dart';
@@ -132,11 +133,18 @@ class _LearningPageState extends State<LearningPage> {
 
   /// Builds the kanji statistics card.
   Widget _buildKanjiStatCard(BuildContext context, DashboardData data) {
-    return _buildStatCard(
-      context,
-      title: 'Unique Kanji',
-      value: '${data.totalKanji}',
-      icon: Icons.translate,
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const KanjiStatsPage()),
+        );
+      },
+      child: _buildStatCard(
+        context,
+        title: 'Unique Kanji',
+        value: '${data.totalKanji}',
+        icon: Icons.translate,
+      ),
     );
   }
 
