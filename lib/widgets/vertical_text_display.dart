@@ -9,6 +9,7 @@
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 import 'package:jpn_learning_diary/widgets/takoboto_viewer.dart';
 
@@ -170,7 +171,8 @@ class VerticalTextDisplay extends StatelessWidget {
       r'^[、。！？「」『』（）〈〉《》【】〔〕・…―ー～，．：；]+$',
     );
     final isPunctuation = decorationPattern.hasMatch(token);
-    final style = Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 23);
+    final baseStyle = Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 23);
+    final style = GoogleFonts.kleeOne(textStyle: baseStyle, fontWeight: FontWeight.w600);
     final isSelected = token == selectedWord;
     const double tokenWidth = 22.0;
 
