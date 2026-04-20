@@ -59,8 +59,8 @@ class LearningController extends ChangeNotifier {
   LearningController({
     DiaryRepository? diaryRepository,
     KanjiRepository? kanjiRepository,
-  })  : _diaryRepository = diaryRepository ?? DiaryRepository(),
-        _kanjiRepository = kanjiRepository ?? KanjiRepository();
+  }) : _diaryRepository = diaryRepository ?? DiaryRepository(),
+       _kanjiRepository = kanjiRepository ?? KanjiRepository();
 
   /// Current dashboard data, null if not loaded yet.
   DashboardData? get data => _data;
@@ -88,9 +88,12 @@ class LearningController extends ChangeNotifier {
     try {
       final entries = await _diaryRepository.getAllEntries();
       final jlptStats = await _kanjiRepository.getLearnedKanjiByJlptLevel();
-      
+
       // Calculate total kanji count from JLPT stats
-      final totalKanji = jlptStats.values.fold<int>(0, (sum, count) => sum + count);
+      final totalKanji = jlptStats.values.fold<int>(
+        0,
+        (sum, count) => sum + count,
+      );
 
       _data = DashboardData.withKanjiCount(
         totalEntries: entries.length,

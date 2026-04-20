@@ -231,6 +231,7 @@ class _DiaryEntryCardState extends State<DiaryEntryCard> {
   Future<void> _handleEditEntry(BuildContext context) async {
     final result = await showDialog<EditDiaryEntryResult>(
       context: context,
+      barrierDismissible: false,
       barrierColor: Theme.of(context).colorScheme.surface.withAlpha(200),
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),

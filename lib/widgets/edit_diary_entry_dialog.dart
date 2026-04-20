@@ -12,41 +12,45 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
+import 'package:jpn_learning_diary/models/diary_note.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
+import 'package:jpn_learning_diary/repositories/diary_notes_repository.dart';
 
-/// Result of editing a diary entry dialog.
+/// Result of editing a diary item dialog.
 ///
-/// Contains either the updated/created entry or indicates deletion.
+/// Contains either the updated/created entry/note or indicates deletion.
 class EditDiaryEntryResult {
   /// The updated or newly created entry, null if deleted.
   final DiaryEntry? updatedEntry;
 
-  /// Whether the entry was deleted.
+  /// The updated or newly created note, null if deleted.
+  final DiaryNote? updatedNote;
+
+  /// Whether the entry/note was deleted.
   final bool wasDeleted;
 
-  const EditDiaryEntryResult.updated(DiaryEntry entry)
+  const EditDiaryEntryResult.updatedEntry(DiaryEntry entry)
     : updatedEntry = entry,
+      updatedNote = null,
       wasDeleted = false;
 
-  const EditDiaryEntryResult.deleted() : updatedEntry = null, wasDeleted = true;
+  const EditDiaryEntryResult.updatedNote(DiaryNote note)
+    : updatedEntry = null,
+      updatedNote = note,
+      wasDeleted = false;
+
+  const EditDiaryEntryResult.deleted()
+    : updatedEntry = null,
+      updatedNote = null,
+      wasDeleted = true;
 }
 
-/// Dialog for creating or editing a diary entry.
-///
-/// This modal dialog presents input fields for all diary entry properties
-/// including Japanese text (with inline ruby patterns for furigana), romaji,
-/// meaning, and notes. When editing an existing entry, a delete button is
-/// also available with confirmation.
-///
-/// * [entry]: The existing diary entry to edit, or null to create a new one.
+/// Dialog for creating or editing a diary item (entry or note).
 class EditDiaryEntryDialog extends StatefulWidget {
-  /// The diary entry to edit, or null to create a new entry.
-  ///
-  /// When provided, the dialog pre-fills all fields with the entry's current
-  /// values and shows a delete option.
   final DiaryEntry? entry;
+  final DiaryNote? note;
 
-  const EditDiaryEntryDialog({super.key, this.entry});
+  const EditDiaryEntryDialog({super.key, this.entry, this.note});
 
   @override
   State<EditDiaryEntryDialog> createState() => _EditDiaryEntryDialogState();
@@ -57,22 +61,21 @@ class EditDiaryEntryDialog extends StatefulWidget {
 /// Maintains text editing controllers for each field and handles the save,
 /// cancel, and delete actions with appropriate database operations.
 class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
-  /// Controller for the Japanese text input field.
+  bool _isNoteMode = false;
+
   late final TextEditingController _japaneseController;
-
-  /// Controller for the romaji transliteration input field.
   late final TextEditingController _romajiController;
-
-  /// Controller for the meaning/translation input field.
   late final TextEditingController _meaningController;
-
-  /// Controller for the optional notes input field.
   late final TextEditingController _notesController;
 
-  /// Initializes controllers with existing entry values or empty strings.
+  late final TextEditingController _titleController;
+  late final TextEditingController _contentJapaneseController;
+
   @override
   void initState() {
     super.initState();
+    _isNoteMode = widget.note != null;
+
     _japaneseController = TextEditingController(
       text: widget.entry?.japanese ?? '',
     );
@@ -81,27 +84,29 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
       text: widget.entry?.meaning ?? '',
     );
     _notesController = TextEditingController(text: widget.entry?.notes ?? '');
+
+    _titleController = TextEditingController(text: widget.note?.title ?? '');
+    _contentJapaneseController = TextEditingController(
+      text: widget.note?.contentJapanese ?? '',
+    );
   }
 
-  /// Disposes all text editing controllers to prevent memory leaks.
   @override
   void dispose() {
     _japaneseController.dispose();
     _romajiController.dispose();
     _meaningController.dispose();
     _notesController.dispose();
+    _titleController.dispose();
+    _contentJapaneseController.dispose();
     super.dispose();
   }
 
-  /// Builds the dialog with form fields and action buttons.
-  ///
-  /// The title and available actions adapt based on whether an existing entry
-  /// is being edited or a new one is being created.
   @override
   Widget build(BuildContext context) {
-    final isEditing = widget.entry != null;
+    final isEditing = widget.entry != null || widget.note != null;
+    final isEditingNew = !isEditing;
 
-    // Define the save shortcut: Cmd+S on macOS, Ctrl+S on Windows/Linux
     final saveShortcut = Platform.isMacOS
         ? const SingleActivator(LogicalKeyboardKey.keyS, meta: true)
         : const SingleActivator(LogicalKeyboardKey.keyS, control: true);
@@ -111,126 +116,52 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
       child: Focus(
         autofocus: true,
         child: AlertDialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          elevation: 4,
+          title: isEditingNew
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SegmentedButton<bool>(
+                      style: SegmentedButton.styleFrom(
+                        selectedBackgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onSurface,
+                        selectedForegroundColor: Theme.of(
+                          context,
+                        ).colorScheme.surface,
+                        side: BorderSide(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withAlpha(100),
+                        ),
+                      ),
+                      segments: const [
+                        ButtonSegment<bool>(value: false, label: Text('Vocab')),
+                        ButtonSegment<bool>(value: true, label: Text('Note')),
+                      ],
+                      selected: {_isNoteMode},
+                      onSelectionChanged: (Set<bool> newSelection) {
+                        setState(() {
+                          _isNoteMode = newSelection.first;
+                        });
+                      },
+                    ),
+                  ],
+                )
+              : null,
           content: SingleChildScrollView(
             child: SizedBox(
-              width: 500,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    controller: _japaneseController,
-                    decoration: InputDecoration(
-                      labelText: 'Japanese',
-                      helperText: 'Use [漢字](かんじ) for inline furigana',
-                      border: const OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withAlpha(100),
-                        ),
-                      ),
-                    ),
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _romajiController,
-                    decoration: InputDecoration(
-                      labelText: 'Romaji',
-                      border: const OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withAlpha(100),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _meaningController,
-                    decoration: InputDecoration(
-                      labelText: 'Meaning',
-                      border: const OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withAlpha(100),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _notesController,
-                    decoration: InputDecoration(
-                      labelText: 'Notes',
-                      border: const OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withAlpha(100),
-                        ),
-                      ),
-                    ),
-                    maxLines: 3,
-                  ),
-                ],
-              ),
+              width: 600,
+              child: _isNoteMode
+                  ? _buildNoteForm(context)
+                  : _buildVocabForm(context),
             ),
           ),
           actions: [
-            // Delete button - only shown when editing an existing entry.
             if (isEditing)
               TextButton(
-                onPressed: () async {
-                  // Show confirmation dialog to prevent accidental deletion.
-                  final confirmed = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Delete Entry'),
-                      content: const Text(
-                        'Are you sure you want to delete this entry? This cannot be undone.',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: const Text('Cancel'),
-                        ),
-                        FilledButton(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.error,
-                          ),
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: const Text('Delete'),
-                        ),
-                      ],
-                    ),
-                  );
-
-                  // If confirmed, delete from database and close dialog.
-                  if (confirmed == true && context.mounted) {
-                    final diaryRepository = DiaryRepository();
-                    await diaryRepository.deleteEntry(widget.entry!.id!);
-                    if (context.mounted) {
-                      Navigator.of(
-                        context,
-                      ).pop(const EditDiaryEntryResult.deleted());
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Entry deleted')),
-                      );
-                    }
-                  }
-                },
+                onPressed: () => _handleDelete(context),
                 style: TextButton.styleFrom(
                   foregroundColor: Theme.of(context).colorScheme.error,
                 ),
@@ -240,7 +171,6 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
               onPressed: () => Navigator.of(context).pop(null),
               child: const Text('Cancel'),
             ),
-            // Save button - creates new entry or updates existing one.
             FilledButton(onPressed: _handleSave, child: const Text('Save')),
           ],
         ),
@@ -248,42 +178,192 @@ class _EditDiaryEntryDialogState extends State<EditDiaryEntryDialog> {
     );
   }
 
-  /// Saves the diary entry (creates new or updates existing).
+  Widget _buildVocabForm(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _japaneseController,
+          decoration: InputDecoration(
+            labelText: 'Japanese',
+            helperText: 'Use [漢字](かんじ) for inline furigana',
+            border: const OutlineInputBorder(),
+          ),
+          style: const TextStyle(fontSize: 18),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _romajiController,
+          decoration: const InputDecoration(
+            labelText: 'Romaji',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _meaningController,
+          decoration: const InputDecoration(
+            labelText: 'Meaning',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _notesController,
+          decoration: const InputDecoration(
+            labelText: 'Notes',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: 3,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNoteForm(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _titleController,
+          decoration: const InputDecoration(
+            labelText: 'Title',
+            helperText: 'Use [漢字](かんじ) for inline furigana',
+            border: OutlineInputBorder(),
+          ),
+          style: const TextStyle(fontSize: 18),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _contentJapaneseController,
+          decoration: InputDecoration(
+            labelText: 'Japanese Content',
+            helperText: 'Use [漢字](かんじ) for inline furigana',
+            border: const OutlineInputBorder(),
+          ),
+          style: const TextStyle(fontSize: 16),
+          minLines: 8,
+          maxLines: null,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _handleDelete(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Item'),
+        content: const Text(
+          'Are you sure you want to delete this item? This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      if (_isNoteMode) {
+        final repo = DiaryNotesRepository();
+        await repo.deleteNote(widget.note!.id!);
+        if (context.mounted) {
+          Navigator.of(context).pop(const EditDiaryEntryResult.deleted());
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Note deleted')));
+        }
+      } else {
+        final repo = DiaryRepository();
+        await repo.deleteEntry(widget.entry!.id!);
+        if (context.mounted) {
+          Navigator.of(context).pop(const EditDiaryEntryResult.deleted());
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Entry deleted')));
+        }
+      }
+    }
+  }
+
   Future<void> _handleSave() async {
-    final isEditing = widget.entry != null;
-    final diaryRepository = DiaryRepository();
+    final isEditingEntry = widget.entry != null;
+    final isEditingNote = widget.note != null;
 
-    DiaryEntry savedEntry;
+    if (_isNoteMode) {
+      final repo = DiaryNotesRepository();
+      DiaryNote savedNote;
 
-    if (isEditing) {
-      // Update existing entry in database with new values.
+      if (isEditingNote) {
+        savedNote = widget.note!.copyWith(
+          title: _titleController.text,
+          contentJapanese: _contentJapaneseController.text,
+          contentEnglish: '', // explicitly clear out if it had any
+        );
+        await repo.updateNote(savedNote);
+      } else {
+        final newNote = DiaryNote(
+          title: _titleController.text,
+          contentJapanese: _contentJapaneseController.text,
+          dateAdded: DateTime.now(),
+        );
+        savedNote = await repo.createNote(newNote);
+      }
+
+      if (mounted) {
+        Navigator.of(context).pop(EditDiaryEntryResult.updatedNote(savedNote));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(isEditingNote ? 'Note saved' : 'Note added')),
+        );
+      }
+    } else {
+      final repo = DiaryRepository();
+      DiaryEntry savedEntry;
+
       final notesText = _notesController.text.trim();
 
-      savedEntry = widget.entry!.copyWith(
-        japanese: _japaneseController.text,
-        romaji: _romajiController.text,
-        meaning: _meaningController.text,
-        notes: notesText.isEmpty ? null : notesText,
-        clearNotes: notesText.isEmpty,
-      );
-      await diaryRepository.updateEntry(savedEntry);
-    } else {
-      // Create new entry with current timestamp.
-      final newEntry = DiaryEntry(
-        japanese: _japaneseController.text,
-        romaji: _romajiController.text,
-        meaning: _meaningController.text,
-        notes: _notesController.text.isEmpty ? null : _notesController.text,
-        dateAdded: DateTime.now(),
-      );
-      savedEntry = await diaryRepository.createEntry(newEntry);
-    }
+      if (isEditingEntry) {
+        savedEntry = widget.entry!.copyWith(
+          japanese: _japaneseController.text,
+          romaji: _romajiController.text,
+          meaning: _meaningController.text,
+          notes: notesText.isEmpty ? null : notesText,
+          clearNotes: notesText.isEmpty,
+        );
+        await repo.updateEntry(savedEntry);
+      } else {
+        final newEntry = DiaryEntry(
+          japanese: _japaneseController.text,
+          romaji: _romajiController.text,
+          meaning: _meaningController.text,
+          notes: notesText.isEmpty ? null : notesText,
+          dateAdded: DateTime.now(),
+        );
+        savedEntry = await repo.createEntry(newEntry);
+      }
 
-    if (mounted) {
-      Navigator.of(context).pop(EditDiaryEntryResult.updated(savedEntry));
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(isEditing ? 'Entry saved' : 'Entry added')),
-      );
+      if (mounted) {
+        Navigator.of(
+          context,
+        ).pop(EditDiaryEntryResult.updatedEntry(savedEntry));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isEditingEntry ? 'Entry saved' : 'Entry added'),
+          ),
+        );
+      }
     }
   }
 }

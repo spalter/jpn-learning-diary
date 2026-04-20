@@ -28,7 +28,7 @@ class _KanjiStatsPageState extends State<KanjiStatsPage> {
   Future<void> _loadKanji() async {
     try {
       final kanji = await _kanjiRepository.getAllLearnedKanji();
-      
+
       // Sort kanji by stroke count ascending
       kanji.sort((a, b) => a.strokes.compareTo(b.strokes));
 
@@ -43,9 +43,9 @@ class _KanjiStatsPageState extends State<KanjiStatsPage> {
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load kanji: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load kanji: $e')));
       }
     }
   }
@@ -53,77 +53,78 @@ class _KanjiStatsPageState extends State<KanjiStatsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const LearningModeAppBar(
-        title: 'Unique Kanji',
-      ),
+      appBar: const LearningModeAppBar(title: 'Unique Kanji'),
       backgroundColor: AppTheme.scaffoldBackground(context),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _learnedKanji == null || _learnedKanji!.isEmpty
-              ? const Center(child: Text('No kanji found.'))
-              : GridView.builder(
-                  padding: const EdgeInsets.all(16.0),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 100,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                  ),
-                  itemCount: _learnedKanji!.length,
-                  itemBuilder: (context, index) {
-                    final kanjiData = _learnedKanji![index];
-                    return AppCard.bordered(
-                      onTap: () async {
-                        await Clipboard.setData(ClipboardData(text: kanjiData.kanji));
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Copied: ${kanjiData.kanji}'),
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
-                        }
-                      },
-                      onDoubleTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => SearchResultsPage(
-                              searchQuery: kanjiData.kanji,
-                            ),
-                          ),
-                        );
-                      },
-                      padding: EdgeInsets.zero,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            kanjiData.kanji,
-                            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              height: 1.1, // Tighter height to fit nicely in the grid
-                            ),
-                          ),
-                          if (kanjiData.jlptNew != null || kanjiData.grade != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4.0),
-                              child: Text(
-                                kanjiData.jlptNew != null
-                                    ? 'JLPT N${kanjiData.jlptNew}'
-                                    : 'Grade ${kanjiData.grade}',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurface.withAlpha(180),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 10,
-                                    ),
-                              ),
-                            ),
-                        ],
+          ? const Center(child: Text('No kanji found.'))
+          : GridView.builder(
+              padding: const EdgeInsets.all(16.0),
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 100,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
+              itemCount: _learnedKanji!.length,
+              itemBuilder: (context, index) {
+                final kanjiData = _learnedKanji![index];
+                return AppCard.bordered(
+                  onTap: () async {
+                    await Clipboard.setData(
+                      ClipboardData(text: kanjiData.kanji),
+                    );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Copied: ${kanjiData.kanji}'),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  onDoubleTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            SearchResultsPage(searchQuery: kanjiData.kanji),
                       ),
                     );
                   },
-                ),
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        kanjiData.kanji,
+                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          height:
+                              1.1, // Tighter height to fit nicely in the grid
+                        ),
+                      ),
+                      if (kanjiData.jlptNew != null || kanjiData.grade != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Text(
+                            kanjiData.jlptNew != null
+                                ? 'JLPT N${kanjiData.jlptNew}'
+                                : 'Grade ${kanjiData.grade}',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface.withAlpha(180),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 10,
+                                ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
     );
   }
 }
-
-

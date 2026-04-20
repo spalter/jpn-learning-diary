@@ -82,12 +82,24 @@ class AnkiService {
 
   /// Audio file extensions that should be extracted from the archive.
   static const Set<String> _audioExtensions = {
-    '.mp3', '.ogg', '.wav', '.m4a', '.aac', '.flac', '.opus',
+    '.mp3',
+    '.ogg',
+    '.wav',
+    '.m4a',
+    '.aac',
+    '.flac',
+    '.opus',
   };
 
   /// Image file extensions supported for display.
   static const Set<String> _imageExtensions = {
-    '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg',
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.gif',
+    '.bmp',
+    '.webp',
+    '.svg',
   };
 
   /// Loads Anki cards from an APKG file at the given path.
@@ -160,9 +172,7 @@ class AnkiService {
 
     if (selectedDbEntry == null) {
       _closeArchive(archive, inputStream);
-      throw Exception(
-        'Invalid APKG file: no Anki database found.',
-      );
+      throw Exception('Invalid APKG file: no Anki database found.');
     }
 
     // Stream-decompress the DB directly to a temp file instead of
@@ -398,16 +408,16 @@ class AnkiService {
         if (fieldNames.isEmpty) continue;
 
         // Try template-based field grouping first
-        final templateResult = _parseTemplateFields(
-          model, fieldNames,
-        );
+        final templateResult = _parseTemplateFields(model, fieldNames);
 
         if (templateResult != null) {
           result[modelId] = _NoteModelInfo(
             frontIndex: templateResult.$1.isNotEmpty
-                ? templateResult.$1.first : 0,
+                ? templateResult.$1.first
+                : 0,
             backIndex: templateResult.$2.isNotEmpty
-                ? templateResult.$2.first : 1,
+                ? templateResult.$2.first
+                : 1,
             fieldNames: fieldNames.map((n) => n.toLowerCase()).toList(),
             frontFieldIndices: templateResult.$1,
             backFieldIndices: templateResult.$2,
@@ -440,8 +450,14 @@ class AnkiService {
 
   /// Special template variables that are not actual field references.
   static const _specialTemplateVars = {
-    'frontside', 'tags', 'type', 'deck', 'card', 'subdeck',
-    'cardfalg', 'flag',
+    'frontside',
+    'tags',
+    'type',
+    'deck',
+    'card',
+    'subdeck',
+    'cardfalg',
+    'flag',
   };
 
   /// Parses the first card template (`tmpls[0]`) from a model to determine
@@ -605,8 +621,10 @@ class AnkiService {
   /// Example: "japanese_core_2000.apkg" -> "Japanese Core 2000"
   static String _formatDeckName(String fileName) {
     // Remove .apkg extension
-    var name =
-        fileName.replaceAll(RegExp(r'\.apkg$', caseSensitive: false), '');
+    var name = fileName.replaceAll(
+      RegExp(r'\.apkg$', caseSensitive: false),
+      '',
+    );
     // Replace underscores and hyphens with spaces
     name = name.replaceAll(RegExp(r'[_-]'), ' ');
     // Capitalize each word

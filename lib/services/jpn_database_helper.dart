@@ -113,11 +113,20 @@ class JpnDatabaseHelper {
   String _getDesktopAssetPath() {
     final exePath = Platform.resolvedExecutable;
     final exeDir = dirname(exePath);
-    
+
     if (Platform.isMacOS) {
       // macOS bundles assets in App.framework
-      return join(exeDir, '..', 'Frameworks', 'App.framework', 'Resources', 
-                  'flutter_assets', 'lib', 'assets', _dbName);
+      return join(
+        exeDir,
+        '..',
+        'Frameworks',
+        'App.framework',
+        'Resources',
+        'flutter_assets',
+        'lib',
+        'assets',
+        _dbName,
+      );
     } else {
       // Windows and Linux use data/flutter_assets
       return join(exeDir, 'data', 'flutter_assets', 'lib', 'assets', _dbName);

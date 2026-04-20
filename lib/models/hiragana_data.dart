@@ -89,32 +89,30 @@ class HiraganaData {
   /// Includes empty placeholders for missing characters in Y and W rows
   /// to maintain the updated table layout.
   static List<CharacterData> get gridBaseCharacters => [
-        // Rows A through M (7 rows * 5 = 35 chars) are complete
-        ...baseCharacters.sublist(0, 35),
-        
-        // Y-row: ya, (empty), yu, (empty), yo
-        baseCharacters[35], // ya
-        CharacterData.empty,
-        baseCharacters[36], // yu
-        CharacterData.empty,
-        baseCharacters[37], // yo
+    // Rows A through M (7 rows * 5 = 35 chars) are complete
+    ...baseCharacters.sublist(0, 35),
 
-        // R-row (5 chars) is complete
-        ...baseCharacters.sublist(38, 43),
+    // Y-row: ya, (empty), yu, (empty), yo
+    baseCharacters[35], // ya
+    CharacterData.empty,
+    baseCharacters[36], // yu
+    CharacterData.empty,
+    baseCharacters[37], // yo
+    // R-row (5 chars) is complete
+    ...baseCharacters.sublist(38, 43),
 
-        // W-row: wa, (empty), (empty), (empty), wo
-        baseCharacters[43], // wa
-        CharacterData.empty,
-        CharacterData.empty,
-        CharacterData.empty,
-        baseCharacters[44], // wo
-
-        // N-row: n, (empty), (empty), (empty), (empty)
-        baseCharacters[45], // n
-        CharacterData.empty,
-        CharacterData.empty,
-        CharacterData.empty,
-        CharacterData.empty,
+    // W-row: wa, (empty), (empty), (empty), wo
+    baseCharacters[43], // wa
+    CharacterData.empty,
+    CharacterData.empty,
+    CharacterData.empty,
+    baseCharacters[44], // wo
+    // N-row: n, (empty), (empty), (empty), (empty)
+    baseCharacters[45], // n
+    CharacterData.empty,
+    CharacterData.empty,
+    CharacterData.empty,
+    CharacterData.empty,
   ];
 
   /// Dakuten characters (濁点).
@@ -224,11 +222,11 @@ class HiraganaData {
 
   /// All hiragana characters combined.
   static List<CharacterData> get allCharacters => [
-        ...baseCharacters,
-        ...dakutenCharacters,
-        ...handakutenCharacters,
-        ...combinations,
-        ...dakutenCombinations,
-        ...handakutenCombinations,
-      ];
+    ...baseCharacters,
+    ...dakutenCharacters,
+    ...handakutenCharacters,
+    ...combinations,
+    ...dakutenCombinations,
+    ...handakutenCombinations,
+  ];
 }

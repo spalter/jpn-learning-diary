@@ -20,7 +20,7 @@ class DiaryRepository {
   /// In production, typically uses [DatabaseHelper.instance].
   /// For testing, can inject a mock database helper.
   DiaryRepository({DatabaseHelper? databaseHelper})
-      : _databaseHelper = databaseHelper ?? DatabaseHelper.instance;
+    : _databaseHelper = databaseHelper ?? DatabaseHelper.instance;
 
   /// Creates a new diary entry.
   ///
@@ -50,16 +50,20 @@ class DiaryRepository {
       final matchesJapanese = JapaneseTextUtils.normalizeForSearch(
         JapaneseTextUtils.stripRubyPatterns(entry.japanese),
       ).contains(normalizedQuery);
-      
-      final matchesRomaji = JapaneseTextUtils.normalizeForSearch(entry.romaji)
-          .contains(normalizedQuery);
-      
-      final matchesMeaning = JapaneseTextUtils.normalizeForSearch(entry.meaning)
-          .contains(normalizedQuery);
-      
-      final matchesNotes = entry.notes != null && 
-          JapaneseTextUtils.normalizeForSearch(entry.notes!)
-              .contains(normalizedQuery);
+
+      final matchesRomaji = JapaneseTextUtils.normalizeForSearch(
+        entry.romaji,
+      ).contains(normalizedQuery);
+
+      final matchesMeaning = JapaneseTextUtils.normalizeForSearch(
+        entry.meaning,
+      ).contains(normalizedQuery);
+
+      final matchesNotes =
+          entry.notes != null &&
+          JapaneseTextUtils.normalizeForSearch(
+            entry.notes!,
+          ).contains(normalizedQuery);
 
       return matchesJapanese || matchesRomaji || matchesMeaning || matchesNotes;
     }).toList();

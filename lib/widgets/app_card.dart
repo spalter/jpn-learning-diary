@@ -165,10 +165,7 @@ class _AppCardState extends State<AppCard> {
         ),
       );
     } else {
-      card = Container(
-        decoration: decoration,
-        child: content,
-      );
+      card = Container(decoration: decoration, child: content);
     }
 
     // Wrap in MouseRegion for hover effects
@@ -226,8 +223,8 @@ class _AppCardState extends State<AppCard> {
       color: widget.isSelected
           ? Theme.of(context).colorScheme.primary.withAlpha(20)
           : (_isHovering
-              ? Theme.of(context).colorScheme.primary.withAlpha(10)
-              : null),
+                ? Theme.of(context).colorScheme.primary.withAlpha(10)
+                : null),
     );
   }
 
@@ -237,8 +234,8 @@ class _AppCardState extends State<AppCard> {
       color: widget.isSelected
           ? Theme.of(context).colorScheme.primary.withAlpha(20)
           : (_isHovering
-              ? Theme.of(context).colorScheme.primary.withAlpha(15)
-              : null),
+                ? Theme.of(context).colorScheme.primary.withAlpha(15)
+                : null),
       borderRadius: BorderRadius.circular(12),
       border: Border(
         bottom: BorderSide(

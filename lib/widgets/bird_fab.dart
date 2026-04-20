@@ -11,7 +11,7 @@ import 'dart:math';
 
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
-import 'package:jpn_learning_diary/models/diary_entry.dart';
+import 'package:jpn_learning_diary/models/diary_item.dart';
 import 'package:jpn_learning_diary/widgets/edit_diary_entry_dialog.dart'
     show EditDiaryEntryDialog, EditDiaryEntryResult;
 import 'package:jpn_learning_diary/widgets/styled_tooltip.dart';
@@ -23,12 +23,12 @@ import 'package:jpn_learning_diary/widgets/styled_tooltip.dart';
 /// mascot and applies a subtle bobbing animation when hovered over, adding
 /// character to the interface.
 ///
-/// * [onEntryCreated]: Optional callback with the new entry when successfully created.
+/// * [onItemCreated]: Optional callback with the new item when successfully created.
 class BirdFab extends StatefulWidget {
-  /// Optional callback when a diary entry is successfully created.
-  final void Function(DiaryEntry newEntry)? onEntryCreated;
+  /// Optional callback when a diary item is successfully created.
+  final void Function(DiaryItem newItem)? onItemCreated;
 
-  const BirdFab({super.key, this.onEntryCreated});
+  const BirdFab({super.key, this.onItemCreated});
 
   @override
   State<BirdFab> createState() => _BirdFabState();
@@ -135,6 +135,7 @@ class _BirdFabState extends State<BirdFab> with SingleTickerProviderStateMixin {
   Future<void> _handleAddEntry(BuildContext context) async {
     final result = await showDialog<EditDiaryEntryResult>(
       context: context,
+      barrierDismissible: false,
       barrierColor: Theme.of(context).colorScheme.surface.withAlpha(200),
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
@@ -142,8 +143,12 @@ class _BirdFabState extends State<BirdFab> with SingleTickerProviderStateMixin {
       ),
     );
 
-    if (result?.updatedEntry != null && widget.onEntryCreated != null) {
-      widget.onEntryCreated!(result!.updatedEntry!);
+    if (result != null && widget.onItemCreated != null) {
+      if (result.updatedEntry != null) {
+        widget.onItemCreated!(result.updatedEntry!);
+      } else if (result.updatedNote != null) {
+        widget.onItemCreated!(result.updatedNote!);
+      }
     }
   }
 }

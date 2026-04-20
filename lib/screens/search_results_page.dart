@@ -9,15 +9,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
+import 'package:jpn_learning_diary/models/diary_item.dart';
+import 'package:jpn_learning_diary/models/diary_note.dart';
 import 'package:jpn_learning_diary/models/jmdict_entry.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/repositories/diary_repository.dart';
+import 'package:jpn_learning_diary/repositories/diary_notes_repository.dart';
 import 'package:jpn_learning_diary/repositories/jmdict_repository.dart';
 import 'package:jpn_learning_diary/repositories/kanji_repository.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 import 'package:jpn_learning_diary/widgets/app_navigation_bar.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
+import 'package:jpn_learning_diary/widgets/diary_note_card.dart';
 import 'package:jpn_learning_diary/widgets/jmdict_card.dart';
 import 'package:jpn_learning_diary/widgets/kanji_card.dart';
 import 'package:jpn_learning_diary/widgets/learning_mode_app_bar.dart';
@@ -79,9 +83,9 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   /// Includes section headers, spacing, diary entries, words, and kanji results.
   int _calculateItemCount(_SearchResults results) {
     int count = 0;
-    if (results.diaryEntries.isNotEmpty) {
+    if (results.diaryItems.isNotEmpty) {
       count += 2; // Header + spacing
-      count += results.diaryEntries.length;
+      count += results.diaryItems.length;
       count += 1; // Spacing after section
     }
     if (results.jmdictEntries.isNotEmpty) {
@@ -105,11 +109,11 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     int currentIndex = 0;
 
     // Diary Entries Section
-    if (results.diaryEntries.isNotEmpty) {
+    if (results.diaryItems.isNotEmpty) {
       if (index == currentIndex) {
         return SectionHeader(
           icon: Icons.book,
-          title: 'Diary Entries (${results.diaryEntries.length})',
+          title: 'Diary Entries (${results.diaryItems.length})',
         );
       }
       currentIndex++;
@@ -120,15 +124,15 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
       currentIndex++;
 
       // Diary entry cards
-      if (index < currentIndex + results.diaryEntries.length) {
+      if (index < currentIndex + results.diaryItems.length) {
         final entryIndex = index - currentIndex;
-        return _buildDiaryEntryCard(
-          results.diaryEntries[entryIndex],
+        return _buildDiaryItemCard(
+          results.diaryItems[entryIndex],
           results.showRomaji,
           results.showFurigana,
         );
       }
-      currentIndex += results.diaryEntries.length;
+      currentIndex += results.diaryItems.length;
 
       if (index == currentIndex) {
         return const SizedBox(height: 32); // Section spacing
@@ -154,9 +158,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
       // JMdict cards
       if (index < currentIndex + results.jmdictEntries.length) {
         final entryIndex = index - currentIndex;
-        return _buildJmdictCard(
-          results.jmdictEntries[entryIndex],
-        );
+        return _buildJmdictCard(results.jmdictEntries[entryIndex]);
       }
       currentIndex += results.jmdictEntries.length;
 
@@ -191,17 +193,32 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     return const SizedBox.shrink();
   }
 
-  /// Builds a diary entry card.
-  Widget _buildDiaryEntryCard(DiaryEntry entry, bool showRomaji, bool showFurigana) {
-    return DiaryEntryCard(
-      key: ValueKey(entry.id),
-      entry: entry,
-      showRomaji: showRomaji,
-      showFurigana: showFurigana,
-      onDoubleTap: () => _openSearchForEntry(entry),
-      onEntryUpdated: (_) => _performSearch(),
-      onEntryDeleted: (_) => _performSearch(),
-    );
+  /// Builds a diary item card.
+  Widget _buildDiaryItemCard(
+    DiaryItem item,
+    bool showRomaji,
+    bool showFurigana,
+  ) {
+    if (item is DiaryEntry) {
+      return DiaryEntryCard(
+        key: ValueKey('entry_${item.id}'),
+        entry: item,
+        showRomaji: showRomaji,
+        showFurigana: showFurigana,
+        onDoubleTap: () => _openSearchForEntry(item),
+        onEntryUpdated: (_) => _performSearch(),
+        onEntryDeleted: (_) => _performSearch(),
+      );
+    } else if (item is DiaryNote) {
+      return DiaryNoteCard(
+        key: ValueKey('note_${item.id}'),
+        note: item,
+        showFurigana: showFurigana,
+        onNoteUpdated: (_) => _performSearch(),
+        onNoteDeleted: (_) => _performSearch(),
+      );
+    }
+    return const SizedBox.shrink();
   }
 
   /// Opens the search results page for the given entry's Japanese text.
@@ -262,23 +279,21 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   /// Returns a [_SearchResults] object containing all matching results.
   Future<_SearchResults> _search() async {
     final diaryRepository = DiaryRepository();
+    final diaryNotesRepository = DiaryNotesRepository();
     final kanjiRepository = KanjiRepository();
     final jmdictRepository = JMdictRepository();
 
-    // Search diary entries across all text fields.
-    // Strip ruby patterns from Japanese text so searching for "何歳" finds "[何](なん)[歳](さい)"
-    final allEntries = await diaryRepository.getAllEntries();
-    final diaryResults = allEntries.where((entry) {
-      final query = JapaneseTextUtils.normalizeForSearch(widget.searchQuery);
-      final strippedJapanese = JapaneseTextUtils.normalizeForSearch(
-        JapaneseTextUtils.stripRubyPatterns(entry.japanese),
-      );
-      
-      return strippedJapanese.contains(query) ||
-          JapaneseTextUtils.normalizeForSearch(entry.romaji).contains(query) ||
-          JapaneseTextUtils.normalizeForSearch(entry.meaning).contains(query) ||
-          (JapaneseTextUtils.normalizeForSearch(entry.notes ?? '').contains(query));
-    }).toList();
+    // Combine searches
+    final Future<List<DiaryEntry>> entriesFuture = diaryRepository
+        .searchEntries(widget.searchQuery);
+    final Future<List<DiaryNote>> notesFuture = diaryNotesRepository
+        .searchNotes(widget.searchQuery);
+
+    final results = await Future.wait([entriesFuture, notesFuture]);
+    final diaryResults = <DiaryItem>[
+      ...results[0] as List<DiaryEntry>,
+      ...results[1] as List<DiaryNote>,
+    ]..sort((a, b) => b.dateAdded.compareTo(a.dateAdded));
 
     // Search kanji database using dedicated search method.
     final kanjiResults = await kanjiRepository.searchKanji(widget.searchQuery);
@@ -305,7 +320,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     ]);
 
     return _SearchResults(
-      diaryEntries: diaryResults,
+      diaryItems: diaryResults,
       kanji: kanjiResults,
       jmdictEntries: jmdictResults,
       showRomaji: prefsFutures[0],
@@ -339,7 +354,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
         final results = snapshot.data!;
         final hasResults =
-            results.diaryEntries.isNotEmpty ||
+            results.diaryItems.isNotEmpty ||
             results.kanji.isNotEmpty ||
             results.jmdictEntries.isNotEmpty;
 
@@ -387,7 +402,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
 /// Container for search results including diary entries, kanji, and JMdict entries.
 class _SearchResults {
-  final List<DiaryEntry> diaryEntries;
+  final List<DiaryItem> diaryItems;
   final List<KanjiData> kanji;
   final List<JMdictEntry> jmdictEntries;
   final bool showRomaji;
@@ -395,7 +410,7 @@ class _SearchResults {
 
   /// Creates a new instance of [_SearchResults].
   _SearchResults({
-    required this.diaryEntries,
+    required this.diaryItems,
     required this.kanji,
     required this.jmdictEntries,
     required this.showRomaji,
