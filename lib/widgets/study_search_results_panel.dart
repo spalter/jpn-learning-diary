@@ -87,9 +87,7 @@ class StudySearchResultsPanel extends StatelessWidget {
             controller: scrollController,
             itemCount: results.length,
             itemBuilder: (context, index) {
-              return JMdictCard(
-                entry: results[index]
-              );
+              return JMdictCard(entry: results[index]);
             },
           ),
         ),
@@ -176,7 +174,9 @@ class StudySearchResultsPanel extends StatelessWidget {
                 Text(
                   'No results for "$selectedWord"',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withAlpha(150),
                   ),
                 ),
               ],
@@ -199,10 +199,7 @@ class _AnnotationInput extends StatefulWidget {
   final String? initialValue;
   final ValueChanged<String> onChanged;
 
-  const _AnnotationInput({
-    this.initialValue,
-    required this.onChanged,
-  });
+  const _AnnotationInput({this.initialValue, required this.onChanged});
 
   @override
   State<_AnnotationInput> createState() => _AnnotationInputState();

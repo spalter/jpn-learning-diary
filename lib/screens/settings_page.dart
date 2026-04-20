@@ -76,7 +76,9 @@ class _SettingsPageState extends State<SettingsPage> {
           final showRomaji = snapshot.data ?? true;
           return SwitchListTile(
             title: const Text('Show Romaji'),
-            subtitle: const Text('Display romanization on Diary and Search pages'),
+            subtitle: const Text(
+              'Display romanization on Diary and Search pages',
+            ),
             value: showRomaji,
             activeThumbColor: Theme.of(context).colorScheme.onSurface,
             onChanged: (value) async {
@@ -99,7 +101,9 @@ class _SettingsPageState extends State<SettingsPage> {
           final showFurigana = snapshot.data ?? true;
           return SwitchListTile(
             title: const Text('Show Furigana'),
-            subtitle: const Text('Display reading guides on Diary and Search pages'),
+            subtitle: const Text(
+              'Display reading guides on Diary and Search pages',
+            ),
             value: showFurigana,
             activeThumbColor: Theme.of(context).colorScheme.onSurface,
             onChanged: (value) async {

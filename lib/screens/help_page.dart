@@ -82,9 +82,7 @@ class HelpPage extends StatelessWidget {
   }) {
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -100,9 +98,9 @@ class HelpPage extends StatelessWidget {
                 const SizedBox(width: 12),
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -117,9 +115,7 @@ class HelpPage extends StatelessWidget {
   Widget _buildWelcomeSection(BuildContext context) {
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Row(
@@ -141,16 +137,16 @@ class HelpPage extends StatelessWidget {
                       Text(
                         'Welcome!',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         'ようこそ!',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
                     ],
                   ),
@@ -170,11 +166,10 @@ class HelpPage extends StatelessWidget {
                       return Text(
                         version,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withAlpha(150),
-                            ),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withAlpha(150),
+                        ),
                       );
                     },
                   ),
@@ -235,7 +230,7 @@ class HelpPage extends StatelessWidget {
 
   Widget _buildKeyboardShortcutsSection(BuildContext context) {
     final modKey = _isMac ? '⌘' : 'Ctrl';
-    
+
     return _buildSectionCard(
       context: context,
       title: 'Keyboard Shortcuts',
@@ -256,13 +251,17 @@ class HelpPage extends StatelessWidget {
         _buildShortcutItem(context, '$modKey + 4', 'Go to Learning'),
         const SizedBox(height: 16),
         _buildSubsection(context, 'Vim-style Navigation'),
-        _buildShortcutItem(context, 'H / J / K / L', 'Move focus left / down / up / right'),
+        _buildShortcutItem(
+          context,
+          'H / J / K / L',
+          'Move focus left / down / up / right',
+        ),
         Text(
           'Vim keys only work when not typing in a text field.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontStyle: FontStyle.italic,
-                color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
-              ),
+            fontStyle: FontStyle.italic,
+            color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+          ),
         ),
       ],
     );
@@ -431,9 +430,9 @@ class HelpPage extends StatelessWidget {
         Text(
           'Add readings above kanji using: [漢字](かんじ)\n'
           'Example: [日本語](にほんご)を[勉強](べんきょう)する',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontFamily: 'monospace',
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontFamily: 'monospace'),
         ),
       ],
     );
@@ -515,19 +514,18 @@ class HelpPage extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   description,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withAlpha(200),
-                      ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withAlpha(200),
+                  ),
                 ),
               ],
             ),
@@ -558,9 +556,9 @@ class HelpPage extends StatelessWidget {
             child: Text(
               shortcut,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontFamily: 'monospace',
-                    fontWeight: FontWeight.w600,
-                  ),
+                fontFamily: 'monospace',
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           const SizedBox(width: 16),
@@ -639,9 +637,9 @@ class HelpPage extends StatelessWidget {
         Text(
           'See Licenses in Settings for full attribution.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontStyle: FontStyle.italic,
-                color: Theme.of(context).colorScheme.onSurface.withAlpha(180),
-              ),
+            fontStyle: FontStyle.italic,
+            color: Theme.of(context).colorScheme.onSurface.withAlpha(180),
+          ),
         ),
       ],
     );
@@ -653,9 +651,9 @@ class HelpPage extends StatelessWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
     );
   }
@@ -669,14 +667,11 @@ class HelpPage extends StatelessWidget {
           Text(
             '•  ',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
           Expanded(
-            child: Text(
-              text,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
           ),
         ],
       ),

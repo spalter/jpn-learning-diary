@@ -120,15 +120,19 @@ Requires at least 4 entries for random selection.
     // Validate data rows
     for (int i = 1; i < lines.length; i++) {
       final parts = lines[i].split(';');
-      
+
       // Must be either 3 fields (id;question;answer) or 6 fields (with 3 wrong answers)
       if (parts.length < 3) {
-        errors.add('Row ${i + 1}: Expected at least 3 fields (id;question;answer), found ${parts.length}');
+        errors.add(
+          'Row ${i + 1}: Expected at least 3 fields (id;question;answer), found ${parts.length}',
+        );
         continue;
       }
-      
+
       if (parts.length != 3 && parts.length < 6) {
-        errors.add('Row ${i + 1}: Expected 3 fields or 6 fields, found ${parts.length}');
+        errors.add(
+          'Row ${i + 1}: Expected 3 fields or 6 fields, found ${parts.length}',
+        );
         continue;
       }
 
@@ -155,9 +159,7 @@ Requires at least 4 entries for random selection.
   static const String _quizzesFolderName = 'quizzes';
 
   /// List of bundled quiz assets to copy on first run.
-  static const List<String> _bundledQuizzes = [
-    'assets/quizzes/template.csv',
-  ];
+  static const List<String> _bundledQuizzes = ['assets/quizzes/template.csv'];
 
   /// Gets the path to the quizzes directory in Documents.
   ///

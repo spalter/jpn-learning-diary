@@ -242,11 +242,7 @@ class JMdictGloss extends Equatable {
   /// Gloss type (e.g., "expl" for explanatory).
   final String? gType;
 
-  const JMdictGloss({
-    required this.gloss,
-    this.lang = 'eng',
-    this.gType,
-  });
+  const JMdictGloss({required this.gloss, this.lang = 'eng', this.gType});
 
   /// Creates from database row.
   factory JMdictGloss.fromDb(Map<String, dynamic> row) {

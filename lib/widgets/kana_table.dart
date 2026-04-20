@@ -36,33 +36,37 @@ class KanaTable extends StatelessWidget {
   Widget build(BuildContext context) {
     // Break characters into rows
     final rows = <TableRow>[];
-    
+
     // Process characters in chunks equal to crossAxisCount
     for (int i = 0; i < characters.length; i += crossAxisCount) {
       // Calculate the chunk size safely
       final remaining = characters.length - i;
       final chunkSize = remaining < crossAxisCount ? remaining : crossAxisCount;
-      
+
       final chunk = characters.sublist(i, i + chunkSize).toList();
-      
+
       // If the row is incomplete, pad it with empty characters
       if (chunk.length < crossAxisCount) {
         chunk.addAll(
           List.generate(
-            crossAxisCount - chunk.length, 
+            crossAxisCount - chunk.length,
             (_) => CharacterData.empty,
           ),
         );
       }
 
-      rows.add(TableRow(
-        children: chunk.map((char) => _buildCell(context, char)).toList(),
-      ));
+      rows.add(
+        TableRow(
+          children: chunk.map((char) => _buildCell(context, char)).toList(),
+        ),
+      );
     }
 
     final borderColor = Theme.of(context).colorScheme.onSurface.withAlpha(77);
     final borderRadius = BorderRadius.circular(8.0);
-    final isMobile = Theme.of(context).platform == TargetPlatform.iOS || Theme.of(context).platform == TargetPlatform.android;
+    final isMobile =
+        Theme.of(context).platform == TargetPlatform.iOS ||
+        Theme.of(context).platform == TargetPlatform.android;
 
     if (isMobile) {
       return Column(
@@ -152,7 +156,7 @@ class KanaTable extends StatelessWidget {
     }
 
     final theme = Theme.of(context);
-    
+
     return AspectRatio(
       aspectRatio: 1.0,
       child: InkWell(

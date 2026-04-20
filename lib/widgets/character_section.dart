@@ -106,7 +106,9 @@ class CharacterSection extends StatelessWidget {
           spacing: spacing,
           runSpacing: spacing,
           children: characters.map((char) {
-            if (char.isEmpty) return SizedBox(width: cardWidth, height: cardHeight);
+            if (char.isEmpty) {
+              return SizedBox(width: cardWidth, height: cardHeight);
+            }
             return SizedBox(
               width: cardWidth,
               height: cardHeight,

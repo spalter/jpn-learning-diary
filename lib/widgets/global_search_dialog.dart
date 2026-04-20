@@ -166,9 +166,9 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
           Text(
             title,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
           const Spacer(),
           const Divider(),
@@ -184,19 +184,25 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
   /// bound to close the dialog.
   @override
   Widget build(BuildContext context) {
-    final hasResults = _diaryResults.isNotEmpty ||
+    final hasResults =
+        _diaryResults.isNotEmpty ||
         _jmdictResults.isNotEmpty ||
         _kanjiResults.isNotEmpty;
 
     return Dialog(
       alignment: Alignment.topCenter,
-      insetPadding: const EdgeInsets.only(top: 24, left: 16, right: 16, bottom: 24),
+      insetPadding: const EdgeInsets.only(
+        top: 24,
+        left: 16,
+        right: 16,
+        bottom: 24,
+      ),
       elevation: 0,
       backgroundColor: Colors.transparent,
       child: CallbackShortcuts(
         bindings: {
-          const SingleActivator(LogicalKeyboardKey.escape):
-              () => Navigator.of(context).pop(),
+          const SingleActivator(LogicalKeyboardKey.escape): () =>
+              Navigator.of(context).pop(),
         },
         child: FocusScope(
           autofocus: true,
@@ -231,7 +237,10 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.primary.withAlpha(80), width: 2),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withAlpha(80),
+          width: 2,
+        ),
       ),
       child: TextField(
         controller: _controller,
@@ -274,12 +283,13 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
   Widget _buildResultsContainer(bool hasResults) {
     return Flexible(
       child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
         foregroundDecoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Theme.of(context).colorScheme.primary.withAlpha(80), width: 2),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary.withAlpha(80),
+            width: 2,
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: Material(
@@ -287,18 +297,12 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
           child: ListView(
             controller: _scrollController,
             shrinkWrap: true,
-            padding: const EdgeInsets.only(
-              left: 16,
-              top: 16,
-              bottom: 16,
-            ),
+            padding: const EdgeInsets.only(left: 16, top: 16, bottom: 16),
             children: [
               ..._buildDiaryResults(),
               ..._buildDictionaryResults(),
               ..._buildKanjiResults(),
-              if (!hasResults &&
-                  _controller.text.isNotEmpty &&
-                  !_isLoading)
+              if (!hasResults && _controller.text.isNotEmpty && !_isLoading)
                 _buildEmptyState(),
             ],
           ),
@@ -327,26 +331,31 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
           final showRomaji = snapshot.data?[0] ?? true;
           final showFurigana = snapshot.data?[1] ?? true;
           return Column(
-            children: _diaryResults.map((entry) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: DiaryEntryCard(
-                    entry: entry,
-                    showRomaji: showRomaji,
-                    showFurigana: showFurigana,
-                    onTap: () => Navigator.of(context).pop(
-                      JapaneseTextUtils.stripRubyPatterns(entry.japanese),
+            children: _diaryResults
+                .map(
+                  (entry) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: DiaryEntryCard(
+                      entry: entry,
+                      showRomaji: showRomaji,
+                      showFurigana: showFurigana,
+                      onTap: () => Navigator.of(context).pop(
+                        JapaneseTextUtils.stripRubyPatterns(entry.japanese),
+                      ),
+                      onEntryUpdated: (updated) {
+                        setState(() {
+                          final index = _diaryResults.indexWhere(
+                            (e) => e.id == updated.id,
+                          );
+                          if (index != -1) {
+                            _diaryResults[index] = updated;
+                          }
+                        });
+                      },
                     ),
-                    onEntryUpdated: (updated) {
-                      setState(() {
-                        final index = _diaryResults.indexWhere(
-                            (e) => e.id == updated.id);
-                        if (index != -1) {
-                          _diaryResults[index] = updated;
-                        }
-                      });
-                    },
                   ),
-                )).toList(),
+                )
+                .toList(),
           );
         },
       ),
@@ -362,13 +371,15 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
     if (_jmdictResults.isEmpty) return [];
     return [
       _buildSectionHeader('Dictionary', Icons.translate),
-      ..._jmdictResults.map((entry) => Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: JMdictCard(
-              entry: entry,
-              onTap: () => Navigator.of(context).pop(entry.kanji),
-            ),
-          )),
+      ..._jmdictResults.map(
+        (entry) => Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: JMdictCard(
+            entry: entry,
+            onTap: () => Navigator.of(context).pop(entry.kanji),
+          ),
+        ),
+      ),
     ];
   }
 
@@ -381,13 +392,15 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
     if (_kanjiResults.isEmpty) return [];
     return [
       _buildSectionHeader('Kanji', Icons.edit),
-      ..._kanjiResults.map((kanji) => Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: KanjiCard(
-              kanji: kanji,
-              onTap: () => Navigator.of(context).pop(kanji.kanji),
-            ),
-          )),
+      ..._kanjiResults.map(
+        (kanji) => Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: KanjiCard(
+            kanji: kanji,
+            onTap: () => Navigator.of(context).pop(kanji.kanji),
+          ),
+        ),
+      ),
     ];
   }
 

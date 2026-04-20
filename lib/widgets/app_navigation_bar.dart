@@ -99,11 +99,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
 
   /// Builds the mobile layout with navigation buttons.
   Widget _buildMobileTitle(BuildContext context) {
-    return Row(
-      children: [
-        ..._buildNavigationButtons(context),
-      ],
-    );
+    return Row(children: [..._buildNavigationButtons(context)]);
   }
 
   /// Creates the action buttons for mobile (search and settings only).
@@ -133,11 +129,7 @@ class AppNavigationBarState extends State<AppNavigationBar> {
   /// Wraps content in DragOnlyMoveArea to enable window dragging on desktop.
   Widget _buildDesktopTitle(BuildContext context) {
     return DragOnlyMoveArea(
-      child: Row(
-        children: [
-          ..._buildNavigationButtons(context),
-        ],
-      ),
+      child: Row(children: [..._buildNavigationButtons(context)]),
     );
   }
 
@@ -170,7 +162,9 @@ class AppNavigationBarState extends State<AppNavigationBar> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: widget.currentPageIndex == 1 ? primaryColor : defaultColor,
+                color: widget.currentPageIndex == 1
+                    ? primaryColor
+                    : defaultColor,
               ),
             ),
             onPressed: widget.onNavigateToHiragana,
@@ -186,7 +180,9 @@ class AppNavigationBarState extends State<AppNavigationBar> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: widget.currentPageIndex == 2 ? primaryColor : defaultColor,
+                color: widget.currentPageIndex == 2
+                    ? primaryColor
+                    : defaultColor,
               ),
             ),
             onPressed: widget.onNavigateToKatakana,
@@ -288,7 +284,6 @@ class AppNavigationBarState extends State<AppNavigationBar> {
           ),
         ),
       ),
-  ]
-  ;
+    ];
   }
 }

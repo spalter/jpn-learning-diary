@@ -23,9 +23,8 @@ class JMdictRepository {
   ///
   /// In production, typically uses the singleton instance.
   /// For testing, can inject a mock database helper.
-  JMdictRepository({
-    JpnDatabaseHelper? jpnDatabaseHelper,
-  }) : _jpnDatabaseHelper = jpnDatabaseHelper ?? JpnDatabaseHelper.instance;
+  JMdictRepository({JpnDatabaseHelper? jpnDatabaseHelper})
+    : _jpnDatabaseHelper = jpnDatabaseHelper ?? JpnDatabaseHelper.instance;
 
   /// Searches JMdict entries by kanji, reading, or English meaning.
   ///
@@ -47,36 +46,54 @@ class JMdictRepository {
   /// Searches JMdict for entries with an exact kanji match.
   ///
   /// Use this when you have a specific kanji word to look up.
-  Future<List<JMdictEntry>> searchByKanji(String kanji, {int limit = 100}) async {
+  Future<List<JMdictEntry>> searchByKanji(
+    String kanji, {
+    int limit = 100,
+  }) async {
     if (kanji.trim().isEmpty) {
       return [];
     }
 
-    final ids = await _jpnDatabaseHelper.searchJMdictByKanji(kanji, limit: limit);
+    final ids = await _jpnDatabaseHelper.searchJMdictByKanji(
+      kanji,
+      limit: limit,
+    );
     return _fetchEntries(ids);
   }
 
   /// Searches JMdict for entries with an exact reading match.
   ///
   /// Use this when you have a kana reading to look up.
-  Future<List<JMdictEntry>> searchByReading(String reading, {int limit = 100}) async {
+  Future<List<JMdictEntry>> searchByReading(
+    String reading, {
+    int limit = 100,
+  }) async {
     if (reading.trim().isEmpty) {
       return [];
     }
 
-    final ids = await _jpnDatabaseHelper.searchJMdictByReading(reading, limit: limit);
+    final ids = await _jpnDatabaseHelper.searchJMdictByReading(
+      reading,
+      limit: limit,
+    );
     return _fetchEntries(ids);
   }
 
   /// Searches JMdict for entries by English meaning.
   ///
   /// Performs a partial match on gloss text.
-  Future<List<JMdictEntry>> searchByGloss(String gloss, {int limit = 100}) async {
+  Future<List<JMdictEntry>> searchByGloss(
+    String gloss, {
+    int limit = 100,
+  }) async {
     if (gloss.trim().isEmpty) {
       return [];
     }
 
-    final ids = await _jpnDatabaseHelper.searchJMdictByGloss(gloss, limit: limit);
+    final ids = await _jpnDatabaseHelper.searchJMdictByGloss(
+      gloss,
+      limit: limit,
+    );
     return _fetchEntries(ids);
   }
 

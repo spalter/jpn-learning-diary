@@ -135,9 +135,9 @@ class _LearningPageState extends State<LearningPage> {
   Widget _buildKanjiStatCard(BuildContext context, DashboardData data) {
     return InkWell(
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const KanjiStatsPage()),
-        );
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (context) => const KanjiStatsPage()));
       },
       child: _buildStatCard(
         context,

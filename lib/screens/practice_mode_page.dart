@@ -274,14 +274,12 @@ class _PracticeModePageState extends State<PracticeModePage> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 child: Divider(
-                  color:
-                      Theme.of(context).colorScheme.primary.withAlpha(80),
+                  color: Theme.of(context).colorScheme.primary.withAlpha(80),
                 ),
               ),
               if (shouldShowAnswerFurigana)
                 RubyText(
-                  text: question
-                      .rawAnswerOptions![question.correctAnswerIndex],
+                  text: question.rawAnswerOptions![question.correctAnswerIndex],
                   textStyle: answerStyle,
                 )
               else
@@ -307,9 +305,7 @@ class _PracticeModePageState extends State<PracticeModePage> {
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: Theme.of(context).colorScheme.primary,
-            ),
+            side: BorderSide(color: Theme.of(context).colorScheme.primary),
           ),
         ),
       ),
@@ -391,10 +387,7 @@ class _PracticeModePageState extends State<PracticeModePage> {
           side: BorderSide(color: color.withAlpha(100)),
         ),
       ),
-      child: Text(
-        label,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
+      child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 
@@ -417,9 +410,9 @@ class _PracticeModePageState extends State<PracticeModePage> {
             const SizedBox(height: 24),
             Text(
               'Practice Complete!',
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
             _buildRatingSummary(context, controller),
@@ -470,10 +463,7 @@ class _PracticeModePageState extends State<PracticeModePage> {
         const SizedBox(width: 12),
         SizedBox(
           width: 30,
-          child: Text(
-            '$count',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          child: Text('$count', style: Theme.of(context).textTheme.titleMedium),
         ),
       ],
     );

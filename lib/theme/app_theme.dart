@@ -82,6 +82,8 @@ class AppTheme {
       splashColor: primary.withAlpha(30),
       highlightColor: primary.withAlpha(20),
       useMaterial3: true,
+      inputDecorationTheme: _buildInputDecorationTheme(primary),
+      segmentedButtonTheme: _buildSegmentedButtonTheme(primary),
     );
   }
 
@@ -105,6 +107,8 @@ class AppTheme {
       splashColor: primary.withAlpha(30),
       highlightColor: primary.withAlpha(20),
       useMaterial3: true,
+      inputDecorationTheme: _buildInputDecorationTheme(primary),
+      segmentedButtonTheme: _buildSegmentedButtonTheme(primary),
     );
   }
 
@@ -130,6 +134,8 @@ class AppTheme {
       splashColor: primary.withAlpha(20),
       highlightColor: primary.withAlpha(15),
       useMaterial3: true,
+      inputDecorationTheme: _buildInputDecorationTheme(primary),
+      segmentedButtonTheme: _buildSegmentedButtonTheme(primary),
     );
   }
 
@@ -155,6 +161,8 @@ class AppTheme {
       splashColor: primary.withAlpha(20),
       highlightColor: primary.withAlpha(15),
       useMaterial3: true,
+      inputDecorationTheme: _buildInputDecorationTheme(primary),
+      segmentedButtonTheme: _buildSegmentedButtonTheme(primary),
     );
   }
 
@@ -177,6 +185,8 @@ class AppTheme {
       splashColor: primary.withAlpha(30),
       highlightColor: primary.withAlpha(20),
       useMaterial3: true,
+      inputDecorationTheme: _buildInputDecorationTheme(primary),
+      segmentedButtonTheme: _buildSegmentedButtonTheme(primary),
     );
   }
 
@@ -199,6 +209,8 @@ class AppTheme {
       splashColor: primary.withAlpha(30),
       highlightColor: primary.withAlpha(20),
       useMaterial3: true,
+      inputDecorationTheme: _buildInputDecorationTheme(primary),
+      segmentedButtonTheme: _buildSegmentedButtonTheme(primary),
     );
   }
 
@@ -221,6 +233,8 @@ class AppTheme {
       splashColor: primary.withAlpha(30),
       highlightColor: primary.withAlpha(20),
       useMaterial3: true,
+      inputDecorationTheme: _buildInputDecorationTheme(primary),
+      segmentedButtonTheme: _buildSegmentedButtonTheme(primary),
     );
   }
 
@@ -243,6 +257,8 @@ class AppTheme {
       splashColor: primary.withAlpha(30),
       highlightColor: primary.withAlpha(20),
       useMaterial3: true,
+      inputDecorationTheme: _buildInputDecorationTheme(primary),
+      segmentedButtonTheme: _buildSegmentedButtonTheme(primary),
     );
   }
 
@@ -265,6 +281,8 @@ class AppTheme {
       splashColor: primary.withAlpha(30),
       highlightColor: primary.withAlpha(20),
       useMaterial3: true,
+      inputDecorationTheme: _buildInputDecorationTheme(primary),
+      segmentedButtonTheme: _buildSegmentedButtonTheme(primary),
     );
   }
 
@@ -287,6 +305,46 @@ class AppTheme {
       splashColor: primary.withAlpha(30),
       highlightColor: primary.withAlpha(20),
       useMaterial3: true,
+      inputDecorationTheme: _buildInputDecorationTheme(primary),
+      segmentedButtonTheme: _buildSegmentedButtonTheme(primary),
+    );
+  }
+
+  static InputDecorationTheme _buildInputDecorationTheme(Color primary) {
+    return InputDecorationTheme(
+      border: OutlineInputBorder(
+        borderSide: BorderSide(color: primary.withAlpha(100)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: primary.withAlpha(100)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: primary, width: 2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      filled: true,
+      fillColor: primary.withAlpha(15),
+    );
+  }
+
+  static SegmentedButtonThemeData _buildSegmentedButtonTheme(Color primary) {
+    return SegmentedButtonThemeData(
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return primary.withAlpha(50);
+          }
+          return Colors.transparent;
+        }),
+        side: WidgetStateProperty.resolveWith<BorderSide>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return BorderSide(color: primary);
+          }
+          return BorderSide(color: primary.withAlpha(100));
+        }),
+      ),
     );
   }
 }

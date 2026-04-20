@@ -9,6 +9,8 @@
 
 import 'package:equatable/equatable.dart';
 
+import 'diary_item.dart';
+
 /// Model for a learned word or phrase entry in the diary.
 ///
 /// This is a data model representing a vocabulary entry with no business logic.
@@ -16,8 +18,9 @@ import 'package:equatable/equatable.dart';
 ///
 /// Japanese text can include inline furigana using ruby patterns like
 /// `[漢字](かんじ)` which will be parsed and displayed appropriately.
-class DiaryEntry extends Equatable {
+class DiaryEntry extends Equatable implements DiaryItem {
   /// Unique identifier for the entry.
+  @override
   final int? id;
 
   /// Japanese text (kanji/kana), may include inline ruby patterns for furigana.
@@ -33,6 +36,7 @@ class DiaryEntry extends Equatable {
   final String? notes;
 
   /// When the entry was created/learned.
+  @override
   final DateTime dateAdded;
 
   const DiaryEntry({

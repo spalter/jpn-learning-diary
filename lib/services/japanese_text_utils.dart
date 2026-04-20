@@ -57,11 +57,12 @@ class JapaneseTextUtils {
   /// Normalizes text for search by converting to lowercase and replacing
   /// German umlauts with their digraph equivalents (e.g., ä -> ae).
   static String normalizeForSearch(String text) {
-    return text.toLowerCase()
-      .replaceAll('ä', 'ae')
-      .replaceAll('ö', 'oe')
-      .replaceAll('ü', 'ue')
-      .replaceAll('ß', 'ss');
+    return text
+        .toLowerCase()
+        .replaceAll('ä', 'ae')
+        .replaceAll('ö', 'oe')
+        .replaceAll('ü', 'ue')
+        .replaceAll('ß', 'ss');
   }
 
   // ============================================================================

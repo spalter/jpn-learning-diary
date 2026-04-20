@@ -81,35 +81,33 @@ class KatakanaData {
     // N
     CharacterData(character: 'ン', romanization: 'n'),
   ];
-  
+
   /// Base characters aligned for a 5-column grid (gojūon order).
   static List<CharacterData> get gridBaseCharacters => [
-        // A, K, S, T, N, H, M rows
-        ...baseCharacters.sublist(0, 35),
+    // A, K, S, T, N, H, M rows
+    ...baseCharacters.sublist(0, 35),
 
-        // Y-row: ya, (empty), yu, (empty), yo
-        baseCharacters[35], // ya
-        CharacterData.empty,
-        baseCharacters[36], // yu
-        CharacterData.empty,
-        baseCharacters[37], // yo
+    // Y-row: ya, (empty), yu, (empty), yo
+    baseCharacters[35], // ya
+    CharacterData.empty,
+    baseCharacters[36], // yu
+    CharacterData.empty,
+    baseCharacters[37], // yo
+    // R-row
+    ...baseCharacters.sublist(38, 43),
 
-        // R-row
-        ...baseCharacters.sublist(38, 43),
-
-        // W-row: wa, (empty), (empty), (empty), wo
-        baseCharacters[43], // wa
-        CharacterData.empty,
-        CharacterData.empty,
-        CharacterData.empty,
-        baseCharacters[44], // wo
-        
-        // N-row: n, (empty), (empty), (empty), (empty)
-        baseCharacters[45], // n
-        CharacterData.empty,
-        CharacterData.empty,
-        CharacterData.empty,
-        CharacterData.empty,
+    // W-row: wa, (empty), (empty), (empty), wo
+    baseCharacters[43], // wa
+    CharacterData.empty,
+    CharacterData.empty,
+    CharacterData.empty,
+    baseCharacters[44], // wo
+    // N-row: n, (empty), (empty), (empty), (empty)
+    baseCharacters[45], // n
+    CharacterData.empty,
+    CharacterData.empty,
+    CharacterData.empty,
+    CharacterData.empty,
   ];
 
   /// Dakuten characters (濁点).
@@ -190,25 +188,25 @@ class KatakanaData {
     CharacterData(character: 'リュ', romanization: 'ryu'),
     CharacterData(character: 'リョ', romanization: 'ryo'),
   ];
-  
+
   /// Dakuten combination characters (濁点拗音).
   static const List<CharacterData> dakutenCombinations = [
     // GY-combinations
     CharacterData(character: 'ギャ', romanization: 'gya'),
     CharacterData(character: 'ギュ', romanization: 'gyu'),
     CharacterData(character: 'ギョ', romanization: 'gyo'),
- 
+
     // J-combinations
     CharacterData(character: 'ジャ', romanization: 'ja'),
     CharacterData(character: 'ジュ', romanization: 'ju'),
     CharacterData(character: 'ジョ', romanization: 'jo'),
- 
+
     // BY-combinations
     CharacterData(character: 'ビャ', romanization: 'bya'),
     CharacterData(character: 'ビュ', romanization: 'byu'),
     CharacterData(character: 'ビョ', romanization: 'byo'),
   ];
- 
+
   /// Handakuten combination characters (半濁点拗音).
   static const List<CharacterData> handakutenCombinations = [
     // PY-combinations
@@ -219,11 +217,11 @@ class KatakanaData {
 
   /// All katakana characters combined.
   static List<CharacterData> get allCharacters => [
-        ...baseCharacters,
-        ...dakutenCharacters,
-        ...handakutenCharacters,
-        ...combinations,
-        ...dakutenCombinations,
-        ...handakutenCombinations,
-      ];
+    ...baseCharacters,
+    ...dakutenCharacters,
+    ...handakutenCharacters,
+    ...combinations,
+    ...dakutenCombinations,
+    ...handakutenCombinations,
+  ];
 }
