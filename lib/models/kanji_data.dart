@@ -86,21 +86,21 @@ class KanjiData extends Equatable {
 
   @override
   List<Object?> get props => [
-        kanji,
-        strokes,
-        grade,
-        freq,
-        jlptOld,
-        jlptNew,
-        meanings,
-        readingsOn,
-        readingsKun,
-        wkLevel,
-        wkMeanings,
-        wkReadingsOn,
-        wkReadingsKun,
-        wkRadicals,
-      ];
+    kanji,
+    strokes,
+    grade,
+    freq,
+    jlptOld,
+    jlptNew,
+    meanings,
+    readingsOn,
+    readingsKun,
+    wkLevel,
+    wkMeanings,
+    wkReadingsOn,
+    wkReadingsKun,
+    wkRadicals,
+  ];
 
   @override
   bool get stringify => true;

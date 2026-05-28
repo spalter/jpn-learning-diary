@@ -376,7 +376,9 @@ class _StudyModePageState extends State<StudyModePage> {
       selectedWord: _selectedWord,
       isSearching: _isSearching,
       results: _searchResults,
-      currentAnnotation: _selectedWord != null ? _tokenAnnotations[_selectedWord!] : null,
+      currentAnnotation: _selectedWord != null
+          ? _tokenAnnotations[_selectedWord!]
+          : null,
       onAnnotationChanged: (value) {
         setState(() {
           if (value.isEmpty) {
@@ -399,7 +401,9 @@ class _StudyModePageState extends State<StudyModePage> {
       isSearching: _isSearching,
       results: _searchResults,
       scrollController: scrollController,
-      currentAnnotation: _selectedWord != null ? _tokenAnnotations[_selectedWord!] : null,
+      currentAnnotation: _selectedWord != null
+          ? _tokenAnnotations[_selectedWord!]
+          : null,
       onAnnotationChanged: (value) {
         setState(() {
           if (value.isEmpty) {

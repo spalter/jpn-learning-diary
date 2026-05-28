@@ -83,13 +83,13 @@ class QuizOptionButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: isSelected 
-                ? Theme.of(context).colorScheme.primary.withAlpha(20) 
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary.withAlpha(20)
                 : Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected 
-                  ? Theme.of(context).colorScheme.primary 
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
                   : Theme.of(context).dividerColor.withAlpha(80),
               width: isSelected ? 2 : 1,
             ),
@@ -117,9 +117,7 @@ class QuizOptionButton extends StatelessWidget {
               ),
               const SizedBox(width: 16),
               // Answer text
-              Expanded(
-                child: _buildAnswerText(context, textColor),
-              ),
+              Expanded(child: _buildAnswerText(context, textColor)),
               // Result icon
               if (resultIcon != null)
                 Icon(resultIcon, color: iconColor, size: 28)

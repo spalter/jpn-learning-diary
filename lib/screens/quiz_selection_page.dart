@@ -89,9 +89,9 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
 
       if (bytes == null) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to read file')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Failed to read file')));
         }
         return;
       }
@@ -102,18 +102,18 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
       await targetFile.writeAsBytes(bytes);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Imported: $fileName')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Imported: $fileName')));
       }
 
       // Refresh the list
       await _loadQuizzes();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to import: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to import: $e')));
       }
     }
   }
@@ -345,7 +345,10 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
   }
 
   /// Shows a confirmation dialog to delete a quiz file.
-  Future<void> _showDeleteDialog(BuildContext context, QuizFileInfo quiz) async {
+  Future<void> _showDeleteDialog(
+    BuildContext context,
+    QuizFileInfo quiz,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -377,14 +380,14 @@ class _QuizSelectionPageState extends State<QuizSelectionPage> {
     final success = await CustomQuizService.deleteQuiz(quiz.path);
     if (mounted) {
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Deleted: ${quiz.name}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Deleted: ${quiz.name}')));
         await _loadQuizzes();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to delete quiz')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Failed to delete quiz')));
       }
     }
   }

@@ -69,10 +69,12 @@ class AnkiCard extends Equatable {
   bool get hasBackAudio => backSounds.isNotEmpty;
 
   /// Whether this card has any audio at all.
-  bool get hasAudio => frontSounds.isNotEmpty || backSounds.isNotEmpty || extraSounds.isNotEmpty;
+  bool get hasAudio =>
+      frontSounds.isNotEmpty || backSounds.isNotEmpty || extraSounds.isNotEmpty;
 
   /// Whether this card has any images at all.
-  bool get hasImages => frontImages.isNotEmpty || backImages.isNotEmpty || extraImages.isNotEmpty;
+  bool get hasImages =>
+      frontImages.isNotEmpty || backImages.isNotEmpty || extraImages.isNotEmpty;
 
   /// Creates an [AnkiCard] from an Anki note's fields string.
   ///
@@ -107,9 +109,7 @@ class AnkiCard extends Equatable {
 
     if (frontIndices != null && backIndices != null) {
       // Template-based grouping
-      frontSet = frontIndices
-          .where((i) => i < cleanFields.length)
-          .toSet();
+      frontSet = frontIndices.where((i) => i < cleanFields.length).toSet();
       backSet = backIndices
           .where((i) => i < cleanFields.length && !frontSet.contains(i))
           .toSet();
@@ -199,18 +199,12 @@ class AnkiCard extends Equatable {
 
   /// Extracts all sound file references from a field string.
   static List<String> _extractSoundRefs(String field) {
-    return _soundRefRegex
-        .allMatches(field)
-        .map((m) => m.group(1)!)
-        .toList();
+    return _soundRefRegex.allMatches(field).map((m) => m.group(1)!).toList();
   }
 
   /// Extracts all image file references from a field string.
   static List<String> _extractImageRefs(String field) {
-    return _imageRefRegex
-        .allMatches(field)
-        .map((m) => m.group(1)!)
-        .toList();
+    return _imageRefRegex.allMatches(field).map((m) => m.group(1)!).toList();
   }
 
   /// Strips HTML tags, sound references, and image references from a string.
@@ -258,8 +252,21 @@ class AnkiCard extends Equatable {
       (front.isNotEmpty || hasAudio || hasImages) && back.isNotEmpty;
 
   @override
-  List<Object?> get props => [noteId, front, back, extraFields, tags, frontSounds, backSounds, extraSounds, frontImages, backImages, extraImages];
+  List<Object?> get props => [
+    noteId,
+    front,
+    back,
+    extraFields,
+    tags,
+    frontSounds,
+    backSounds,
+    extraSounds,
+    frontImages,
+    backImages,
+    extraImages,
+  ];
 
   @override
-  String toString() => 'AnkiCard(noteId: $noteId, front: "$front", back: "$back")';
+  String toString() =>
+      'AnkiCard(noteId: $noteId, front: "$front", back: "$back")';
 }

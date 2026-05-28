@@ -163,9 +163,7 @@ class AnkiController extends ChangeNotifier {
 
   /// The percentage of entries completed (0-100).
   int get knownPercentage =>
-      _initialDeckSize == 0
-          ? 0
-          : (_easyCount / _initialDeckSize * 100).round();
+      _initialDeckSize == 0 ? 0 : (_easyCount / _initialDeckSize * 100).round();
 
   /// Rating count getters for the completion summary.
   int get againCount => _againCount;

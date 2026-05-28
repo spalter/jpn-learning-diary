@@ -118,20 +118,28 @@ class RubyText extends StatelessWidget {
           height: 1.0,
         );
 
-    return Wrap(
-      crossAxisAlignment: WrapCrossAlignment.end,
+    final TextSpan textSpan = TextSpan(
       children: segments.map((segment) {
         if (segment.hasReading) {
-          return _RubySegment(
-            base: segment.text,
-            reading: segment.reading!,
-            baseStyle: defaultTextStyle,
-            rubyStyle: defaultRubyStyle,
+          return WidgetSpan(
+            alignment: PlaceholderAlignment.bottom,
+            child: _RubySegment(
+              base: segment.text,
+              reading: segment.reading!,
+              baseStyle: defaultTextStyle,
+              rubyStyle: defaultRubyStyle,
+            ),
           );
         } else {
-          return Text(segment.text, style: defaultTextStyle);
+          return TextSpan(text: segment.text, style: defaultTextStyle);
         }
       }).toList(),
+    );
+
+    return RichText(
+      text: textSpan,
+      maxLines: maxLines,
+      overflow: maxLines != null ? TextOverflow.ellipsis : TextOverflow.clip,
     );
   }
 }
@@ -156,7 +164,7 @@ class _RubySegment extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(reading, style: rubyStyle, textAlign: TextAlign.center),
-        Text(base, style: baseStyle),
+        Text(base, style: baseStyle?.copyWith(height: 1.0) ?? const TextStyle(height: 1.0)),
       ],
     );
   }

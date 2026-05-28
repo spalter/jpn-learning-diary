@@ -43,7 +43,8 @@ class CustomQuizEntry extends Equatable {
   });
 
   /// Whether this entry has predefined wrong answers.
-  bool get hasPredefinedAnswers => wrongAnswer1 != null && wrongAnswer2 != null && wrongAnswer3 != null;
+  bool get hasPredefinedAnswers =>
+      wrongAnswer1 != null && wrongAnswer2 != null && wrongAnswer3 != null;
 
   /// Creates a CustomQuizEntry from a CSV row.
   ///
@@ -83,23 +84,14 @@ class CustomQuizEntry extends Equatable {
     }
 
     // 2-column format - wrong answers will be generated later
-    return CustomQuizEntry(
-      id: id,
-      question: parts[1],
-      correctAnswer: parts[2],
-    );
+    return CustomQuizEntry(id: id, question: parts[1], correctAnswer: parts[2]);
   }
 
   /// Returns all answer options as a list (only if predefined answers exist).
   /// Returns null if this entry uses random answer mode.
   List<String>? get allAnswers {
     if (!hasPredefinedAnswers) return null;
-    return [
-      correctAnswer,
-      wrongAnswer1!,
-      wrongAnswer2!,
-      wrongAnswer3!,
-    ];
+    return [correctAnswer, wrongAnswer1!, wrongAnswer2!, wrongAnswer3!];
   }
 
   @override

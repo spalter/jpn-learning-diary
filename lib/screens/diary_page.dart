@@ -10,10 +10,13 @@
 import 'package:flutter/material.dart';
 import 'package:jpn_learning_diary/controllers/diary_entries_controller.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
+import 'package:jpn_learning_diary/models/diary_item.dart';
+import 'package:jpn_learning_diary/models/diary_note.dart';
 import 'package:jpn_learning_diary/screens/search_results_page.dart';
 import 'package:jpn_learning_diary/services/japanese_text_utils.dart';
 import 'package:jpn_learning_diary/widgets/common_states.dart';
 import 'package:jpn_learning_diary/widgets/diary_entry_card.dart';
+import 'package:jpn_learning_diary/widgets/diary_note_card.dart';
 import 'package:provider/provider.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 
@@ -80,7 +83,7 @@ class _DiaryPageState extends State<DiaryPage> {
   }
 
   /// Builds the scrollable list of diary entry cards.
-  Widget _buildEntriesListView(List<DiaryEntry> entries) {
+  Widget _buildEntriesListView(List<DiaryItem> entries) {
     return FutureBuilder<List<bool>>(
       future: Future.wait([
         AppPreferences.getShowRomaji(),
@@ -94,12 +97,21 @@ class _DiaryPageState extends State<DiaryPage> {
           itemCount: entries.length,
           itemBuilder: (context, index) {
             final entry = entries[index];
-            return _buildEntryCard(
-              entry,
-              key: ValueKey(entry.id),
-              showRomaji: showRomaji,
-              showFurigana: showFurigana,
-            );
+            if (entry is DiaryEntry) {
+              return _buildEntryCard(
+                entry,
+                key: ValueKey('entry_${entry.id}'),
+                showRomaji: showRomaji,
+                showFurigana: showFurigana,
+              );
+            } else if (entry is DiaryNote) {
+              return _buildNoteCard(
+                entry,
+                key: ValueKey('note_${entry.id}'),
+                showFurigana: showFurigana,
+              );
+            }
+            return const SizedBox.shrink();
           },
         );
       },
@@ -120,7 +132,22 @@ class _DiaryPageState extends State<DiaryPage> {
       showRomaji: showRomaji,
       showFurigana: showFurigana,
       onEntryUpdated: _controller.updateEntry,
-      onEntryDeleted: (id) => _controller.removeEntry(id),
+      onEntryDeleted: (id) => _controller.removeEntry(id, DiaryEntry),
+    );
+  }
+
+  /// Builds a single diary note card.
+  Widget _buildNoteCard(
+    DiaryNote note, {
+    Key? key,
+    required bool showFurigana,
+  }) {
+    return DiaryNoteCard(
+      key: key,
+      note: note,
+      showFurigana: showFurigana,
+      onNoteUpdated: _controller.updateEntry,
+      onNoteDeleted: (id) => _controller.removeEntry(id, DiaryNote),
     );
   }
 

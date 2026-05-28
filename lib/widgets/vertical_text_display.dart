@@ -144,9 +144,9 @@ class VerticalTextDisplay extends StatelessWidget {
   }
 
   Widget _buildVerticalTokenizedText(BuildContext context, String line) {
-    final tokens = JapaneseTextUtils.tokenize(line)
-        .where((t) => t.trim().isNotEmpty)
-        .toList();
+    final tokens = JapaneseTextUtils.tokenize(
+      line,
+    ).where((t) => t.trim().isNotEmpty).toList();
 
     return Wrap(
       direction: Axis.vertical,
@@ -167,12 +167,15 @@ class VerticalTextDisplay extends StatelessWidget {
     String token,
     String? annotation,
   ) {
-    final decorationPattern = RegExp(
-      r'^[、。！？「」『』（）〈〉《》【】〔〕・…―ー～，．：；]+$',
-    );
+    final decorationPattern = RegExp(r'^[、。！？「」『』（）〈〉《》【】〔〕・…―ー～，．：；]+$');
     final isPunctuation = decorationPattern.hasMatch(token);
-    final baseStyle = Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 23);
-    final style = GoogleFonts.kleeOne(textStyle: baseStyle, fontWeight: FontWeight.w600);
+    final baseStyle = Theme.of(
+      context,
+    ).textTheme.titleLarge?.copyWith(fontSize: 23);
+    final style = GoogleFonts.kleeOne(
+      textStyle: baseStyle,
+      fontWeight: FontWeight.w600,
+    );
     final isSelected = token == selectedWord;
     const double tokenWidth = 22.0;
 
@@ -203,11 +206,7 @@ class VerticalCharacter extends StatelessWidget {
   final String character;
   final TextStyle? style;
 
-  const VerticalCharacter({
-    super.key,
-    required this.character,
-    this.style,
-  });
+  const VerticalCharacter({super.key, required this.character, this.style});
 
   @override
   Widget build(BuildContext context) {
@@ -220,12 +219,15 @@ class VerticalCharacter extends StatelessWidget {
         child: Text(character, style: style),
       );
 
-      // The chouonpu (ー) and similar characters often appear off-center to the left 
-      // when rotated because they sit on the horizontal baseline. We translate them 
+      // The chouonpu (ー) and similar characters often appear off-center to the left
+      // when rotated because they sit on the horizontal baseline. We translate them
       // slightly to the right to center them visually in the vertical text line.
       // Using Transform.translate ensures the layout box doesn't change, keeping
       // ruby annotations perfectly aligned.
-      if (character == 'ー' || character == '―' || character == '…' || character == '～') {
+      if (character == 'ー' ||
+          character == '―' ||
+          character == '…' ||
+          character == '～') {
         final fontSize = style?.fontSize ?? 23.0;
         return Transform.translate(
           offset: Offset(fontSize * 0.15, 0),
@@ -353,13 +355,18 @@ class _ClickableVerticalWordState extends State<ClickableVerticalWord> {
                 for (final char in widget.word.characters)
                   VerticalCharacter(
                     character: char,
-                    style: widget.style?.copyWith(
+                    style:
+                        widget.style?.copyWith(
                           color: textColor,
-                          fontWeight: widget.isSelected ? FontWeight.bold : null,
+                          fontWeight: widget.isSelected
+                              ? FontWeight.bold
+                              : null,
                         ) ??
                         TextStyle(
                           color: textColor,
-                          fontWeight: widget.isSelected ? FontWeight.bold : null,
+                          fontWeight: widget.isSelected
+                              ? FontWeight.bold
+                              : null,
                         ),
                   ),
               ],

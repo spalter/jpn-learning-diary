@@ -19,10 +19,7 @@ import 'package:window_manager/window_manager.dart';
 ///
 /// * [child]: The widget that should trigger the drag behavior.
 class DragOnlyMoveArea extends StatelessWidget {
-  const DragOnlyMoveArea({
-    super.key,
-    required this.child,
-  });
+  const DragOnlyMoveArea({super.key, required this.child});
 
   final Widget child;
 

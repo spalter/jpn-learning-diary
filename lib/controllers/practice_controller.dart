@@ -318,8 +318,7 @@ class PracticeController extends ChangeNotifier {
   bool get hasQuestions => _deck.isNotEmpty;
 
   /// The current question being displayed, or null if none.
-  QuizQuestion? get currentQuestion =>
-      _deck.isNotEmpty ? _deck[0] : null;
+  QuizQuestion? get currentQuestion => _deck.isNotEmpty ? _deck[0] : null;
 
   /// Total number of entries in the session.
   int get totalCards => _initialDeckSize;
@@ -328,10 +327,12 @@ class PracticeController extends ChangeNotifier {
   int get remainingCards => _deck.length;
 
   /// Number of new (unseen) entries still in the deck.
-  int get newCards => _deck.where((q) => !_seenIndices.contains(q.hashCode)).length;
+  int get newCards =>
+      _deck.where((q) => !_seenIndices.contains(q.hashCode)).length;
 
   /// Number of entries that have been rated but are still in the deck.
-  int get reviewingCards => _deck.where((q) => _seenIndices.contains(q.hashCode)).length;
+  int get reviewingCards =>
+      _deck.where((q) => _seenIndices.contains(q.hashCode)).length;
 
   /// Number of entries completed (removed via Easy).
   int get completedCards => _easyCount;

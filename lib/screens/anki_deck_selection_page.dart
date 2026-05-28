@@ -56,8 +56,7 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
       // Load progress summaries for all decks
       final summaries = <String, DeckProgressSummary>{};
       for (final deck in decks) {
-        summaries[deck.path] =
-            await AnkiProgressService.loadSummary(deck.path);
+        summaries[deck.path] = await AnkiProgressService.loadSummary(deck.path);
       }
 
       setState(() {
@@ -93,9 +92,7 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
       if (!fileName.toLowerCase().endsWith('.apkg')) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Please select an .apkg file'),
-            ),
+            const SnackBar(content: Text('Please select an .apkg file')),
           );
         }
         return;
@@ -104,9 +101,9 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
       final sourcePath = pickedFile.path;
       if (sourcePath == null) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to read file')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Failed to read file')));
         }
         return;
       }
@@ -117,18 +114,18 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
       await File(sourcePath).copy(targetPath);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Imported: $fileName')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Imported: $fileName')));
       }
 
       // Refresh the list
       await _loadDecks();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to import: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to import: $e')));
       }
     }
   }
@@ -308,8 +305,7 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
     DeckProgressSummary? summary,
     bool hasReviewed,
   ) {
-    final borderColor =
-        Theme.of(context).colorScheme.primary.withAlpha(80);
+    final borderColor = Theme.of(context).colorScheme.primary.withAlpha(80);
     return AppCard.bordered(
       padding: EdgeInsets.zero,
       child: IntrinsicHeight(
@@ -388,10 +384,9 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
                 Text(
                   deck.name,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 if (hasReviewed)
@@ -400,10 +395,9 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
                   Text(
                     deck.fileName,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withAlpha(128),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withAlpha(128),
                     ),
                   ),
               ],
@@ -430,9 +424,9 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
               child: Text(
                 deck.name,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
             ListTile(
@@ -468,9 +462,7 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
                     }
                   : null,
             ),
-            Divider(
-              color: Theme.of(context).colorScheme.primary.withAlpha(80),
-            ),
+            Divider(color: Theme.of(context).colorScheme.primary.withAlpha(80)),
             ListTile(
               leading: Icon(
                 Icons.delete_outline,
@@ -478,9 +470,7 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
               ),
               title: Text(
                 'Delete',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                ),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
               onTap: () {
                 Navigator.of(ctx).pop();
@@ -506,26 +496,25 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
         ? Theme.of(context).colorScheme.onSurface.withAlpha(60)
         : Theme.of(context).colorScheme.primary;
     return InkWell(
-        onTap: onTap,
-        hoverColor: Theme.of(context).colorScheme.primary.withAlpha(15),
-        highlightColor: Theme.of(context).colorScheme.primary.withAlpha(20),
-        child: SizedBox(
-          width: 64,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 20, color: color),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: color,
-                  fontSize: 10,
-                ),
-              ),
-            ],
-          ),
+      onTap: onTap,
+      hoverColor: Theme.of(context).colorScheme.primary.withAlpha(15),
+      highlightColor: Theme.of(context).colorScheme.primary.withAlpha(20),
+      child: SizedBox(
+        width: 64,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 20, color: color),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(color: color, fontSize: 10),
+            ),
+          ],
         ),
+      ),
     );
   }
 
@@ -537,11 +526,12 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
         : null;
     return Row(
       children: [
-        if (percentage != null) ...[          Text(
+        if (percentage != null) ...[
+          Text(
             '$percentage% mastered',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.green.withAlpha(200),
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.green.withAlpha(200)),
           ),
           const SizedBox(width: 8),
           Text(
@@ -550,7 +540,8 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
               color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
             ),
           ),
-        ] else ...[          Text(
+        ] else ...[
+          Text(
             '${summary.totalReviewed} reviewed',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
@@ -561,9 +552,9 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
           const SizedBox(width: 8),
           Text(
             '\u00b7 ${summary.mastered} mastered',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.green.withAlpha(200),
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.green.withAlpha(200)),
           ),
         ],
         if (lastStudiedText != null) ...[
@@ -631,14 +622,14 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
     }
     if (mounted) {
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Deleted: ${deck.name}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Deleted: ${deck.name}')));
         await _loadDecks();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to delete deck')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Failed to delete deck')));
       }
     }
   }
@@ -716,10 +707,9 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withAlpha(100),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withAlpha(100),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: Theme.of(context).colorScheme.primary.withAlpha(50),
@@ -738,10 +728,9 @@ class _AnkiDeckSelectionPageState extends State<AnkiDeckSelectionPage> {
               const SizedBox(width: 8),
               Text(
                 'Anki Flashcard Decks',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),

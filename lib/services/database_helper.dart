@@ -12,6 +12,7 @@ import 'dart:math';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:jpn_learning_diary/models/diary_entry.dart';
+import 'package:jpn_learning_diary/models/diary_note.dart';
 import 'package:jpn_learning_diary/models/kanji_data.dart';
 import 'package:jpn_learning_diary/services/app_preferences.dart';
 import 'package:jpn_learning_diary/services/cloud_sync_service.dart';
@@ -86,7 +87,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -101,6 +102,17 @@ class DatabaseHelper {
         romaji TEXT NOT NULL,
         meaning TEXT NOT NULL,
         notes TEXT,
+        date_added INTEGER NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE diary_notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        content_japanese TEXT NOT NULL,
+        content_english TEXT NOT NULL,
+        tags TEXT,
         date_added INTEGER NOT NULL
       )
     ''');
@@ -136,6 +148,19 @@ class DatabaseHelper {
       // Drop old table and rename new one
       await db.execute('DROP TABLE diary_entries');
       await db.execute('ALTER TABLE diary_entries_new RENAME TO diary_entries');
+    }
+
+    if (oldVersion < 4) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS diary_notes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT NOT NULL,
+          content_japanese TEXT NOT NULL,
+          content_english TEXT NOT NULL,
+          tags TEXT,
+          date_added INTEGER NOT NULL
+        )
+      ''');
     }
   }
 
@@ -271,7 +296,8 @@ class DatabaseHelper {
     final db = await database;
     final results = await db.query(
       'diary_entries',
-      where: 'japanese LIKE ? OR romaji LIKE ? OR meaning LIKE ? OR notes LIKE ?',
+      where:
+          'japanese LIKE ? OR romaji LIKE ? OR meaning LIKE ? OR notes LIKE ?',
       whereArgs: ['%$query%', '%$query%', '%$query%', '%$query%'],
       orderBy: 'date_added DESC',
       limit: 50,
@@ -314,6 +340,71 @@ class DatabaseHelper {
   Future<int> deleteAllEntries() async {
     final db = await database;
     final rowsAffected = await db.delete('diary_entries');
+    await _syncAfterWrite();
+    return rowsAffected;
+  }
+
+  // --- Diary Notes CRUD ---
+
+  /// Creates a new diary note.
+  Future<DiaryNote> createNote(DiaryNote note) async {
+    final db = await database;
+    final id = await db.insert('diary_notes', note.toMap());
+    final result = note.copyWith(id: id);
+    await _syncAfterWrite();
+    return result;
+  }
+
+  /// Retrieves all diary notes.
+  Future<List<DiaryNote>> getAllNotes() async {
+    final db = await database;
+    final result = await db.query('diary_notes', orderBy: 'date_added DESC');
+    return result.map((json) => DiaryNote.fromMap(json)).toList();
+  }
+
+  /// Searches diary notes.
+  Future<List<DiaryNote>> searchNotes(String query) async {
+    final db = await database;
+    final results = await db.query(
+      'diary_notes',
+      where:
+          'title LIKE ? OR content_japanese LIKE ? OR content_english LIKE ? OR tags LIKE ?',
+      whereArgs: ['%$query%', '%$query%', '%$query%', '%$query%'],
+      orderBy: 'date_added DESC',
+      limit: 50,
+    );
+    return results.map((json) => DiaryNote.fromMap(json)).toList();
+  }
+
+  /// Updates an existing diary note.
+  Future<int> updateNote(DiaryNote note) async {
+    final db = await database;
+    final rowsAffected = await db.update(
+      'diary_notes',
+      note.toMap(),
+      where: 'id = ?',
+      whereArgs: [note.id],
+    );
+    await _syncAfterWrite();
+    return rowsAffected;
+  }
+
+  /// Deletes a diary note.
+  Future<int> deleteNote(int id) async {
+    final db = await database;
+    final rowsAffected = await db.delete(
+      'diary_notes',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    await _syncAfterWrite();
+    return rowsAffected;
+  }
+
+  /// Deletes all diary notes.
+  Future<int> deleteAllNotes() async {
+    final db = await database;
+    final rowsAffected = await db.delete('diary_notes');
     await _syncAfterWrite();
     return rowsAffected;
   }
@@ -425,7 +516,7 @@ class DatabaseHelper {
 
   /// Gets all unique kanji data for practice from those found in diary entries.
   ///
-  /// This method extracts all kanji characters that the user has encountered 
+  /// This method extracts all kanji characters that the user has encountered
   /// in their diary entries.
   Future<List<KanjiData>> getAllLearnedKanji() async {
     // Get all diary entries to extract kanji from

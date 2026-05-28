@@ -13,10 +13,7 @@ import 'package:jpn_learning_diary/models/katakana_data.dart';
 import 'package:jpn_learning_diary/screens/character_set_page.dart';
 
 /// Enum for the type of Kana character set.
-enum KanaType {
-  hiragana,
-  katakana,
-}
+enum KanaType { hiragana, katakana }
 
 /// A combined page for displaying Kana (Hiragana or Katakana) character sets.
 ///
@@ -34,20 +31,20 @@ class KanaPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isHiragana = type == KanaType.hiragana;
-    
+
     return CharacterSetPage(
       characterTypeName: isHiragana ? 'hiragana' : 'katakana',
-      baseCharacters: isHiragana 
-          ? HiraganaData.gridBaseCharacters 
+      baseCharacters: isHiragana
+          ? HiraganaData.gridBaseCharacters
           : KatakanaData.gridBaseCharacters,
-      dakutenCharacters: isHiragana 
-          ? HiraganaData.dakutenCharacters 
+      dakutenCharacters: isHiragana
+          ? HiraganaData.dakutenCharacters
           : KatakanaData.dakutenCharacters,
-      hanDakutenCharacters: isHiragana 
-          ? HiraganaData.handakutenCharacters 
+      hanDakutenCharacters: isHiragana
+          ? HiraganaData.handakutenCharacters
           : KatakanaData.handakutenCharacters,
-      combinations: isHiragana 
-          ? HiraganaData.combinations 
+      combinations: isHiragana
+          ? HiraganaData.combinations
           : KatakanaData.combinations,
       dakutenCombinations: isHiragana
           ? HiraganaData.dakutenCombinations

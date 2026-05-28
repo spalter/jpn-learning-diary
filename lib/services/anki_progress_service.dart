@@ -106,10 +106,8 @@ class DeckProgress {
   factory DeckProgress.fromJson(Map<String, dynamic> json) {
     final cardsJson = json['cards'] as Map<String, dynamic>? ?? {};
     final cards = cardsJson.map(
-      (key, value) => MapEntry(
-        key,
-        CardProgress.fromJson(value as Map<String, dynamic>),
-      ),
+      (key, value) =>
+          MapEntry(key, CardProgress.fromJson(value as Map<String, dynamic>)),
     );
     final lastStudied = json['lastStudied'] != null
         ? DateTime.tryParse(json['lastStudied'] as String)

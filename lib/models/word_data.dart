@@ -48,13 +48,13 @@ class WordData extends Equatable {
       if (grouped.containsKey(key)) {
         // Merge into existing entry
         final existing = grouped[key]!;
-        
+
         // Collect unique pronunciations
         final newPronunciations = [...existing.pronunciations];
         if (pronounced != null && !newPronunciations.contains(pronounced)) {
           newPronunciations.add(pronounced);
         }
-        
+
         // Collect unique meanings
         final newMeanings = [...existing.meanings];
         for (final meaning in meanings) {
@@ -62,7 +62,7 @@ class WordData extends Equatable {
             newMeanings.add(meaning);
           }
         }
-        
+
         // Collect unique priorities
         final newPriorities = [...existing.priorities];
         for (final priority in priorities) {
@@ -70,7 +70,7 @@ class WordData extends Equatable {
             newPriorities.add(priority);
           }
         }
-        
+
         grouped[key] = WordData(
           id: existing.id,
           written: existing.written,
@@ -122,16 +122,20 @@ class WordData extends Equatable {
 
   /// Whether this is a common word (has ichi1, news1, or spec1 priority).
   bool get isCommon {
-    return priorities.any(
-      (p) => p == 'ichi1' || p == 'news1' || p == 'spec1',
-    );
+    return priorities.any((p) => p == 'ichi1' || p == 'news1' || p == 'spec1');
   }
 
   /// Whether this word has any priority indicators.
   bool get hasPriority => priorities.isNotEmpty;
 
   @override
-  List<Object?> get props => [id, written, meanings, pronunciations, priorities];
+  List<Object?> get props => [
+    id,
+    written,
+    meanings,
+    pronunciations,
+    priorities,
+  ];
 
   @override
   bool get stringify => true;

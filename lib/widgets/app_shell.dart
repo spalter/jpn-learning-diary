@@ -48,7 +48,7 @@ enum AppPage {
   katakana,
   studyMode,
   dashboard,
-  settings
+  settings,
 }
 
 /// Internal state for [AppShell] managing navigation.
@@ -129,6 +129,7 @@ class _AppShellState extends State<AppShell> {
   Future<void> _showNewDiaryEntryDialog() async {
     final result = await showDialog<EditDiaryEntryResult>(
       context: context,
+      barrierDismissible: false,
       barrierColor: Theme.of(context).colorScheme.surface.withAlpha(200),
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
@@ -174,7 +175,8 @@ class _AppShellState extends State<AppShell> {
   /// Other pages retain standard padding.
   EdgeInsets _getPaddingForCurrentPage() {
     if (_isMobile) {
-      if (_currentPage == AppPage.hiragana || _currentPage == AppPage.katakana) {
+      if (_currentPage == AppPage.hiragana ||
+          _currentPage == AppPage.katakana) {
         return EdgeInsets.zero;
       }
       return const EdgeInsets.only(left: 16, top: 16, right: 0, bottom: 0);
@@ -232,8 +234,11 @@ class _AppShellState extends State<AppShell> {
           child: _buildCurrentPage(),
         ),
       ),
-      floatingActionButton: _currentPage != AppPage.settings && _currentPage != AppPage.dashboard && _currentPage != AppPage.studyMode
-          ? BirdFab(onEntryCreated: (_) => _refreshCurrentPage())
+      floatingActionButton:
+          _currentPage != AppPage.settings &&
+              _currentPage != AppPage.dashboard &&
+              _currentPage != AppPage.studyMode
+          ? BirdFab(onItemCreated: (_) => _refreshCurrentPage())
           : null,
     );
   }

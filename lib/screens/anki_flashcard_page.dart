@@ -159,9 +159,9 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
       await _audioPlayer.play(DeviceFileSource(audioPath));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to play audio: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to play audio: $e')));
       }
     }
   }
@@ -263,10 +263,9 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
             const SizedBox(height: 8),
             Text(
               'This deck does not contain any valid flashcards.',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyLarge
-                  ?.copyWith(color: Colors.grey[600]),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -377,12 +376,16 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: (controller.isFlipped
-                            ? Theme.of(context).colorScheme.secondary
-                            : Theme.of(context).colorScheme.primary)
-                        .withAlpha(25),
+                    color:
+                        (controller.isFlipped
+                                ? Theme.of(context).colorScheme.secondary
+                                : Theme.of(context).colorScheme.primary)
+                            .withAlpha(25),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -407,18 +410,17 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
               builder: (context) {
                 final text = controller.isFlipped
                     ? (controller.isCurrentCardReversed
-                        ? card.front
-                        : card.back)
+                          ? card.front
+                          : card.back)
                     : (controller.isCurrentCardReversed
-                        ? card.back
-                        : card.front);
+                          ? card.back
+                          : card.front);
                 if (text.isNotEmpty) {
                   return Text(
                     text,
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                     textAlign: TextAlign.left,
                   );
                 }
@@ -429,22 +431,18 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
                       Icon(
                         Icons.headphones,
                         size: 48,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withAlpha(120),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withAlpha(120),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Listen',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withAlpha(120),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withAlpha(120),
                               fontStyle: FontStyle.italic,
                             ),
                       ),
@@ -468,10 +466,9 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
                   child: Text(
                     field,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withAlpha(180),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withAlpha(180),
                     ),
                   ),
                 ),
@@ -484,10 +481,9 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
                 child: Text(
                   'Tap to reveal answer',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withAlpha(100),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withAlpha(100),
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -587,9 +583,7 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: Theme.of(context).colorScheme.primary,
-            ),
+            side: BorderSide(color: Theme.of(context).colorScheme.primary),
           ),
         ),
       ),
@@ -675,10 +669,7 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
           side: BorderSide(color: color.withAlpha(100)),
         ),
       ),
-      child: Text(
-        label,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
+      child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 
@@ -699,10 +690,9 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
             const SizedBox(height: 24),
             Text(
               'Session Complete!',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineLarge
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             Text(
@@ -740,10 +730,7 @@ class _AnkiFlashcardPageState extends State<AnkiFlashcardPage> {
   }
 
   /// Builds the rating summary showing counts per rating.
-  Widget _buildRatingSummary(
-    BuildContext context,
-    AnkiController controller,
-  ) {
+  Widget _buildRatingSummary(BuildContext context, AnkiController controller) {
     final againCount = controller.againCount;
     final hardCount = controller.hardCount;
     final goodCount = controller.goodCount;
@@ -828,7 +815,11 @@ class _AnkiImage extends StatefulWidget {
   final String fileName;
   final AnkiController controller;
 
-  const _AnkiImage({super.key, required this.fileName, required this.controller});
+  const _AnkiImage({
+    super.key,
+    required this.fileName,
+    required this.controller,
+  });
 
   @override
   State<_AnkiImage> createState() => _AnkiImageState();

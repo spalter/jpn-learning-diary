@@ -88,7 +88,7 @@ class ResponsiveGridView extends StatelessWidget {
   ///
   /// Based on the minimum card width, this determines the optimal number of
   /// columns that can fit while maintaining the specified aspect ratio.
-  /// 
+  ///
   /// This is a public static method so it can be reused in other contexts
   /// like SliverGrid layouts.
   static int calculateCrossAxisCount(
@@ -107,7 +107,8 @@ class ResponsiveGridView extends StatelessWidget {
 
     // Calculate how many cards can fit
     // Formula: (width + spacing) fits N cards, minus one spacing at the end
-    final int count = ((usableWidth + spacing) / (minCardWidth + spacing)).floor();
+    final int count = ((usableWidth + spacing) / (minCardWidth + spacing))
+        .floor();
 
     // Ensure at least 1 column
     return count < 1 ? 1 : count;
