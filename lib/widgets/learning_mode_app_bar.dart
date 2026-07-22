@@ -99,7 +99,7 @@ class LearningModeAppBar extends StatelessWidget
             ),
 
             // Custom action buttons
-            if (actions != null) ...actions!,
+            ...?actions,
 
             // Window control buttons
             ..._buildWindowControls(context),

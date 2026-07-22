@@ -28,7 +28,7 @@ Invoke-WebRequest -Uri "https://kanjiapi.dev/kanjiapi_full.zip" -OutFile "tools/
 Expand-Archive -Path "tools/kanjiapi_full.zip" -DestinationPath "tools" -Force
 
 Write-Host "Converting Kanji data to SQLite..." -ForegroundColor Green
-dart --packages=".dart_tool/package_config.json" tools/json_to_sqlite.dart tools/kanjiapi_full.json $dbPath
+dart run tools/json_to_sqlite.dart tools/kanjiapi_full.json $dbPath
 
 # Clean up Kanji files
 Remove-Item "tools/kanjiapi_full.zip"
@@ -53,7 +53,7 @@ $outputStream.Close()
 $inputStream.Close()
 
 Write-Host "Converting JMdict data to SQLite..." -ForegroundColor Green
-dart --packages=".dart_tool/package_config.json" tools/jmdict_to_sqlite.dart tools/JMdict_e $dbPath
+dart run tools/jmdict_to_sqlite.dart tools/JMdict_e $dbPath
 
 # Clean up JMdict files
 Remove-Item "tools/JMdict_e.gz"

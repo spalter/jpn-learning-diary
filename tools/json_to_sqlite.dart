@@ -7,7 +7,7 @@ import 'package:sqlite3/sqlite3.dart';
 
 /// Converts a JSON file with kanjis, readings, and words to a SQLite database.
 ///
-/// Usage: dart run tool/json_to_sqlite.dart input.json output.db
+/// Usage: dart run tools/json_to_sqlite.dart input.json output.db
 ///
 /// Expected JSON format:
 /// {
@@ -18,7 +18,7 @@ import 'package:sqlite3/sqlite3.dart';
 
 void main(List<String> args) {
   if (args.length < 2) {
-    print('Usage: dart run tool/json_to_sqlite.dart input.json output.db');
+    print('Usage: dart run tools/json_to_sqlite.dart input.json output.db');
     print('');
     print('Arguments:');
     print('  input.json   - Path to the input JSON file');
